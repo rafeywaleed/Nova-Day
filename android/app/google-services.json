@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "840564024538",
+    "project_id": "hundred-days-beee0",
+    "storage_bucket": "hundred-days-beee0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840564024538:android:6997243c4a153ab09071e3",
+        "android_client_info": {
+          "package_name": "com.hundred_days.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAACPVp6NJTgk-STqr9RW2v9qaHv3J_g8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
