@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
+import 'package:iconly/iconly.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
@@ -20,9 +21,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String? userEmail;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
+  int selectedIndex = 0; // Track selected index for NavigationRail
 
   @override
   void initState() {
+    selectedIndex = 0;
     super.initState();
     loadUserEmail();
     loadDailyTasks();
@@ -39,24 +42,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadDailyTasks() async {
-    String? userEmail =
-        auth.currentUser?.email; // Use userEmail instead of userId
+    String? userEmail = auth.currentUser?.email;
     if (userEmail != null) {
       DocumentReference userTasksDoc =
           firestore.collection('dailyTasks').doc(userEmail);
       DocumentSnapshot snapshot = await userTasksDoc.get();
 
       if (snapshot.exists) {
-        // Debugging: Print the snapshot data
         print("Snapshot data: ${snapshot.data()}");
-
-        // Cast snapshot data to a Map<String, dynamic>
         var data = snapshot.data() as Map<String, dynamic>;
         var tasksData = data['tasks'];
 
         if (tasksData is List) {
           setState(() {
-            // Create dailyTasks with task strings and set completed to false
             dailyTasks = tasksData
                 .map((task) => {'task': task, 'completed': false})
                 .toList();
@@ -78,11 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
       String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
       DocumentReference taskRecordDoc = firestore
           .collection('taskRecord')
-          .doc(userEmail) // Use userEmail directly
+          .doc(userEmail)
           .collection('records')
           .doc(today);
 
-      // Create a list of tasks with their statuses
       List<Map<String, dynamic>> taskProgress = dailyTasks
           .map((task) => {
                 'task': task['task'],
@@ -112,9 +109,9 @@ class _HomeScreenState extends State<HomeScreen> {
     Duration timeUntilMidnight = tomorrow.difference(now);
 
     Future.delayed(timeUntilMidnight, () async {
-      await saveProgress(); // Save progress at the end of the day
-      await loadDailyTasks(); // Fetch new daily tasks
-      checkForNewDay(); // Check again for the next day
+      await saveProgress();
+      await loadDailyTasks();
+      checkForNewDay();
     });
   }
 
@@ -127,172 +124,208 @@ class _HomeScreenState extends State<HomeScreen> {
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
     return Scaffold(
-      body: Row(
+      body: Stack(
         children: [
-          NavigationRail(
-            minWidth: MediaQuery.of(context).size.width * 0.15,
-            groupAlignment: 0,
-            backgroundColor:
-                const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
-            selectedIndex: 0,
-            onDestinationSelected: (int index) {
-              if (index == 1) {
-                // Navigate to Record Screen
-              } else if (index == 2) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UserSettingsPage()),
-                );
-              }
-            },
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.home),
-                label: Text('Home'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.assessment),
-                label: Text('Record'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings),
-                label: Text('Settings'),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(2.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                  FadeInDown(
-                    delay: const Duration(milliseconds: 500),
-                    duration: const Duration(milliseconds: 1000),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                            color: Colors.grey,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                        color: Colors.white,
+          Row(
+            children: [
+              NavigationRail(
+                useIndicator: false,
+                indicatorShape: Border.all(width: 20),
+                indicatorColor: Colors.transparent,
+                //  minWidth: MediaQuery.of(context).size.width * 0.15,
+                minWidth: 15.w,
+                groupAlignment: 0,
+                backgroundColor:
+                    const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (int index) {
+                  setState(() {
+                    selectedIndex =
+                        index; // Update selectedIndex based on user selection
+                  });
+                  // Navigate based on the selected index
+                  if (index == 2) {
+                    // If settings is selected
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const UserSettingsPage(),
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.all(3.w),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '$daysLeft',
-                                  style: TextStyle(
-                                    fontFamily: 'Manrope',
-                                    fontSize: 7.w,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  'days left for new year',
-                                  style: TextStyle(
-                                    fontFamily: 'Manrope',
-                                    fontSize: 3.w,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            CircularPercentIndicator(
-                              radius: 10.w,
-                              lineWidth: 8.0,
-                              percent: taskCompletion,
-                              center: Text(
-                                "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                                style: TextStyle(
-                                  fontSize: 5.w,
-                                  color: Colors.blue,
-                                  fontFamily: 'Manrope',
-                                ),
-                              ),
-                              progressColor: Colors.blue,
-                              backgroundColor: Colors.grey[300]!,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    ).then((_) {
+                      // After returning from settings, set selectedIndex back to home (0)
+                      setState(() {
+                        selectedIndex = 0;
+                      });
+                    });
+                  }
+                },
+                destinations: [
+                  NavigationRailDestination(
+                    icon: selectedIndex == 0
+                        ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
+                        : Icon(IconlyBroken.home, size: 9.w),
+                    label: Text('Home'),
                   ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    "Daily Tasks:\n",
-                    style: TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 5.w,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
+                  NavigationRailDestination(
+                    icon: selectedIndex == 1
+                        ? Icon(IconlyLight.graph,
+                            color: Colors.blue, size: 12.w)
+                        : Icon(IconlyBroken.graph, size: 9.w),
+                    label: Text('Record'),
                   ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: dailyTasks.length,
-                      itemBuilder: (context, index) {
-                        return TaskCard(
-                          task: dailyTasks[index],
-                          onDismissed: () {
-                            setState(() {
-                              dailyTasks.removeAt(index);
-                            });
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              dailyTasks[index]['completed'] = value!;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  Text(
-                    "Additional Tasks:\n",
-                    style: TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 5.w,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: additionalTasks.length,
-                      itemBuilder: (context, index) {
-                        return TaskCard(
-                          task: additionalTasks[index],
-                          onDismissed: () {
-                            setState(() {
-                              additionalTasks.removeAt(index);
-                            });
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              additionalTasks[index]['completed'] = value!;
-                            });
-                          },
-                        );
-                      },
-                    ),
+                  NavigationRailDestination(
+                    icon: selectedIndex == 2
+                        ? Icon(IconlyLight.setting,
+                            color: Colors.blue, size: 12.w)
+                        : Icon(IconlyBroken.setting, size: 9.w),
+                    label: Text('Settings'),
                   ),
                 ],
               ),
-            ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(2.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 8.0), // Decreased space below
+                        child: FadeInDown(
+                          delay: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 1000),
+                          child: Container(
+                            height: 15.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  blurRadius: 10,
+                                  spreadRadius: 1,
+                                  color: Colors.grey,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                              color: Colors.white,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(5.w),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        '$daysLeft',
+                                        style: TextStyle(
+                                          fontFamily: 'Manrope',
+                                          fontSize: 7.w,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                      Text(
+                                        'days left for new year',
+                                        style: TextStyle(
+                                          fontFamily: 'Manrope',
+                                          fontSize: 3.w,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  CircularPercentIndicator(
+                                    radius: 10.w,
+                                    lineWidth: 8.0,
+                                    percent: taskCompletion,
+                                    center: Text(
+                                      "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                                      style: TextStyle(
+                                        fontSize: 5.w,
+                                        color: Colors.blue,
+                                        fontFamily: 'Manrope',
+                                      ),
+                                    ),
+                                    progressColor: Colors.blue,
+                                    backgroundColor: Colors.grey[300]!,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10), // Added space for SizedBox
+                      Text(
+                        "Daily Tasks:",
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 5.w,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: dailyTasks.length,
+                          itemBuilder: (context, index) {
+                            return TaskCard(
+                              task: dailyTasks[index],
+                              onDismissed: () {
+                                setState(() {
+                                  dailyTasks.removeAt(index);
+                                });
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  dailyTasks[index]['completed'] = value!;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 2.h), // Decreased space below
+                      Text(
+                        "Additional Tasks:",
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 5.w,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: additionalTasks.length,
+                          itemBuilder: (context, index) {
+                            return TaskCard(
+                              task: additionalTasks[index],
+                              onDismissed: () {
+                                setState(() {
+                                  additionalTasks.removeAt(index);
+                                });
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  additionalTasks[index]['completed'] = value!;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

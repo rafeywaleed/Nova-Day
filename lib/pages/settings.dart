@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hundred_days/add_tasks.dart';
-import 'package:hundred_days/auth/firebase_fun.dart';
-import 'package:hundred_days/auth/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sizer/sizer.dart';
+import 'navigation_rail.dart'; // Import the Navigation Rail widget
 
 class UserSettingsPage extends StatefulWidget {
   const UserSettingsPage({super.key});
@@ -14,8 +13,8 @@ class UserSettingsPage extends StatefulWidget {
 
 class _UserSettingsPageState extends State<UserSettingsPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  final FirebaseService _firebaseService = FirebaseService();
   String? joinDate;
+  int selectedIndex = 2; // Set to settings page index
 
   @override
   void initState() {
@@ -43,63 +42,75 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: Text('User Settings', style: TextStyle(color: Colors.white)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSection('Edit Tasks', 'Modify your daily tasks effortlessly.',
-                () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddTasks(input: 1),
-                ),
-              );
-            }),
-            _buildSection('Profile', 'Update your name and password as needed.',
-                () {
-              Navigator.of(context).pushNamed('/profile');
-            }),
-            _buildSection(
-                'Contact', 'Reach out for suggestions or to report issues.',
-                () {
-              Navigator.of(context).pushNamed('/contact');
-            }),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: () => _logout(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: Text(
-                'Log Out',
-                style: TextStyle(color: Colors.white),
+      //backgroundColor: Colors.white,
+      body: Row(
+        children: [
+          NavigationRailWidget(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) {
+              // Handle navigation
+              if (index != 2) {
+                Navigator.pop(
+                    context); // Close settings if another item is selected
+                // You might want to navigate to other screens based on index
+                // For example:
+                // Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+              }
+            },
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  Text('User Settings',
+                      style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 30,
+                          fontFamily: 'Santoshi')),
+                  _buildSection(
+                      'Edit Tasks', 'Modify your daily tasks effortlessly.',
+                      () {
+                    // Navigate to AddTasks
+                  }),
+                  _buildSection(
+                      'Profile', 'Update your name and password as needed.',
+                      () {
+                    // Navigate to Profile
+                  }),
+                  _buildSection('Contact',
+                      'Reach out for suggestions or to report issues at a.rafeywaleeda5@gmail.com', () {
+                    // Navigate to Contact
+                  }),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: () => _logout(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child:
+                        Text('Log Out', style: TextStyle(color: Colors.white)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Joined on: ${joinDate ?? "Loading..."}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: const Color.fromARGB(255, 121, 121, 121),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'Joined on: ${joinDate ?? "Loading..."}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 121, 121, 121),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -110,7 +121,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
         padding: const EdgeInsets.all(16),
-        width: double.infinity, // Ensure full width
+        width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -147,16 +158,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   }
 
   Future<void> _logout() async {
-    try {
-      await _firebaseService.signOut();
-      Navigator.popUntil(context, (route) => route.isFirst);
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
-    } catch (e) {
-      // Handle sign-out errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing out: ${e.toString()}')),
-      );
-    }
+    // Logout logic here
   }
 }
