@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hundred_days/add_tasks.dart';
 import 'package:sizer/sizer.dart';
 import 'navigation_rail.dart'; // Import the Navigation Rail widget
 
@@ -74,7 +75,10 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   _buildSection(
                       'Edit Tasks', 'Modify your daily tasks effortlessly.',
                       () {
-                    // Navigate to AddTasks
+                     Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddTasks(input: 1)),
+                  );
                   }),
                   _buildSection(
                       'Profile', 'Update your name and password as needed.',

@@ -56,7 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
         if (tasksData is List) {
           setState(() {
             dailyTasks = tasksData
-                .map((task) => {'task': task, 'completed': false})
+                .map((task) => {
+                      'task': task['task'],
+                      'completed':
+                          task['status'] == 'completed', // Update this line
+                    })
                 .toList();
           });
         } else {
@@ -285,6 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onChanged: (value) {
                                 setState(() {
                                   dailyTasks[index]['completed'] = value!;
+                                  saveProgress();
                                 });
                               },
                             );

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive/hive.dart';
@@ -28,7 +29,17 @@ class HundredDays extends StatelessWidget {
     return Sizer(
       builder: (context, orientation, deviceType) => MaterialApp(
         theme: ThemeData(fontFamily: 'Manrope'),
-        home: const WelcomePage(), // Adjust the home page as needed
+        home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return HomeScreen();
+            //BoxEx();
+          } else {
+            return const WelcomePage();
+          }
+        },
+      ), // Adjust the home page as needed
       ),
     );
   }
