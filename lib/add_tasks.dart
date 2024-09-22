@@ -1,8 +1,9 @@
-import 'package:animate_do/animate_do.dart';
+import 'package:animate_do/animate_do.dart'; // For animations
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/homescreen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart'; // For formatting dates
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddTasks extends StatefulWidget {
   final int input;
@@ -13,45 +14,31 @@ class AddTasks extends StatefulWidget {
 }
 
 class _AddTasksState extends State<AddTasks> {
-  List<String> dailyTasks = [];
+  List<String> currentDailyTasks = [];
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
-  Future<String?> retrieveEmail() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? email = prefs.getString('userEmail');
-    print('Email retrieved: $email');
-    return email;
-  }
-
-  // Save tasks to Firestore
   Future<void> saveDailyTasksToFirestore(List<String> tasks) async {
     try {
-      // SharedPreferences prefs = await SharedPreferences.getInstance();
-      // String? userEmail = prefs.getString('userEmail');
-
-      String userEmail = 'a.rafeywaleeda5@gmail.com';
-
+      String? userEmail =
+          auth.currentUser?.email; // Use the current user's email
       if (userEmail != null) {
         DocumentReference userTasksDoc =
             firestore.collection('dailyTasks').doc(userEmail);
 
-        // Replace existing tasks with the new list
+        // Save currentDailyTasks in Firestore
         await userTasksDoc.set({'tasks': tasks});
-        print('Tasks saved: $tasks'); // Debugging print
+        print('Current daily tasks saved: $tasks');
       }
     } catch (e) {
       print("Error saving tasks to Firestore: $e");
     }
   }
 
-  // Fetch tasks from Firestore
   Future<void> fetchDailyTasksFromFirestore() async {
     try {
-      // SharedPreferences prefs = await SharedPreferences.getInstance();
-      // String? userEmail = prefs.getString('userEmail');
-      String userEmail = 'a.rafeywaleeda5@gmail.com';
-
+      String? userEmail = auth.currentUser?.email;
       if (userEmail != null) {
         DocumentReference userTasksDoc =
             firestore.collection('dailyTasks').doc(userEmail);
@@ -60,15 +47,53 @@ class _AddTasksState extends State<AddTasks> {
         if (snapshot.exists) {
           List<dynamic> fetchedTasks = snapshot['tasks'] ?? [];
           setState(() {
-            dailyTasks = List<String>.from(fetchedTasks);
+            currentDailyTasks = List<String>.from(fetchedTasks);
           });
-          print('Tasks fetched: $dailyTasks'); // Debugging print
+          print('Tasks fetched: $currentDailyTasks');
         } else {
           print('No tasks found for user: $userEmail');
         }
       }
     } catch (e) {
       print("Error fetching tasks from Firestore: $e");
+    }
+  }
+
+  Future<void> saveTaskRecordToFirestore() async {
+    try {
+      String? userEmail = auth.currentUser?.email;
+      if (userEmail != null) {
+        String today = DateFormat('dd/MM/yyyy').format(DateTime.now());
+        DocumentReference taskRecordDoc = firestore
+            .collection('tasksRecord')
+            .doc(userEmail)
+            .collection('records')
+            .doc(today);
+
+        // Prepare task data
+        List<Map<String, dynamic>> taskData = currentDailyTasks.map((task) {
+          return {
+            'task': task,
+            'status':
+                'incomplete' // You can update this later based on task completion
+          };
+        }).toList();
+
+        // Calculate the overall completion percentage (dummy calculation here)
+        int completedTasks =
+            taskData.where((task) => task['status'] == 'completed').length;
+        double overallCompletion =
+            (completedTasks / currentDailyTasks.length) * 100;
+
+        await taskRecordDoc.set({
+          'tasks': taskData,
+          'overallCompletion': '$completedTasks/${currentDailyTasks.length}',
+          'date': today
+        });
+        print('Task record saved for $today');
+      }
+    } catch (e) {
+      print("Error saving task record to Firestore: $e");
     }
   }
 
@@ -193,12 +218,16 @@ class _AddTasksState extends State<AddTasks> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                       onPressed: () {
-                                        setState(() {
-                                          dailyTasks.add(_controller.text);
-                                          saveDailyTasksToFirestore(dailyTasks);
-                                        });
-                                        _controller.clear();
-                                        Navigator.of(context).pop();
+                                        if (_controller.text.isNotEmpty) {
+                                          setState(() {
+                                            currentDailyTasks
+                                                .add(_controller.text);
+                                            saveDailyTasksToFirestore(
+                                                currentDailyTasks);
+                                          });
+                                          _controller.clear();
+                                          Navigator.of(context).pop();
+                                        }
                                       },
                                       child: const Text('Save'),
                                     ),
@@ -218,18 +247,18 @@ class _AddTasksState extends State<AddTasks> {
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: dailyTasks.length,
+                itemCount: currentDailyTasks.length,
                 itemBuilder: (context, index) {
                   return FadeInUp(
-                    duration: const Duration(milliseconds: 300),
+                    // Adding animation
+                    duration: const Duration(milliseconds: 800),
                     child: Dismissible(
-                      key: Key(dailyTasks[index]),
+                      key: Key(currentDailyTasks[index]),
                       direction: DismissDirection.startToEnd,
                       onDismissed: (direction) {
                         setState(() {
-                          dailyTasks.removeAt(index);
-                          saveDailyTasksToFirestore(
-                              dailyTasks); // Update tasks when deleted
+                          currentDailyTasks.removeAt(index);
+                          saveDailyTasksToFirestore(currentDailyTasks);
                         });
                       },
                       background: Container(
@@ -245,7 +274,7 @@ class _AddTasksState extends State<AddTasks> {
                         ),
                         child: ListTile(
                           title: Text(
-                            dailyTasks[index],
+                            currentDailyTasks[index],
                             style: const TextStyle(
                                 fontFamily: 'Manrope', fontSize: 16),
                           ),
@@ -272,23 +301,14 @@ class _AddTasksState extends State<AddTasks> {
                       fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  retrieveEmail();
+                  saveTaskRecordToFirestore(); // Save the task record for today
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => HomeScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => HomeScreen()),
                   );
                 },
                 child: const Text('Finish'),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "Click on the '+' icon to add new tasks, and swipe the tasks to the right to delete them.",
-              style: TextStyle(
-                  fontFamily: 'Manrope', fontSize: 14, color: Colors.grey),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

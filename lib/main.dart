@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hundred_days/add_tasks.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
@@ -11,7 +12,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  runApp(HundredDays());
+  // Initialize Hive with encryption
+  final encryptionKey = Hive.generateSecureKey(); // Generate a secure key
+  await Hive.initFlutter();
+  await Hive.openBox('userBox', encryptionCipher: HiveAesCipher(encryptionKey));
+
+  runApp(const HundredDays());
 }
 
 class HundredDays extends StatelessWidget {
@@ -22,7 +28,7 @@ class HundredDays extends StatelessWidget {
     return Sizer(
       builder: (context, orientation, deviceType) => MaterialApp(
         theme: ThemeData(fontFamily: 'Manrope'),
-        home: WelcomePage()
+        home: const WelcomePage(), // Adjust the home page as needed
       ),
     );
   }
