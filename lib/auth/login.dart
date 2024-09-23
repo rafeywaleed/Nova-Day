@@ -5,6 +5,7 @@ import 'package:hundred_days/add_tasks.dart';
 import 'package:sizer/sizer.dart';
 import 'package:hundred_days/auth/signup.dart';
 import 'package:iconly/iconly.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -45,9 +46,7 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Handle successful login
       _showFloatingSnackbar('Successfully logged in!');
-      // Navigate to the home screen after a delay
       Future.delayed(const Duration(seconds: 1), () {
         Navigator.push(
           context,
@@ -77,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           errorMessage,
-          style: TextStyle(
+          style: GoogleFonts.plusJakartaSans(
             color: Colors.white,
           ),
         ),
@@ -92,7 +91,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showFloatingSnackbar(String message) {
     final snackBar = SnackBar(
-      content: Text(message),
+      content: Text(
+        message,
+        style: GoogleFonts.plusJakartaSans(),
+      ),
       duration: const Duration(seconds: 1),
       behavior: SnackBarBehavior.floating,
       backgroundColor: Colors.green,
@@ -105,7 +107,8 @@ class _LoginPageState extends State<LoginPage> {
       try {
         await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Password reset link sent to your email'),
+          content: Text('Password reset link sent to your email',
+              style: GoogleFonts.plusJakartaSans()),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -114,7 +117,8 @@ class _LoginPageState extends State<LoginPage> {
         ));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text('Error: ${e.toString()}',
+              style: GoogleFonts.plusJakartaSans()),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -126,9 +130,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           'Please enter your email.',
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: GoogleFonts.plusJakartaSans(color: Colors.white),
         ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
@@ -171,11 +173,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 2.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 800),
-                      duration: const Duration(milliseconds: 900),
-                      child: const Text(
+                      delay: const Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 600),
+                      child: Text(
                         'Let\'s Sign You In',
-                        style: TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 25,
                           fontWeight: FontWeight.w600,
                         ),
@@ -183,11 +185,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 1.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 700),
-                      duration: const Duration(milliseconds: 800),
-                      child: const Text(
+                      delay: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 500),
+                      child: Text(
                         'Welcome Back.',
-                        style: TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 25,
                           fontWeight: FontWeight.w400,
                         ),
@@ -195,19 +197,19 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 5.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 700),
-                      duration: const Duration(milliseconds: 800),
-                      child: const Text(
+                      delay: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 500),
+                      child: Text(
                         'Email',
-                        style: TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 600),
-                      duration: const Duration(milliseconds: 700),
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
                       child: Container(
                         margin: EdgeInsets.symmetric(vertical: 0.8.h),
                         padding: EdgeInsets.symmetric(
@@ -222,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
                           boxShadow: [
                             if (isFocusedEmail)
                               BoxShadow(
-                                color: const Color(0xFF835DF1).withOpacity(0.3),
+                                color: Colors.blue.withOpacity(0.3),
                                 blurRadius: 4.0,
                                 spreadRadius: 2.0,
                               ),
@@ -230,10 +232,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: TextField(
                           controller: _emailController,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                          decoration: const InputDecoration(
+                          style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w500),
+                          decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Email',
+                            hintStyle: GoogleFonts.plusJakartaSans(),
                           ),
                           focusNode: focusNodeEmail,
                         ),
@@ -241,19 +245,19 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 2.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 500),
-                      duration: const Duration(milliseconds: 600),
-                      child: const Text(
+                      delay: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 300),
+                      child: Text(
                         'Password',
-                        style: TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 400),
-                      duration: const Duration(milliseconds: 500),
+                      delay: const Duration(milliseconds: 100),
+                      duration: const Duration(milliseconds: 200),
                       child: Container(
                         margin: EdgeInsets.symmetric(vertical: 0.8.h),
                         padding: EdgeInsets.symmetric(
@@ -268,7 +272,7 @@ class _LoginPageState extends State<LoginPage> {
                           boxShadow: [
                             if (isFocusedPassword)
                               BoxShadow(
-                                color: const Color(0xFF835DF1).withOpacity(0.3),
+                                color: Colors.blue.withOpacity(0.3),
                                 blurRadius: 4.0,
                                 spreadRadius: 2.0,
                               ),
@@ -276,7 +280,8 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: TextField(
                           controller: _passwordController,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
+                          style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w500),
                           obscureText: !showPassword,
                           decoration: InputDecoration(
                             suffixIcon: IconButton(
@@ -295,6 +300,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Password',
+                            hintStyle: GoogleFonts.plusJakartaSans(),
                           ),
                           focusNode: focusNodePassword,
                         ),
@@ -302,8 +308,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 5.h),
                     FadeInUp(
-                      delay: const Duration(milliseconds: 600),
-                      duration: const Duration(milliseconds: 700),
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
                       child: Row(
                         children: [
                           Expanded(
@@ -313,12 +319,11 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
-                                textStyle: const TextStyle(
+                                textStyle: GoogleFonts.plusJakartaSans(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  fontFamily: 'Satoshi',
                                 ),
-                                backgroundColor: const Color(0xFF835DF1),
+                                backgroundColor: Colors.blue,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -331,14 +336,14 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     FadeInUp(
-                      delay: const Duration(milliseconds: 800),
-                      duration: const Duration(milliseconds: 900),
+                      delay: const Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 600),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Don\'t have an account?',
-                            style: TextStyle(
+                            style: GoogleFonts.plusJakartaSans(
                               color: Colors.grey,
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -353,10 +358,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               );
                             },
-                            child: const Text(
+                            child: Text(
                               'Register',
-                              style: TextStyle(
-                                color: Color(0xFF835DF1),
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.blue,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -367,15 +372,15 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 2.h),
                     FadeInUp(
-                      delay: const Duration(milliseconds: 900),
-                      duration: const Duration(milliseconds: 1000),
+                      delay: const Duration(milliseconds: 600),
+                      duration: const Duration(milliseconds: 700),
                       child: Center(
                         child: TextButton(
                           onPressed: _resetPassword,
-                          child: const Text(
+                          child: Text(
                             'Forgot Password?',
-                            style: TextStyle(
-                              color: Color(0xFF835DF1),
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.blue,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),

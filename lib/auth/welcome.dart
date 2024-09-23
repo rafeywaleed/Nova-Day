@@ -1,10 +1,9 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/signup.dart';
 import 'package:sizer/sizer.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -18,139 +17,152 @@ class _WelcomePageState extends State<WelcomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-          child: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            FadeInDown(
-              delay: const Duration(milliseconds: 800),
-              duration: const Duration(milliseconds: 800),
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    'assets/images/loginImage.png',
-                    width: 100.w,
-                    height: 50.h,
-                    fit: BoxFit.cover,
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              SizedBox(height: 10.h,),
+              FadeInDown(
+                delay: const Duration(milliseconds: 800),
+                duration: const Duration(milliseconds: 800),
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/dart.png',
+                      width: 100.w,
+                      height: 45.h,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            ),
-            Container(
-              decoration: BoxDecoration(color: Colors.white),
-              padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 1.6.w),
-                    child: Column(
+              Container(
+                decoration: BoxDecoration(color: Colors.white),
+                padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 1.6.w),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           FadeInUp(
                             delay: const Duration(milliseconds: 700),
                             duration: const Duration(milliseconds: 800),
                             child: Text(
-                              'Industrial 4.0 Task Manager App',
+                              'Hundred Days',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 25.sp, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 25.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          SizedBox(
-                            height: 1.h,
-                          ),
+                          SizedBox(height: 1.h),
                           FadeInUp(
                             delay: const Duration(milliseconds: 900),
                             duration: const Duration(milliseconds: 1000),
                             child: Text(
-                              'Lorem ipsum dolor sit amet ameer consectetur adipiscing elit',
+                              'Lets fix ourselves',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 15.sp, fontWeight: FontWeight.w400),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ),
-                        ]),
-                  ),
-                  SizedBox(
-                    height: 4.h,
-                  ),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 1000),
-                    duration: const Duration(milliseconds: 1100),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 1000),
+                      duration: const Duration(milliseconds: 1100),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => LoginPage(),
-                                  ));
-                            },
-                            child: FadeInUp(
+                                  ),
+                                );
+                              },
+                              child: FadeInUp(
                                 delay: const Duration(milliseconds: 0),
                                 duration: const Duration(milliseconds: 0),
-                                child: Text('Sign In',style: TextStyle(color: Colors.white),)),
-                            style: ElevatedButton.styleFrom(
+                                child: Text(
+                                  'Sign In',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
                                 elevation: 0,
-                                textStyle: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: 'Satoshi'),
-                                backgroundColor: Color(0xFF835DF1),
+                                textStyle: GoogleFonts.plusJakartaSans(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                backgroundColor: Colors.blue,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                padding: EdgeInsets.symmetric(vertical: 16)),
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                              ),
+                            ),
                           ),
-                        )
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 1100),
-                    duration: const Duration(milliseconds: 1200),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Don\'t have an account?',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 1100),
+                      duration: const Duration(milliseconds: 1200),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Don\'t have an account?',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.grey,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        TextButton(
+                          TextButton(
                             onPressed: () {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SignUpPage(),
-                                  ));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignUpPage(),
+                                ),
+                              );
                             },
-                            child: const Text(
+                            child: Text(
                               'Register',
-                              style: TextStyle(
-                                color: Color(0xFF835DF1),
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.blue,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                               ),
-                            ))
-                      ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                ],
+                  ],
+                ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }

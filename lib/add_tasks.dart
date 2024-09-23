@@ -2,6 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/homescreen.dart';
+import 'package:hundred_days/pages/intro_screens.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,7 +25,8 @@ class _AddTasksState extends State<AddTasks> {
     try {
       String? userEmail = auth.currentUser?.email;
       if (userEmail != null) {
-        DocumentReference userTasksDoc = firestore.collection('dailyTasks').doc(userEmail);
+        DocumentReference userTasksDoc =
+            firestore.collection('dailyTasks').doc(userEmail);
         await userTasksDoc.set({'tasks': tasks});
         print('Current daily tasks saved: $tasks');
       }
@@ -37,7 +39,8 @@ class _AddTasksState extends State<AddTasks> {
     try {
       String? userEmail = auth.currentUser?.email;
       if (userEmail != null) {
-        DocumentReference userTasksDoc = firestore.collection('dailyTasks').doc(userEmail);
+        DocumentReference userTasksDoc =
+            firestore.collection('dailyTasks').doc(userEmail);
         DocumentSnapshot snapshot = await userTasksDoc.get();
 
         if (snapshot.exists) {
@@ -72,7 +75,8 @@ class _AddTasksState extends State<AddTasks> {
 
         await taskRecordDoc.set({
           'tasks': taskData,
-          'overallCompletion': '${taskData.where((task) => task['status'] == 'completed').length}/${currentDailyTasks.length}',
+          'overallCompletion':
+              '${taskData.where((task) => task['status'] == 'completed').length}/${currentDailyTasks.length}',
           'date': today
         });
         print('Task record saved for $today');
@@ -90,7 +94,8 @@ class _AddTasksState extends State<AddTasks> {
 
   @override
   Widget build(BuildContext context) {
-    String username = auth.currentUser?.displayName ?? 'User'; // Get the username
+    String username =
+        auth.currentUser?.displayName ?? 'User'; // Get the username
 
     return Scaffold(
       appBar: widget.input == 0
@@ -129,6 +134,16 @@ class _AddTasksState extends State<AddTasks> {
                 color: Colors.grey,
               ),
             ),
+            // Text(
+            //   "Note: The list you finish with will be your daily renewing tasks. Deleting daily tasks from the home screen will remove that task for the day only and will not affect your daily tasks, which will be renewed.",
+            //   style: GoogleFonts.plusJakartaSans(color: Colors.grey),
+            // ),
+            // widget.input == 0
+            //     ? Text(
+            //         "Note: These daily tasks will be renewed every day, and your progress will be recorded for daily tasks. Your additional tasks are simply your to-do tasks for the day and will not be tracked for progress. You can add additional tasks by tapping the [+] button on the home screen and delete additional tasks by swiping them to the right.",
+            //         style: GoogleFonts.plusJakartaSans(color: Colors.grey),
+            //       )
+            //     : Text(''),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -171,14 +186,16 @@ class _AddTasksState extends State<AddTasks> {
                                 ),
                                 const SizedBox(height: 20),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.grey,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                       ),
                                       onPressed: () {
@@ -191,14 +208,17 @@ class _AddTasksState extends State<AddTasks> {
                                         backgroundColor: Colors.blue,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                       ),
                                       onPressed: () {
                                         if (_controller.text.isNotEmpty) {
                                           setState(() {
-                                            currentDailyTasks.add(_controller.text);
-                                            saveDailyTasksToFirestore(currentDailyTasks);
+                                            currentDailyTasks
+                                                .add(_controller.text);
+                                            saveDailyTasksToFirestore(
+                                                currentDailyTasks);
                                           });
                                           _controller.clear();
                                           Navigator.of(context).pop();
@@ -273,10 +293,15 @@ class _AddTasksState extends State<AddTasks> {
                 ),
                 onPressed: () {
                   saveTaskRecordToFirestore();
+                  //widget.input == 0 ? 
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                      // : Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(builder: (context) => IntroScreen(input: 1,)),
+                      //   );
                 },
                 child: const Text('Finish'),
               ),
@@ -284,7 +309,8 @@ class _AddTasksState extends State<AddTasks> {
             const SizedBox(height: 16),
             Text(
               'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.grey),
+              style:
+                  GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),

@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     loadUserEmail();
     loadDailyTasks();
     checkForNewDay();
+    checkIfNewDay();
   }
 
   Future<void> loadUserEmail() async {
@@ -96,6 +97,24 @@ class _HomeScreenState extends State<HomeScreen> {
         'overallCompletion': '$completedTasks/$totalTasks',
         'date': today,
       });
+    }
+  }
+
+  void checkIfNewDay() async {
+    String? userId = auth.currentUser?.uid;
+    if (userId != null) {
+      String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      DocumentReference taskRecordDoc = firestore
+          .collection('taskRecord')
+          .doc(userEmail)
+          .collection('records')
+          .doc(today);
+
+      DocumentSnapshot snapshot = await taskRecordDoc.get();
+      if (!snapshot.exists) {
+        await saveProgress(); // Save progress if new day
+        await loadDailyTasks(); // Load new tasks
+      }
     }
   }
 

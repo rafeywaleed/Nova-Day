@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/auth/welcome.dart';
+import 'package:hundred_days/pages/intro_screens.dart';
 import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
@@ -34,7 +35,8 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       setState(() {
         joinDate = (doc.data() as Map<String, dynamic>)['createdAt']
                 ?.toDate()
-                .toString() ?? 'N/A';
+                .toString() ??
+            'N/A';
       });
     }
   }
@@ -79,6 +81,16 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               'Reach out for suggestions or to report issues at a.rafeywaleeda5@gmail.com',
               () {
                 // Navigate to Contact
+              },
+            ),
+            _buildSection(
+              'Guide',
+              '',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => IntroScreen(input: 1,)),
+                );
               },
             ),
             const Spacer(),

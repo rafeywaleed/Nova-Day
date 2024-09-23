@@ -1,7 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import 'package:intl/intl.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProgressTracker extends StatefulWidget {
   const ProgressTracker({super.key});
@@ -11,147 +13,179 @@ class ProgressTracker extends StatefulWidget {
 }
 
 class _ProgressTrackerState extends State<ProgressTracker> {
-  Map<DateTime, int> dateMap = {};
-  Random random = Random();
-  // Define the start and end dates
+  Map<DateTime, int> dateMap = {}; // Task completion data from Firebase
   DateTime startDate = DateTime(2024, 1, 1);
   DateTime endDate = DateTime(2024, 12, 31);
-
-  int selectedYear = DateTime.now().year; // Initialize with current year
-  int selectedMonth = DateTime.now().month; // Initialize with current month
-
-  void addDateMap() {
-    for (DateTime date = startDate;
-        date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
-        date = date.add(const Duration(days: 1))) {
-      // Randomly decide whether to skip this date
-      bool shouldAdd = random.nextBool(); // 50% chance to skip or add
-      if (shouldAdd) {
-        // Assign a random value between 1 and 3 (inclusive)
-        int randomValue = random.nextInt(3) + 1;
-        dateMap[date] = randomValue;
-      }
-    }
-  }
+  DateTime? selectedDate;
+  String userEmail = '';
+  
+  double weeklyProgress = 0.7; // Placeholder, to be fetched from Firebase
+  double allTimeProgress = 0.8; // Placeholder, to be fetched from Firebase
 
   @override
   void initState() {
-    addDateMap();
     super.initState();
+    loadUserEmail(); // Fetch user email for Firebase data
+  }
+
+  // Fetch user email for authenticated user
+  Future<void> loadUserEmail() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        userEmail = user.email!;
+        fetchTaskDataFromFirebase(); // Load the task data from Firebase after fetching email
+      });
+    }
+  }
+
+  // Fetch user task completion data from Firebase
+  void fetchTaskDataFromFirebase() async {
+    if (userEmail.isEmpty) return;
+
+    final taskRecords = await FirebaseFirestore.instance
+        .collection('taskRecord')
+        .doc(userEmail)
+        .collection('records')
+        .get();
+
+    Map<DateTime, int> tempDateMap = {};
+    for (var record in taskRecords.docs) {
+      final dateStr = record.id; // Date in 'dd-MM-yyyy' format
+      final taskCompletion = record.data()['completedTasks'] as int;
+
+      DateTime recordDate = DateFormat('dd-MM-yyyy').parse(dateStr);
+      tempDateMap[recordDate] = taskCompletion; // Map date to completion status
+    }
+
+    setState(() {
+      dateMap = tempDateMap; // Update state with fetched data
+    });
+  }
+
+  // Fetch tasks for the selected date
+  Future<List<Map<String, dynamic>>> fetchTasksForDate(DateTime date) async {
+    if (userEmail.isEmpty) return [];
+
+    final formattedDate = DateFormat('dd-MM-yyyy').format(date);
+    final taskSnapshot = await FirebaseFirestore.instance
+        .collection('taskRecord')
+        .doc(userEmail)
+        .collection('records')
+        .doc(formattedDate)
+        .get();
+
+    if (!taskSnapshot.exists) return [];
+
+    final tasks = List<Map<String, dynamic>>.from(taskSnapshot.data()?['tasks'] ?? []);
+    return tasks;
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> tasks = [];
+
     return Scaffold(
-      appBar: AppBar(
-        //backgroundColor: const Color(0xff0F2027),
-        title: Text('Progress Record'),
-        centerTitle: true,
-      ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        decoration: const BoxDecoration(
-          
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedMonth--;
-                      if (selectedMonth < 1) {
-                        selectedMonth = 12;
-                        selectedYear--;
-                      }
-                    });
-                  },
-                  icon: Icon(Icons.arrow_back_ios),
-                ),
-                Text(
-                  '${getMonthName(selectedMonth)} $selectedYear',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedMonth++;
-                      if (selectedMonth > 12) {
-                        selectedMonth = 1;
-                        selectedYear++;
-                      }
-                    });
-                  },
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
+      body: Column(
+        children: [
+          // Heatmap Calendar
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(16.0),
                 child: HeatMap(
                   datasets: dateMap,
-                  startDate: DateTime(selectedYear, selectedMonth, 1),
-                  endDate: DateTime(selectedYear, selectedMonth + 1, 0),
-                  textColor: Colors.black,
-                  defaultColor: const Color(0xff0F2027),
-                  colorMode: ColorMode.opacity,
-                  showText: false,
-                  scrollable: false, // Disable scrolling
-                  showColorTip: false,
+                  startDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
+                  endDate: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
+                  colorMode: ColorMode.color,
+                  showText: true, // Show small date inside each box
+                  scrollable: true, // Allow horizontal scrolling for months
+                  size: 50, // Increase box size for better readability
+                  onClick: (date) {
+                    setState(() {
+                      selectedDate = date;
+                      fetchTasksForDate(selectedDate!).then((fetchedTasks) {
+                        setState(() {
+                          tasks = fetchedTasks;
+                        });
+                      });
+                    });
+                  },
                   colorsets: {
-                    1: const Color(0xffFF375F),
-                    2: const Color(0xffED1147).withOpacity(0.80),
-                    3: const Color(0xffA8093A).withOpacity(0.70),
+                    1: Colors.green[200]!,
+                    2: Colors.green[400]!,
+                    3: Colors.green[600]!,
                   },
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+          ),
+
+          if (selectedDate == null) ...[
+            // Circular Progress Indicators for Weekly and All-Time Progress
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                CircularPercentIndicator(
+                  radius: 60,
+                  lineWidth: 10.0,
+                  percent: weeklyProgress,
+                  center: Text("${(weeklyProgress * 100).toStringAsFixed(0)}%"),
+                  progressColor: Colors.blue,
+                  backgroundColor: Colors.grey[300]!,
+                  header: Text("This Week"),
+                ),
+                CircularPercentIndicator(
+                  radius: 60,
+                  lineWidth: 10.0,
+                  percent: allTimeProgress,
+                  center: Text("${(allTimeProgress * 100).toStringAsFixed(0)}%"),
+                  progressColor: Colors.green,
+                  backgroundColor: Colors.grey[300]!,
+                  header: Text("All Time"),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Display Tasks and Day Completion for the selected date
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tasks for ${DateFormat('dd-MM-yyyy').format(selectedDate!)}",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ...tasks.map((task) => ListTile(
+                          title: Text(task['task']),
+                          trailing: Icon(task['status']
+                              ? Icons.check_circle
+                              : Icons.circle),
+                        )),
+                    const SizedBox(height: 16),
+                    CircularPercentIndicator(
+                      radius: 60,
+                      lineWidth: 10.0,
+                      percent: tasks.isNotEmpty
+                          ? tasks.where((task) => task['status']).length / tasks.length
+                          : 0.0,
+                      center: Text(
+                          "${(tasks.where((task) => task['status']).length / tasks.length * 100).toStringAsFixed(0)}%"),
+                      progressColor: Colors.purple,
+                      backgroundColor: Colors.grey[300]!,
+                      header: Text("Task Completion"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
-  }
-
-  String getMonthName(int month) {
-    switch (month) {
-      case 1:
-        return 'January';
-      case 2:
-        return 'February';
-      case 3:
-        return 'March';
-      case 4:
-        return 'April';
-      case 5:
-        return 'May';
-      case 6:
-        return 'June';
-      case 7:
-        return 'July';
-      case 8:
-        return 'August';
-      case 9:
-        return 'September';
-      case 10:
-        return 'October';
-      case 11:
-        return 'November';
-      case 12:
-        return 'December';
-      default:
-        return '';
-    }
   }
 }

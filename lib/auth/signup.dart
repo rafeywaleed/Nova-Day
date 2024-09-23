@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hundred_days/add_tasks.dart';
 import 'package:sizer/sizer.dart';
 import 'package:iconly/iconly.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -165,10 +166,10 @@ class _SignUpPageState extends State<SignUpPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 5.h ),
+                    SizedBox(height: 5.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 900),
-                      duration: const Duration(milliseconds: 1000),
+                      delay: const Duration(milliseconds: 600),
+                      duration: const Duration(milliseconds: 700),
                       child: IconButton(
                         onPressed: () {
                           Navigator.pop(context);
@@ -185,11 +186,11 @@ class _SignUpPageState extends State<SignUpPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           FadeInDown(
-                            delay: const Duration(milliseconds: 800),
-                            duration: const Duration(milliseconds: 900),
+                            delay: const Duration(milliseconds: 500),
+                            duration: const Duration(milliseconds: 600),
                             child: Text(
                               'Create an Account',
-                              style: TextStyle(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 25.sp,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -197,11 +198,11 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           SizedBox(height: 1.h),
                           FadeInDown(
-                            delay: const Duration(milliseconds: 700),
-                            duration: const Duration(milliseconds: 800),
+                            delay: const Duration(milliseconds: 400),
+                            duration: const Duration(milliseconds: 500),
                             child: Text(
                               'Welcome to our community!',
-                              style: TextStyle(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 25.sp,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -212,26 +213,26 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     SizedBox(height: 5.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 600),
-                      duration: const Duration(milliseconds: 700),
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
                       child: Text(
                         'Name',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 500),
-                      duration: const Duration(milliseconds: 600),
+                      delay: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 300),
                       child: Container(
                         margin: EdgeInsets.symmetric(vertical: 0.8.h),
                         padding: EdgeInsets.symmetric(
                             horizontal: 5.w, vertical: .3.h),
                         decoration: BoxDecoration(
-                          color:
-                              isFocusedName ? Colors.white : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          color: isFocusedName ? Colors.white : Color(0xFFF1F0F5),
+                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: TextField(
@@ -239,33 +240,35 @@ class _SignUpPageState extends State<SignUpPage> {
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Name',
+                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeName,
+                          style: GoogleFonts.plusJakartaSans(), // Text style
                         ),
                       ),
                     ),
                     SizedBox(height: 2.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 600),
-                      duration: const Duration(milliseconds: 700),
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
                       child: Text(
                         'Email',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 500),
-                      duration: const Duration(milliseconds: 600),
+                      delay: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 300),
                       child: Container(
                         margin: EdgeInsets.symmetric(vertical: 0.8.h),
                         padding: EdgeInsets.symmetric(
                             horizontal: 5.w, vertical: .3.h),
                         decoration: BoxDecoration(
-                          color:
-                              isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          color: isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
+                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: TextField(
@@ -273,24 +276,28 @@ class _SignUpPageState extends State<SignUpPage> {
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Email',
+                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeEmail,
+                          style: GoogleFonts.plusJakartaSans(), // Text style
                         ),
                       ),
                     ),
                     SizedBox(height: 2.h),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 400),
-                      duration: const Duration(milliseconds: 500),
+                      delay: const Duration(milliseconds: 100),
+                      duration: const Duration(milliseconds: 200),
                       child: Text(
                         'Set Password',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     FadeInDown(
-                      delay: const Duration(milliseconds: 300),
-                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 100),
+                      duration: const Duration(milliseconds: 300),
                       child: Container(
                         margin: EdgeInsets.symmetric(vertical: 0.8.h),
                         padding: EdgeInsets.symmetric(
@@ -299,8 +306,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           color: isFocusedPassword
                               ? Colors.white
                               : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: TextField(
@@ -321,8 +327,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Password',
+                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodePassword,
+                          style: GoogleFonts.plusJakartaSans(), // Text style
                         ),
                       ),
                     ),
@@ -332,8 +340,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       duration: const Duration(milliseconds: 300),
                       child: Text(
                         'Confirm Password',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     FadeInDown(
@@ -347,8 +357,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           color: isFocusedConfirmPassword
                               ? Colors.white
                               : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: TextField(
@@ -369,8 +378,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Confirm Password',
+                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeConfirmPassword,
+                          style: GoogleFonts.plusJakartaSans(), // Text style
                         ),
                       ),
                     ),
@@ -380,28 +391,30 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                     FadeInUp(
-                      delay: const Duration(milliseconds: 600),
-                      duration: const Duration(milliseconds: 700),
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
                       child: Row(
                         children: [
                           Expanded(
                             child: ElevatedButton(
                               onPressed: _signUpWithEmailAndPassword,
                               child: FadeInUp(
-                                  delay: const Duration(milliseconds: 0),
-                                  duration: const Duration(milliseconds: 0),
-                                  child: Text(
-                                    'Sign Up',
-                                    style: TextStyle(color: Colors.white),
-                                  )),
+                                delay: const Duration(milliseconds: 0),
+                                duration: const Duration(milliseconds: 0),
+                                child: Text(
+                                  'Sign Up',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
-                                textStyle: const TextStyle(
+                                textStyle: GoogleFonts.plusJakartaSans(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  fontFamily: 'Satoshi',
                                 ),
-                                backgroundColor: Color(0xFF835DF1),
+                                backgroundColor: Colors.blue,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
