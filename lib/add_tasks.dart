@@ -1,9 +1,10 @@
-import 'package:animate_do/animate_do.dart'; // For animations
+import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/homescreen.dart';
-import 'package:intl/intl.dart'; // For formatting dates
+import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AddTasks extends StatefulWidget {
   final int input;
@@ -21,13 +22,9 @@ class _AddTasksState extends State<AddTasks> {
 
   Future<void> saveDailyTasksToFirestore(List<String> tasks) async {
     try {
-      String? userEmail =
-          auth.currentUser?.email; // Use the current user's email
+      String? userEmail = auth.currentUser?.email;
       if (userEmail != null) {
-        DocumentReference userTasksDoc =
-            firestore.collection('dailyTasks').doc(userEmail);
-
-        // Save currentDailyTasks in Firestore
+        DocumentReference userTasksDoc = firestore.collection('dailyTasks').doc(userEmail);
         await userTasksDoc.set({'tasks': tasks});
         print('Current daily tasks saved: $tasks');
       }
@@ -40,8 +37,7 @@ class _AddTasksState extends State<AddTasks> {
     try {
       String? userEmail = auth.currentUser?.email;
       if (userEmail != null) {
-        DocumentReference userTasksDoc =
-            firestore.collection('dailyTasks').doc(userEmail);
+        DocumentReference userTasksDoc = firestore.collection('dailyTasks').doc(userEmail);
         DocumentSnapshot snapshot = await userTasksDoc.get();
 
         if (snapshot.exists) {
@@ -70,24 +66,13 @@ class _AddTasksState extends State<AddTasks> {
             .collection('records')
             .doc(today);
 
-        // Prepare task data
         List<Map<String, dynamic>> taskData = currentDailyTasks.map((task) {
-          return {
-            'task': task,
-            'status':
-                'incomplete' // You can update this later based on task completion
-          };
+          return {'task': task, 'status': 'incomplete'};
         }).toList();
-
-        // Calculate the overall completion percentage (dummy calculation here)
-        int completedTasks =
-            taskData.where((task) => task['status'] == 'completed').length;
-        double overallCompletion =
-            (completedTasks / currentDailyTasks.length) * 100;
 
         await taskRecordDoc.set({
           'tasks': taskData,
-          'overallCompletion': '$completedTasks/${currentDailyTasks.length}',
+          'overallCompletion': '${taskData.where((task) => task['status'] == 'completed').length}/${currentDailyTasks.length}',
           'date': today
         });
         print('Task record saved for $today');
@@ -100,14 +85,16 @@ class _AddTasksState extends State<AddTasks> {
   @override
   void initState() {
     super.initState();
-    fetchDailyTasksFromFirestore(); // Load tasks from Firestore when the app starts
+    fetchDailyTasksFromFirestore();
   }
 
   @override
   Widget build(BuildContext context) {
+    String username = auth.currentUser?.displayName ?? 'User'; // Get the username
+
     return Scaffold(
       appBar: widget.input == 0
-          ? null
+          ? AppBar()
           : AppBar(
               leading: widget.input == 1
                   ? IconButton(
@@ -119,8 +106,7 @@ class _AddTasksState extends State<AddTasks> {
                   : null,
               title: const Text(
                 'Add Daily Task',
-                style: TextStyle(
-                    fontFamily: 'Manrope', fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
       body: Padding(
@@ -128,29 +114,31 @@ class _AddTasksState extends State<AddTasks> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Hello User!',
-              style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold),
+            Text(
+              'Hello $username!',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'These are your daily tasks which will be renewed every day at 12 AM. Your current day progress will be registered.',
-              style: TextStyle(
-                  fontFamily: 'Manrope', fontSize: 16, color: Colors.grey),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
             ),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Daily Tasks:",
-                  style: TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   onPressed: () {
@@ -166,12 +154,12 @@ class _AddTasksState extends State<AddTasks> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text(
+                                Text(
                                   'Add New Task',
-                                  style: TextStyle(
-                                      fontFamily: 'Manrope',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 20),
                                 TextField(
@@ -183,21 +171,15 @@ class _AddTasksState extends State<AddTasks> {
                                 ),
                                 const SizedBox(height: 20),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.grey,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        textStyle: const TextStyle(
-                                            fontFamily: 'Manrope',
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
                                       ),
                                       onPressed: () {
                                         Navigator.of(context).pop();
@@ -209,21 +191,14 @@ class _AddTasksState extends State<AddTasks> {
                                         backgroundColor: Colors.blue,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        textStyle: const TextStyle(
-                                            fontFamily: 'Manrope',
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
                                       ),
                                       onPressed: () {
                                         if (_controller.text.isNotEmpty) {
                                           setState(() {
-                                            currentDailyTasks
-                                                .add(_controller.text);
-                                            saveDailyTasksToFirestore(
-                                                currentDailyTasks);
+                                            currentDailyTasks.add(_controller.text);
+                                            saveDailyTasksToFirestore(currentDailyTasks);
                                           });
                                           _controller.clear();
                                           Navigator.of(context).pop();
@@ -250,7 +225,6 @@ class _AddTasksState extends State<AddTasks> {
                 itemCount: currentDailyTasks.length,
                 itemBuilder: (context, index) {
                   return FadeInUp(
-                    // Adding animation
                     duration: const Duration(milliseconds: 800),
                     child: Dismissible(
                       key: Key(currentDailyTasks[index]),
@@ -275,8 +249,9 @@ class _AddTasksState extends State<AddTasks> {
                         child: ListTile(
                           title: Text(
                             currentDailyTasks[index],
-                            style: const TextStyle(
-                                fontFamily: 'Manrope', fontSize: 16),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ),
@@ -295,13 +270,9 @@ class _AddTasksState extends State<AddTasks> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   minimumSize: const Size(100, 40),
-                  textStyle: const TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  saveTaskRecordToFirestore(); // Save the task record for today
+                  saveTaskRecordToFirestore();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -309,6 +280,11 @@ class _AddTasksState extends State<AddTasks> {
                 },
                 child: const Text('Finish'),
               ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
+              style: GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),

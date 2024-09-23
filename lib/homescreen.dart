@@ -3,12 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/add_tasks.dart';
+import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:iconly/iconly.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -21,11 +23,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String? userEmail;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  int selectedIndex = 0; // Track selected index for NavigationRail
+  int _selectedIndex = 0; // Track selected index for NavigationRail
+  NavigationRailLabelType labelType = NavigationRailLabelType.all;
 
   @override
   void initState() {
-    selectedIndex = 0;
     super.initState();
     loadUserEmail();
     loadDailyTasks();
@@ -49,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
       DocumentSnapshot snapshot = await userTasksDoc.get();
 
       if (snapshot.exists) {
-        print("Snapshot data: ${snapshot.data()}");
         var data = snapshot.data() as Map<String, dynamic>;
         var tasksData = data['tasks'];
 
@@ -57,20 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             dailyTasks = tasksData
                 .map((task) => {
-                      'task': task['task'],
-                      'completed':
-                          task['status'] == 'completed', // Update this line
+                      'task': task,
+                      'completed': false,
                     })
                 .toList();
           });
-        } else {
-          print("Tasks field is not a List");
         }
-      } else {
-        print("No document found for user $userEmail");
       }
-    } else {
-      print("No user email found");
     }
   }
 
@@ -102,8 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'overallCompletion': '$completedTasks/$totalTasks',
         'date': today,
       });
-
-      print('Progress saved for $today');
     }
   }
 
@@ -128,238 +120,241 @@ class _HomeScreenState extends State<HomeScreen> {
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
     return Scaffold(
-      body: Stack(
+      body: Row(
         children: [
-          Row(
-            children: [
-              NavigationRail(
-                useIndicator: false,
-                indicatorShape: Border.all(width: 20),
-                indicatorColor: Colors.transparent,
-                //  minWidth: MediaQuery.of(context).size.width * 0.15,
-                minWidth: 15.w,
-                groupAlignment: 0,
-                backgroundColor:
-                    const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (int index) {
-                  setState(() {
-                    selectedIndex =
-                        index; // Update selectedIndex based on user selection
-                  });
-                  // Navigate based on the selected index
-                  if (index == 2) {
-                    // If settings is selected
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const UserSettingsPage(),
-                      ),
-                    ).then((_) {
-                      // After returning from settings, set selectedIndex back to home (0)
-                      setState(() {
-                        selectedIndex = 0;
-                      });
-                    });
-                  }
-                },
-                destinations: [
-                  NavigationRailDestination(
-                    icon: selectedIndex == 0
-                        ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
-                        : Icon(IconlyBroken.home, size: 9.w),
-                    label: Text('Home'),
-                  ),
-                  NavigationRailDestination(
-                    icon: selectedIndex == 1
-                        ? Icon(IconlyLight.graph,
-                            color: Colors.blue, size: 12.w)
-                        : Icon(IconlyBroken.graph, size: 9.w),
-                    label: Text('Record'),
-                  ),
-                  NavigationRailDestination(
-                    icon: selectedIndex == 2
-                        ? Icon(IconlyLight.setting,
-                            color: Colors.blue, size: 12.w)
-                        : Icon(IconlyBroken.setting, size: 9.w),
-                    label: Text('Settings'),
-                  ),
-                ],
+          NavigationRail(
+            labelType: labelType,
+            useIndicator: false,
+            indicatorShape: Border.all(width: 20),
+            indicatorColor: Colors.transparent,
+            minWidth: 15.w,
+            groupAlignment: 0,
+            backgroundColor:
+                const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (value) {
+              setState(() {
+                _selectedIndex = value;
+              });
+            },
+            destinations: [
+              NavigationRailDestination(
+                icon: _selectedIndex == 0
+                    ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
+                    : Icon(IconlyBroken.home, size: 9.w),
+                label: Text(
+                  'Home',
+                  style: GoogleFonts.plusJakartaSans(),
+                ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(2.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 8.0), // Decreased space below
-                        child: FadeInDown(
-                          delay: const Duration(milliseconds: 300),
-                          duration: const Duration(milliseconds: 1000),
-                          child: Container(
-                            height: 15.h,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 10,
-                                  spreadRadius: 1,
-                                  color: Colors.grey,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
-                              color: Colors.white,
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(5.w),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '$daysLeft',
-                                        style: TextStyle(
-                                          fontFamily: 'Manrope',
-                                          fontSize: 7.w,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                      Text(
-                                        'days left for new year',
-                                        style: TextStyle(
-                                          fontFamily: 'Manrope',
-                                          fontSize: 3.w,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  CircularPercentIndicator(
-                                    radius: 10.w,
-                                    lineWidth: 8.0,
-                                    percent: taskCompletion,
-                                    center: Text(
-                                      "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                                      style: TextStyle(
-                                        fontSize: 5.w,
-                                        color: Colors.blue,
-                                        fontFamily: 'Manrope',
-                                      ),
-                                    ),
-                                    progressColor: Colors.blue,
-                                    backgroundColor: Colors.grey[300]!,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10), // Added space for SizedBox
-                      Text(
-                        "Daily Tasks:",
-                        style: TextStyle(
-                          fontFamily: 'Manrope',
-                          fontSize: 5.w,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: dailyTasks.length,
-                          itemBuilder: (context, index) {
-                            return TaskCard(
-                              task: dailyTasks[index],
-                              onDismissed: () {
-                                setState(() {
-                                  dailyTasks.removeAt(index);
-                                });
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  dailyTasks[index]['completed'] = value!;
-                                  saveProgress();
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: 2.h), // Decreased space below
-                      Text(
-                        "Additional Tasks:",
-                        style: TextStyle(
-                          fontFamily: 'Manrope',
-                          fontSize: 5.w,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: additionalTasks.length,
-                          itemBuilder: (context, index) {
-                            return TaskCard(
-                              task: additionalTasks[index],
-                              onDismissed: () {
-                                setState(() {
-                                  additionalTasks.removeAt(index);
-                                });
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  additionalTasks[index]['completed'] = value!;
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+              NavigationRailDestination(
+                icon: _selectedIndex == 1
+                    ? Icon(IconlyLight.graph, color: Colors.blue, size: 12.w)
+                    : Icon(IconlyBroken.graph, size: 9.w),
+                label: Text(
+                  'Record',
+                  style: GoogleFonts.plusJakartaSans(),
+                ),
+              ),
+              NavigationRailDestination(
+                icon: _selectedIndex == 2
+                    ? Icon(IconlyLight.setting, color: Colors.blue, size: 12.w)
+                    : Icon(IconlyBroken.setting, size: 9.w),
+                label: Text(
+                  'Settings',
+                  style: GoogleFonts.plusJakartaSans(),
                 ),
               ),
             ],
           ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(2.w),
+              child: _buildContent(),
+            ),
+          ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          final _controller = TextEditingController();
-          showDialog(
-            context: context,
-            builder: (context) {
-              return DialogBox(
-                Controller: _controller,
-                onSave: () {
-                  if (_controller.text.isNotEmpty) {
-                    setState(() {
-                      additionalTasks
-                          .add({'task': _controller.text, 'completed': false});
-                    });
-                    Navigator.of(context).pop();
-                  }
+      floatingActionButton: _selectedIndex != 0
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                final _controller = TextEditingController();
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return DialogBox(
+                      Controller: _controller,
+                      onSave: () {
+                        if (_controller.text.isNotEmpty) {
+                          setState(() {
+                            additionalTasks.add(
+                                {'task': _controller.text, 'completed': false});
+                          });
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      onCancel: () {
+                        Navigator.of(context).pop();
+                      },
+                    );
+                  },
+                );
+              },
+              child: Icon(Icons.add),
+            ),
+    );
+  }
+
+  Widget _buildContent() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeContent();
+      case 1:
+        return ProgressTracker();
+      case 2:
+        return UserSettingsPage();
+      default:
+        return _buildHomeContent();
+    }
+  }
+
+  Widget _buildHomeContent() {
+    int totalTasks = dailyTasks.length;
+    int completedTasks =
+        dailyTasks.where((task) => task['completed'] == true).length;
+    double taskCompletion = totalTasks > 0 ? completedTasks / totalTasks : 0;
+    int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: FadeInDown(
+            delay: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 1000),
+            child: Container(
+              height: 15.h,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                    color: Colors.grey,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+                color: Colors.white,
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(5.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '$daysLeft',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 7.w,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        Text(
+                          'days left for new year',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 3.w,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    CircularPercentIndicator(
+                      radius: 10.w,
+                      lineWidth: 8.0,
+                      percent: taskCompletion,
+                      center: Text(
+                        "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 5.w,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      progressColor: Colors.blue,
+                      backgroundColor: Colors.grey[300]!,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+        Text(
+          "Daily Tasks:",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 5.w,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: dailyTasks.length,
+            itemBuilder: (context, index) {
+              return TaskCard(
+                task: dailyTasks[index],
+                onDismissed: () {
+                  setState(() {
+                    dailyTasks.removeAt(index);
+                  });
                 },
-                onCancel: () {
-                  Navigator.of(context).pop();
+                onChanged: (value) {
+                  setState(() {
+                    dailyTasks[index]['completed'] = value!;
+                    saveProgress();
+                  });
                 },
               );
             },
-          );
-        },
-        child: Icon(Icons.add),
-      ),
+          ),
+        ),
+        SizedBox(height: 2.h),
+        Text(
+          "Additional Tasks:",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 5.w,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: additionalTasks.length,
+            itemBuilder: (context, index) {
+              return TaskCard(
+                task: additionalTasks[index],
+                onDismissed: () {
+                  setState(() {
+                    additionalTasks.removeAt(index);
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {
+                    additionalTasks[index]['completed'] = value!;
+                  });
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -396,7 +391,7 @@ class TaskCard extends StatelessWidget {
         child: CheckboxListTile(
           title: Text(
             task['task'],
-            style: TextStyle(
+            style: GoogleFonts.plusJakartaSans(
               decoration: task['completed'] == true
                   ? TextDecoration.lineThrough
                   : TextDecoration.none,
