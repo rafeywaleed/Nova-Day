@@ -106,7 +106,7 @@ class _AddTasksState extends State<AddTasks> {
   @override
   void initState() {
     super.initState();
-    fetchDailyTasksFromFirestore();
+   // fetchDailyTasksFromFirestore();
     loadDailyTasksFromPreferences();
   }
 

@@ -28,7 +28,7 @@ class HomeScreen extends StatefulWidget {
       await saveProgress();
     }
   }
-
+  
   Future<void> saveTasksToSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<Map<String, dynamic>> defaultTasks = [
@@ -42,6 +42,11 @@ class HomeScreen extends StatefulWidget {
 
     await prefs.setStringList('defaultTasks', taskList);
   }
+
+  
+  
+
+  
 
   Future<void> saveProgress() async {
     final firestore = FirebaseFirestore.instance;
@@ -95,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     loadUserEmail();
-    loadDailyTasks();
+    loadDailyTasksfromFireBase();
     checkForNewDay();
     startNetworkListener();
     scheduleTaskAtMidnight();
@@ -147,8 +152,9 @@ void startNetworkListener() {
       });
     }
   }
+  
 
-  Future<void> loadDailyTasks() async {
+  Future<void> loadDailyTasksfromFireBase() async {
     String? userEmail = auth.currentUser?.email;
     if (userEmail != null) {
       DocumentReference userTasksDoc =
@@ -244,7 +250,7 @@ void startNetworkListener() {
       DocumentSnapshot snapshot = await taskRecordDoc.get();
       if (!snapshot.exists) {
         await saveProgress(); // Save progress if new day
-        await loadDailyTasks(); // Load new tasks
+        await loadDailyTasksfromFireBase(); // Load new tasks
       }
     }
   }
