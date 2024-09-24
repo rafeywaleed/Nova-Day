@@ -6,6 +6,7 @@ import 'package:hundred_days/pages/intro_screens.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddTasks extends StatefulWidget {
   final int input;
@@ -21,6 +22,20 @@ class _AddTasksState extends State<AddTasks> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
+  Future<void> saveDailyTasksToPreferences(List<String> tasks) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('dailyTasks', tasks);
+    print('Tasks saved to SharedPreferences: $tasks');
+  }
+
+  Future<void> loadDailyTasksFromPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currentDailyTasks = prefs.getStringList('dailyTasks') ?? [];
+    });
+    print('Tasks loaded from SharedPreferences: $currentDailyTasks');
+  }
+
   Future<void> saveDailyTasksToFirestore(List<String> tasks) async {
     try {
       String? userEmail = auth.currentUser?.email;
@@ -29,6 +44,8 @@ class _AddTasksState extends State<AddTasks> {
             firestore.collection('dailyTasks').doc(userEmail);
         await userTasksDoc.set({'tasks': tasks});
         print('Current daily tasks saved: $tasks');
+
+        await saveDailyTasksToPreferences(tasks);
       }
     } catch (e) {
       print("Error saving tasks to Firestore: $e");
@@ -48,7 +65,7 @@ class _AddTasksState extends State<AddTasks> {
           setState(() {
             currentDailyTasks = List<String>.from(fetchedTasks);
           });
-          print('Tasks fetched: $currentDailyTasks');
+          print('Daily Tasks fetched: $currentDailyTasks');
         } else {
           print('No tasks found for user: $userEmail');
         }
@@ -58,38 +75,39 @@ class _AddTasksState extends State<AddTasks> {
     }
   }
 
-  Future<void> saveTaskRecordToFirestore() async {
-    try {
-      String? userEmail = auth.currentUser?.email;
-      if (userEmail != null) {
-        String today = DateFormat('dd/MM/yyyy').format(DateTime.now());
-        DocumentReference taskRecordDoc = firestore
-            .collection('tasksRecord')
-            .doc(userEmail)
-            .collection('records')
-            .doc(today);
+  // Future<void> saveTaskRecordToFirestore() async {
+  //   try {
+  //     String? userEmail = auth.currentUser?.email;
+  //     if (userEmail != null) {
+  //       String today = DateFormat('dd/MM/yyyy').format(DateTime.now());
+  //       DocumentReference taskRecordDoc = firestore
+  //           .collection('tasksRecord')
+  //           .doc(userEmail)
+  //           .collection('records')
+  //           .doc(today);
 
-        List<Map<String, dynamic>> taskData = currentDailyTasks.map((task) {
-          return {'task': task, 'status': 'incomplete'};
-        }).toList();
+  //       List<Map<String, dynamic>> taskData = currentDailyTasks.map((task) {
+  //         return {'task': task, 'status': 'incomplete'};
+  //       }).toList();
 
-        await taskRecordDoc.set({
-          'tasks': taskData,
-          'overallCompletion':
-              '${taskData.where((task) => task['status'] == 'completed').length}/${currentDailyTasks.length}',
-          'date': today
-        });
-        print('Task record saved for $today');
-      }
-    } catch (e) {
-      print("Error saving task record to Firestore: $e");
-    }
-  }
+  //       await taskRecordDoc.set({
+  //         'tasks': taskData,
+  //         'overallCompletion':
+  //             '${taskData.where((task) => task['status'] == 'completed').length}/${currentDailyTasks.length}',
+  //         'date': today
+  //       });
+  //       print('Task record saved for $today');
+  //     }
+  //   } catch (e) {
+  //     print("Error saving task record to Firestore: $e");
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
     fetchDailyTasksFromFirestore();
+    loadDailyTasksFromPreferences();
   }
 
   @override
@@ -219,6 +237,8 @@ class _AddTasksState extends State<AddTasks> {
                                                 .add(_controller.text);
                                             saveDailyTasksToFirestore(
                                                 currentDailyTasks);
+                                            saveDailyTasksToPreferences(
+                                                currentDailyTasks);
                                           });
                                           _controller.clear();
                                           Navigator.of(context).pop();
@@ -253,6 +273,7 @@ class _AddTasksState extends State<AddTasks> {
                         setState(() {
                           currentDailyTasks.removeAt(index);
                           saveDailyTasksToFirestore(currentDailyTasks);
+                          saveDailyTasksToPreferences(currentDailyTasks);
                         });
                       },
                       background: Container(
@@ -292,16 +313,17 @@ class _AddTasksState extends State<AddTasks> {
                   minimumSize: const Size(100, 40),
                 ),
                 onPressed: () {
-                  saveTaskRecordToFirestore();
-                  //widget.input == 0 ? 
+                  saveDailyTasksToFirestore(currentDailyTasks);
+                  // saveTaskRecordToFirestore();
+                  //widget.input == 0 ?
                   Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
-                        );
-                      // : Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(builder: (context) => IntroScreen(input: 1,)),
-                      //   );
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeScreen()),
+                  );
+                  // : Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(builder: (context) => IntroScreen(input: 1,)),
+                  //   );
                 },
                 child: const Text('Finish'),
               ),
