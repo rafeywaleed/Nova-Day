@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/add_tasks.dart';
@@ -8,22 +10,85 @@ import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:iconly/iconly.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:workmanager/workmanager.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
+
+  Future<void> uploadTasksIfOffline() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      await saveTasksToSharedPreferences();
+    } else {
+      await saveProgress();
+    }
+  }
+
+  Future<void> saveTasksToSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> defaultTasks = [
+      {'task': 'Task 1', 'completed': false},
+      {'task': 'Task 2', 'completed': true},
+    ];
+
+    List<String> taskList = defaultTasks.map((task) {
+      return jsonEncode(task);
+    }).toList();
+
+    await prefs.setStringList('defaultTasks', taskList);
+  }
+
+  Future<void> saveProgress() async {
+    final firestore = FirebaseFirestore.instance;
+    final String? userEmail = FirebaseAuth.instance.currentUser?.email;
+
+    if (userEmail != null) {
+      String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      DocumentReference taskRecordDoc = firestore
+          .collection('taskRecord')
+          .doc(userEmail)
+          .collection('records')
+          .doc(today);
+
+      List<Map<String, dynamic>> defaultTasks = [
+        {'task': 'Task 1', 'completed': false},
+        {'task': 'Task 2', 'completed': true},
+      ];
+
+      List<Map<String, dynamic>> taskProgress = defaultTasks
+          .map((task) => {
+                'task': task['task'],
+                'status': task['completed'] ? 'completed' : 'incomplete'
+              })
+          .toList();
+
+      int totalTasks = taskProgress.length;
+      int completedTasks =
+          taskProgress.where((task) => task['status'] == 'completed').length;
+      double overallCompletion =
+          totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+      await taskRecordDoc.set({
+        'tasks': taskProgress,
+        'overallCompletion': '$completedTasks/$totalTasks',
+        'date': today,
+      });
+    }
+  }
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Map<String, dynamic>> dailyTasks = [];
+  List<Map<String, dynamic>> defaultTasks = [];
   List<Map<String, dynamic>> additionalTasks = [];
   String? userEmail;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  int _selectedIndex = 0; // Track selected index for NavigationRail
+  int _selectedIndex = 0;
   NavigationRailLabelType labelType = NavigationRailLabelType.all;
 
   @override
@@ -32,8 +97,47 @@ class _HomeScreenState extends State<HomeScreen> {
     loadUserEmail();
     loadDailyTasks();
     checkForNewDay();
-    checkIfNewDay();
+    startNetworkListener();
+    scheduleTaskAtMidnight();
   }
+
+  void checkForNewDay() {
+    DateTime now = DateTime.now();
+    DateTime tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0);
+    Duration timeUntilMidnight = tomorrow.difference(now);
+
+    Future.delayed(timeUntilMidnight, () async {
+      await widget.uploadTasksIfOffline();
+      checkForNewDay(); // Re-schedule for next day
+    });
+  }
+
+  void scheduleTaskAtMidnight() {
+    Workmanager().registerPeriodicTask(
+      'dailyTaskUpload',
+      'uploadTasksAtMidnight',
+      frequency: Duration(hours: 24),
+      initialDelay: Duration(
+        hours: 23 - DateTime.now().hour,
+        minutes: 59 - DateTime.now().minute,
+        seconds: 59 - DateTime.now().second,
+      ),
+    );
+  }
+
+void startNetworkListener() {
+  Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+    // Check if there is a valid connectivity result
+    if (results.isNotEmpty && results.any((result) => result != ConnectivityResult.none)) {
+      widget.uploadTasksIfOffline().then((_) {
+        print('Tasks uploaded successfully.');
+      }).catchError((error) {
+        print('Error uploading tasks: $error');
+      });
+    }
+  });
+}
+
 
   Future<void> loadUserEmail() async {
     User? user = auth.currentUser;
@@ -57,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (tasksData is List) {
           setState(() {
-            dailyTasks = tasksData
+            defaultTasks = tasksData
                 .map((task) => {
                       'task': task,
                       'completed': false,
@@ -69,6 +173,33 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
+
+  // Future<void> loadDailyTasks() async {
+  //   String? userEmail = auth.currentUser?.email;
+  //   if (userEmail != null) {
+  //     DocumentReference userTasksDoc =
+  //         firestore.collection('dailyTasks').doc(userEmail);
+  //     DocumentSnapshot snapshot = await userTasksDoc.get();
+
+  //     if (snapshot.exists) {
+  //       var data = snapshot.data() as Map<String, dynamic>;
+  //       var tasksData = data['tasks'];
+
+  //       if (tasksData is List) {
+  //         setState(() {
+  //           defaultTasks = tasksData
+  //               .map((task) => {
+  //                     'task': task,
+  //                     'completed': false,
+  //                   })
+  //               .toList();
+  //         });
+  //       }
+  //     }
+  //   }
+  // }
+
   Future<void> saveProgress() async {
     String? userId = auth.currentUser?.uid;
     if (userId != null) {
@@ -79,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection('records')
           .doc(today);
 
-      List<Map<String, dynamic>> taskProgress = dailyTasks
+      List<Map<String, dynamic>> taskProgress = defaultTasks
           .map((task) => {
                 'task': task['task'],
                 'status': task['completed'] ? 'completed' : 'incomplete'
@@ -118,23 +249,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void checkForNewDay() {
-    DateTime now = DateTime.now();
-    DateTime tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0);
-    Duration timeUntilMidnight = tomorrow.difference(now);
+  // void checkForNewDay() {
+  //   DateTime now = DateTime.now();
+  //   DateTime tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0);
+  //   Duration timeUntilMidnight = tomorrow.difference(now);
 
-    Future.delayed(timeUntilMidnight, () async {
-      await saveProgress();
-      await loadDailyTasks();
-      checkForNewDay();
-    });
-  }
+  //   Future.delayed(timeUntilMidnight, () async {
+  //     await saveProgress();
+  //     await loadDailyTasks();
+  //     checkForNewDay();
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
-    int totalTasks = dailyTasks.length;
+    int totalTasks = defaultTasks.length;
     int completedTasks =
-        dailyTasks.where((task) => task['completed'] == true).length;
+        defaultTasks.where((task) => task['completed'] == true).length;
     double taskCompletion = totalTasks > 0 ? completedTasks / totalTasks : 0;
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
@@ -239,9 +370,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
-    int totalTasks = dailyTasks.length;
+    int totalTasks = defaultTasks.length;
     int completedTasks =
-        dailyTasks.where((task) => task['completed'] == true).length;
+        defaultTasks.where((task) => task['completed'] == true).length;
     double taskCompletion = totalTasks > 0 ? completedTasks / totalTasks : 0;
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
@@ -325,18 +456,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: dailyTasks.length,
+            itemCount: defaultTasks.length,
             itemBuilder: (context, index) {
               return TaskCard(
-                task: dailyTasks[index],
+                task: defaultTasks[index],
                 onDismissed: () {
                   setState(() {
-                    dailyTasks.removeAt(index);
+                    defaultTasks.removeAt(index);
                   });
                 },
                 onChanged: (value) {
                   setState(() {
-                    dailyTasks[index]['completed'] = value!;
+                    defaultTasks[index]['completed'] = value!;
                     saveProgress();
                   });
                 },
@@ -424,3 +555,5 @@ class TaskCard extends StatelessWidget {
     );
   }
 }
+
+

@@ -7,7 +7,19 @@ import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
 import 'package:sizer/sizer.dart';
+import 'package:workmanager/workmanager.dart';
 import 'firebase_options.dart'; // Generated Firebase options file
+
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    // Load the tasks from Shared Preferences
+    await HomeScreen().uploadTasksIfOffline();
+
+    return Future.value(true);
+  });
+}
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +29,7 @@ void main() async {
   final encryptionKey = Hive.generateSecureKey(); // Generate a secure key
   await Hive.initFlutter();
   await Hive.openBox('userBox', encryptionCipher: HiveAesCipher(encryptionKey));
+   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(const HundredDays());
 }
