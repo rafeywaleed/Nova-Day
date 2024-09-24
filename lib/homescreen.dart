@@ -23,30 +23,32 @@ class HomeScreen extends StatefulWidget {
   Future<void> uploadTasksIfOffline() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
-      await saveTasksToSharedPreferences();
+      //await saveTasksToSharedPreferences();
     } else {
       await saveProgress();
     }
   }
-  
-  Future<void> saveTasksToSharedPreferences() async {
+
+  // Future<void> saveTasksToSharedPreferences() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   List<Map<String, dynamic>> defaultTasks = [
+  //     {'task': 'Task 1', 'completed': false},
+  //     {'task': 'Task 2', 'completed': true},
+  //   ];
+
+  //   List<String> taskList = defaultTasks.map((task) {
+  //     return jsonEncode(task);
+  //   }).toList();
+
+  //   await prefs.setStringList('defaultTasks', taskList);
+  // }
+
+  Future<void> saveTasksToSharedPreferences(
+      List<Map<String, dynamic>> tasks) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<Map<String, dynamic>> defaultTasks = [
-      {'task': 'Task 1', 'completed': false},
-      {'task': 'Task 2', 'completed': true},
-    ];
-
-    List<String> taskList = defaultTasks.map((task) {
-      return jsonEncode(task);
-    }).toList();
-
+    List<String> taskList = tasks.map((task) => jsonEncode(task)).toList();
     await prefs.setStringList('defaultTasks', taskList);
   }
-
-  
-  
-
-  
 
   Future<void> saveProgress() async {
     final firestore = FirebaseFirestore.instance;
@@ -100,7 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     loadUserEmail();
-    loadDailyTasksfromFireBase();
+    printDefaultTasksWithStatus();
+    loadDailyTasks();
+    printSt();
     checkForNewDay();
     startNetworkListener();
     scheduleTaskAtMidnight();
@@ -130,19 +134,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-void startNetworkListener() {
-  Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
-    // Check if there is a valid connectivity result
-    if (results.isNotEmpty && results.any((result) => result != ConnectivityResult.none)) {
-      widget.uploadTasksIfOffline().then((_) {
-        print('Tasks uploaded successfully.');
-      }).catchError((error) {
-        print('Error uploading tasks: $error');
-      });
-    }
-  });
-}
-
+  void startNetworkListener() {
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      // Check if there is a valid connectivity result
+      if (results.isNotEmpty &&
+          results.any((result) => result != ConnectivityResult.none)) {
+        widget.uploadTasksIfOffline().then((_) {
+          print('Tasks uploaded successfully.');
+        }).catchError((error) {
+          print('Error uploading tasks: $error');
+        });
+      }
+    });
+  }
 
   Future<void> loadUserEmail() async {
     User? user = auth.currentUser;
@@ -152,34 +158,112 @@ void startNetworkListener() {
       });
     }
   }
-  
 
-  Future<void> loadDailyTasksfromFireBase() async {
-    String? userEmail = auth.currentUser?.email;
-    if (userEmail != null) {
-      DocumentReference userTasksDoc =
-          firestore.collection('dailyTasks').doc(userEmail);
-      DocumentSnapshot snapshot = await userTasksDoc.get();
-
-      if (snapshot.exists) {
-        var data = snapshot.data() as Map<String, dynamic>;
-        var tasksData = data['tasks'];
-
-        if (tasksData is List) {
-          setState(() {
-            defaultTasks = tasksData
-                .map((task) => {
-                      'task': task,
-                      'completed': false,
-                    })
-                .toList();
-          });
-        }
-      }
-    }
+  Future<void> printSt() async {
+    final prefs = await SharedPreferences.getInstance();
+    print(prefs.getStringList('dailyTasks'));
   }
 
+  Future<void> loadDailyTasks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    // Load the saved tasks with status from SharedPreferences
+    List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
+    List<Map<String, dynamic>> savedTasks = [];
+
+    // If there are saved tasks, decode them from JSON
+    if (savedTasksJson.isNotEmpty) {
+      savedTasks = savedTasksJson
+          .map((taskJson) => jsonDecode(taskJson))
+          .toList()
+          .cast<Map<String, dynamic>>();
+    }
+
+    // Load the task names (task titles) for the day from SharedPreferences
+    List<String>? dailyTasks = prefs.getStringList('dailyTasks') ?? [];
+
+    // Prepare a new list for updated defaultTasks
+    List<Map<String, dynamic>> newDefaultTasks = [];
+
+    // Iterate through the dailyTasks and merge with savedTasks to retain their status
+    for (String taskName in dailyTasks) {
+      // Check if the task already exists in savedTasks
+      Map<String, dynamic>? existingTask = savedTasks.firstWhere(
+        (task) => task['task'] == taskName,
+        orElse: () => {},
+      );
+
+      if (existingTask.isNotEmpty) {
+        // If the task exists, retain its status
+        newDefaultTasks.add(existingTask);
+      } else {
+        // If it's a new task, add it as incomplete
+        newDefaultTasks.add({'task': taskName, 'completed': false});
+      }
+    }
+
+    // Update the defaultTasks in the state
+    setState(() {
+      defaultTasks = newDefaultTasks;
+    });
+
+    // Save updated defaultTasks back to SharedPreferences
+    await saveTasksToSharedPreferences(defaultTasks);
+
+    print('Updated defaultTasks saved to SharedPreferences.');
+  }
+
+  void markTaskAsCompleted(String taskName) {
+    setState(() {
+      // Find the task in the defaultTasks and update its status
+      for (var task in defaultTasks) {
+        if (task['task'] == taskName) {
+          task['completed'] = true; // Mark as completed
+          break;
+        }
+      }
+    });
+    // Save the updated tasks to SharedPreferences
+    saveTasksToSharedPreferences(defaultTasks);
+  }
+
+  void deleteTask(String taskName) {
+    setState(() {
+      // Remove the task from the defaultTasks
+      defaultTasks.removeWhere((task) => task['task'] == taskName);
+    });
+    // Save the updated tasks to SharedPreferences
+    saveTasksToSharedPreferences(defaultTasks);
+  }
+
+  Future<void> saveTasksToSharedPreferences(
+      List<Map<String, dynamic>> defaultTasks) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Convert updated defaultTasks to JSON strings
+    List<String> updatedDefaultTasksJson =
+        defaultTasks.map((task) => jsonEncode(task)).toList();
+
+    // Save updated task list to SharedPreferences
+    await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
+
+    print('Updated tasks saved to SharedPreferences.');
+  }
+
+  Future<void> printDefaultTasksWithStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
+
+    if (savedTasksJson.isNotEmpty) {
+      // Print each task with its status
+      for (String taskJson in savedTasksJson) {
+        Map<String, dynamic> task = jsonDecode(taskJson);
+        print('Task: ${task['task']}, Completed: ${task['completed']}');
+      }
+    } else {
+      print('No tasks found in SharedPreferences.');
+    }
+  }
 
   // Future<void> loadDailyTasks() async {
   //   String? userEmail = auth.currentUser?.email;
@@ -250,7 +334,7 @@ void startNetworkListener() {
       DocumentSnapshot snapshot = await taskRecordDoc.get();
       if (!snapshot.exists) {
         await saveProgress(); // Save progress if new day
-        await loadDailyTasksfromFireBase(); // Load new tasks
+        await loadDailyTasks(); // Load new tasks
       }
     }
   }
@@ -461,27 +545,43 @@ void startNetworkListener() {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            itemCount: defaultTasks.length,
-            itemBuilder: (context, index) {
-              return TaskCard(
-                task: defaultTasks[index],
-                onDismissed: () {
-                  setState(() {
-                    defaultTasks.removeAt(index);
-                  });
-                },
-                onChanged: (value) {
-                  setState(() {
-                    defaultTasks[index]['completed'] = value!;
-                    saveProgress();
-                  });
-                },
-              );
-            },
-          ),
+          child: defaultTasks.isEmpty
+              ? Center(
+                  child: Text(
+                    'No tasks for today.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 4.w,
+                      color: Colors.grey,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: defaultTasks.length,
+                  itemBuilder: (context, index) {
+                    return TaskCard(
+                      task: defaultTasks[index],
+                      onDismissed: () {
+                        setState(() {
+                          defaultTasks.removeAt(index);
+                        });
+                        deleteTask(defaultTasks[index]['task']);
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          // Update task status (complete/incomplete)
+                          defaultTasks[index]['completed'] = value!;
+
+                          // Save updated tasks to SharedPreferences
+                          saveTasksToSharedPreferences(defaultTasks);
+                        });
+                      },
+                    );
+                  },
+                ),
         ),
         SizedBox(height: 2.h),
+        TextButton(
+            onPressed: printDefaultTasksWithStatus, child: Text('button')),
         Text(
           "Additional Tasks:",
           style: GoogleFonts.plusJakartaSans(
@@ -561,5 +661,3 @@ class TaskCard extends StatelessWidget {
     );
   }
 }
-
-

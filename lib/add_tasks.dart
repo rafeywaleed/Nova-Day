@@ -18,6 +18,7 @@ class AddTasks extends StatefulWidget {
 
 class _AddTasksState extends State<AddTasks> {
   List<String> currentDailyTasks = [];
+  bool isTaskListModified = false; // Flag to track modifications
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -52,68 +53,15 @@ class _AddTasksState extends State<AddTasks> {
     }
   }
 
-  Future<void> fetchDailyTasksFromFirestore() async {
-    try {
-      String? userEmail = auth.currentUser?.email;
-      if (userEmail != null) {
-        DocumentReference userTasksDoc =
-            firestore.collection('dailyTasks').doc(userEmail);
-        DocumentSnapshot snapshot = await userTasksDoc.get();
-
-        if (snapshot.exists) {
-          List<dynamic> fetchedTasks = snapshot['tasks'] ?? [];
-          setState(() {
-            currentDailyTasks = List<String>.from(fetchedTasks);
-          });
-          print('Daily Tasks fetched: $currentDailyTasks');
-        } else {
-          print('No tasks found for user: $userEmail');
-        }
-      }
-    } catch (e) {
-      print("Error fetching tasks from Firestore: $e");
-    }
-  }
-
-  // Future<void> saveTaskRecordToFirestore() async {
-  //   try {
-  //     String? userEmail = auth.currentUser?.email;
-  //     if (userEmail != null) {
-  //       String today = DateFormat('dd/MM/yyyy').format(DateTime.now());
-  //       DocumentReference taskRecordDoc = firestore
-  //           .collection('tasksRecord')
-  //           .doc(userEmail)
-  //           .collection('records')
-  //           .doc(today);
-
-  //       List<Map<String, dynamic>> taskData = currentDailyTasks.map((task) {
-  //         return {'task': task, 'status': 'incomplete'};
-  //       }).toList();
-
-  //       await taskRecordDoc.set({
-  //         'tasks': taskData,
-  //         'overallCompletion':
-  //             '${taskData.where((task) => task['status'] == 'completed').length}/${currentDailyTasks.length}',
-  //         'date': today
-  //       });
-  //       print('Task record saved for $today');
-  //     }
-  //   } catch (e) {
-  //     print("Error saving task record to Firestore: $e");
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
-   // fetchDailyTasksFromFirestore();
     loadDailyTasksFromPreferences();
   }
 
   @override
   Widget build(BuildContext context) {
-    String username =
-        auth.currentUser?.displayName ?? 'User'; // Get the username
+    String username = auth.currentUser?.displayName ?? 'User';
 
     return Scaffold(
       appBar: widget.input == 0
@@ -145,23 +93,6 @@ class _AddTasksState extends State<AddTasks> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'These are your daily tasks which will be renewed every day at 12 AM. Your current day progress will be registered.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-            // Text(
-            //   "Note: The list you finish with will be your daily renewing tasks. Deleting daily tasks from the home screen will remove that task for the day only and will not affect your daily tasks, which will be renewed.",
-            //   style: GoogleFonts.plusJakartaSans(color: Colors.grey),
-            // ),
-            // widget.input == 0
-            //     ? Text(
-            //         "Note: These daily tasks will be renewed every day, and your progress will be recorded for daily tasks. Your additional tasks are simply your to-do tasks for the day and will not be tracked for progress. You can add additional tasks by tapping the [+] button on the home screen and delete additional tasks by swiping them to the right.",
-            //         style: GoogleFonts.plusJakartaSans(color: Colors.grey),
-            //       )
-            //     : Text(''),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -235,10 +166,8 @@ class _AddTasksState extends State<AddTasks> {
                                           setState(() {
                                             currentDailyTasks
                                                 .add(_controller.text);
-                                            saveDailyTasksToFirestore(
-                                                currentDailyTasks);
-                                            saveDailyTasksToPreferences(
-                                                currentDailyTasks);
+                                            isTaskListModified =
+                                                true; // Mark as modified
                                           });
                                           _controller.clear();
                                           Navigator.of(context).pop();
@@ -272,8 +201,7 @@ class _AddTasksState extends State<AddTasks> {
                       onDismissed: (direction) {
                         setState(() {
                           currentDailyTasks.removeAt(index);
-                          saveDailyTasksToFirestore(currentDailyTasks);
-                          saveDailyTasksToPreferences(currentDailyTasks);
+                          isTaskListModified = true; // Mark as modified
                         });
                       },
                       background: Container(
@@ -313,17 +241,17 @@ class _AddTasksState extends State<AddTasks> {
                   minimumSize: const Size(100, 40),
                 ),
                 onPressed: () {
-                  saveDailyTasksToFirestore(currentDailyTasks);
-                  // saveTaskRecordToFirestore();
-                  //widget.input == 0 ?
+                  if (isTaskListModified) {
+                    saveDailyTasksToFirestore(currentDailyTasks);
+                    saveDailyTasksToPreferences(currentDailyTasks);
+                  } else {
+                    print("No changes to task list, not saving.");
+                  }
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => HomeScreen()),
                   );
-                  // : Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(builder: (context) => IntroScreen(input: 1,)),
-                  //   );
                 },
                 child: const Text('Finish'),
               ),
