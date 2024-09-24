@@ -10,7 +10,6 @@ import 'package:sizer/sizer.dart';
 import 'package:workmanager/workmanager.dart';
 import 'firebase_options.dart'; // Generated Firebase options file
 
-
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     // Load the tasks from Shared Preferences
@@ -20,7 +19,6 @@ void callbackDispatcher() {
   });
 }
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -29,7 +27,7 @@ void main() async {
   final encryptionKey = Hive.generateSecureKey(); // Generate a secure key
   await Hive.initFlutter();
   await Hive.openBox('userBox', encryptionCipher: HiveAesCipher(encryptionKey));
-   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(const HundredDays());
 }
@@ -43,16 +41,16 @@ class HundredDays extends StatelessWidget {
       builder: (context, orientation, deviceType) => MaterialApp(
         theme: ThemeData(fontFamily: 'Manrope'),
         home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return HomeScreen();
-            //BoxEx();
-          } else {
-            return const WelcomePage();
-          }
-        },
-      ), // Adjust the home page as needed
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return HomeScreen();
+              //BoxEx();
+            } else {
+              return const WelcomePage();
+            }
+          },
+        ), // Adjust the home page as needed
       ),
     );
   }
