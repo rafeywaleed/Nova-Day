@@ -21,140 +21,140 @@ class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 
-  Future<void> uploadTasksIfOffline() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      await saveTasksToSharedPreferences([]);
-    } else {
-      await saveProgress();
-    }
-  }
+  // Future<void> uploadTasksIfOffline() async {
+  //   final connectivityResult = await Connectivity().checkConnectivity();
+  //   if (connectivityResult == ConnectivityResult.none) {
+  //     await saveTasksToSharedPreferences([]);
+  //   } else {
+  //     await saveProgress();
+  //   }
+  // }
 }
 
-Future<void> uploadTasksIfOffline() async {
-  final connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
-    await saveTasksToSharedPreferences([]);
-  } else {
-    await saveProgress();
-  }
-}
+// Future<void> uploadTasksIfOffline() async {
+//   final connectivityResult = await Connectivity().checkConnectivity();
+//   if (connectivityResult == ConnectivityResult.none) {
+//     await saveTasksToSharedPreferences([]);
+//   } else {
+//     await saveProgress();
+//   }
+// }
 
-void callbackDispatcher() {
-  Workmanager().executeTask((task) async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      await saveTasksToSharedPreferences([]);
-    } else {
-      await saveProgress();
-    }
-    return Future.value(true);
-  } as BackgroundTaskHandler);
-}
+// void callbackDispatcher() {
+//   Workmanager().executeTask((task) async {
+//     final connectivityResult = await Connectivity().checkConnectivity();
+//     if (connectivityResult == ConnectivityResult.none) {
+//       await saveTasksToSharedPreferences([]);
+//     } else {
+//       await saveProgress();
+//     }
+//     return Future.value(true);
+//   } as BackgroundTaskHandler);
+// }
 
-Future<void> saveTasksToSharedPreferences(
-    List<Map<String, dynamic>> tasks) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String> taskList = tasks.map((task) => jsonEncode(task)).toList();
-  await prefs.setStringList('defaultTasks', taskList);
-}
+// Future<void> saveTasksToSharedPreferences(
+//     List<Map<String, dynamic>> tasks) async {
+//   SharedPreferences prefs = await SharedPreferences.getInstance();
+//   List<String> taskList = tasks.map((task) => jsonEncode(task)).toList();
+//   await prefs.setStringList('defaultTasks', taskList);
+// }
 
-Future<void> saveProgress() async {
-  final firestore = FirebaseFirestore.instance;
-  final String? userEmail = FirebaseAuth.instance.currentUser?.email;
+// Future<void> saveProgress() async {
+//   final firestore = FirebaseFirestore.instance;
+//   final String? userEmail = FirebaseAuth.instance.currentUser?.email;
 
-  if (userEmail != null) {
-    String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-    DocumentReference taskRecordDoc = firestore
-        .collection('taskRecord')
-        .doc(userEmail)
-        .collection('records')
-        .doc(today);
+//   if (userEmail != null) {
+//     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+//     DocumentReference taskRecordDoc = firestore
+//         .collection('taskRecord')
+//         .doc(userEmail)
+//         .collection('records')
+//         .doc(today);
 
-    List<Map<String, dynamic>> defaultTasks = [
-      {'task': 'Task 1', 'completed': false},
-      {'task': 'Task 2', 'completed': true},
-    ];
+//     List<Map<String, dynamic>> defaultTasks = [
+//       {'task': 'Task 1', 'completed': false},
+//       {'task': 'Task 2', 'completed': true},
+//     ];
 
-    List<Map<String, dynamic>> taskProgress = defaultTasks
-        .map((task) => {
-              'task': task['task'],
-              'status': task['completed'] ? 'completed' : 'incomplete'
-            })
-        .toList();
+//     List<Map<String, dynamic>> taskProgress = defaultTasks
+//         .map((task) => {
+//               'task': task['task'],
+//               'status': task['completed'] ? 'completed' : 'incomplete'
+//             })
+//         .toList();
 
-    int totalTasks = taskProgress.length;
-    int completedTasks =
-        taskProgress.where((task) => task['status'] == 'completed').length;
-    double overallCompletion =
-        totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+//     int totalTasks = taskProgress.length;
+//     int completedTasks =
+//         taskProgress.where((task) => task['status'] == 'completed').length;
+//     double overallCompletion =
+//         totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-    await taskRecordDoc.set({
-      'tasks': taskProgress,
-      'overallCompletion': '$completedTasks/$totalTasks',
-      'date': today,
-    });
-  }
-}
+//     await taskRecordDoc.set({
+//       'tasks': taskProgress,
+//       'overallCompletion': '$completedTasks/$totalTasks',
+//       'date': today,
+//     });
+//   }
+// }
 
-void scheduleTaskAtTime(int targetHour, int targetMinute) {
-  DateTime now = DateTime.now();
+// void scheduleTaskAtTime(int targetHour, int targetMinute) {
+//   DateTime now = DateTime.now();
 
-  // Calculate how many hours and minutes are left until the target time
-  Duration delay;
-  if (now.hour < targetHour ||
-      (now.hour == targetHour && now.minute < targetMinute)) {
-    delay = Duration(
-      hours: targetHour - now.hour,
-      minutes: targetMinute - now.minute,
-      seconds: 00 - now.second,
-    );
-  } else {
-    // If the current time is past the target time, schedule it for the next day
-    delay = Duration(
-      hours: (24 - now.hour) + targetHour,
-      minutes: targetMinute - now.minute,
-      seconds: 00 - now.second,
-    );
-  }
+//   // Calculate how many hours and minutes are left until the target time
+//   Duration delay;
+//   if (now.hour < targetHour ||
+//       (now.hour == targetHour && now.minute < targetMinute)) {
+//     delay = Duration(
+//       hours: targetHour - now.hour,
+//       minutes: targetMinute - now.minute,
+//       seconds: 00 - now.second,
+//     );
+//   } else {
+//     // If the current time is past the target time, schedule it for the next day
+//     delay = Duration(
+//       hours: (24 - now.hour) + targetHour,
+//       minutes: targetMinute - now.minute,
+//       seconds: 00 - now.second,
+//     );
+//   }
 
-  // Register the periodic task
-  Workmanager().registerPeriodicTask(
-    'dailyTaskUpload',
-    'uploadTasksAtFixedTime',
-    frequency: Duration(hours: 24), // Repeat every 24 hours
-    initialDelay: delay, // Delay until the specified time
-  );
+//   // Register the periodic task
+//   Workmanager().registerPeriodicTask(
+//     'dailyTaskUpload',
+//     'uploadTasksAtFixedTime',
+//     frequency: Duration(hours: 24), // Repeat every 24 hours
+//     initialDelay: delay, // Delay until the specified time
+//   );
 
-  // Add a BroadcastReceiver to listen for network connectivity changes
-  Connectivity().onConnectivityChanged.listen((connectivityResult) {
-    if (connectivityResult != ConnectivityResult.none) {
-      // Device is online, trigger the task
-      uploadTasksIfOffline();
-    }
-  });
-}
+//   // Add a BroadcastReceiver to listen for network connectivity changes
+//   Connectivity().onConnectivityChanged.listen((connectivityResult) {
+//     if (connectivityResult != ConnectivityResult.none) {
+//       // Device is online, trigger the task
+//       uploadTasksIfOffline();
+//     }
+//   });
+// }
 
-void scheduleTaskAtMidnight() {
-  Workmanager().registerPeriodicTask(
-    'dailyTaskUpload',
-    'uploadTasksAtMidnight',
-    frequency: Duration(hours: 24),
-    initialDelay: Duration(
-      hours: 19 - DateTime.now().hour,
-      minutes: 59 - DateTime.now().minute,
-      seconds: 00 - DateTime.now().second,
-    ),
-  );
+// void scheduleTaskAtMidnight() {
+//   Workmanager().registerPeriodicTask(
+//     'dailyTaskUpload',
+//     'uploadTasksAtMidnight',
+//     frequency: Duration(hours: 24),
+//     initialDelay: Duration(
+//       hours: 19 - DateTime.now().hour,
+//       minutes: 59 - DateTime.now().minute,
+//       seconds: 00 - DateTime.now().second,
+//     ),
+//   );
 
-  // Add a BroadcastReceiver to listen for network connectivity changes
-  Connectivity().onConnectivityChanged.listen((connectivityResult) {
-    if (connectivityResult != ConnectivityResult.none) {
-      // Device is online, trigger the task
-      uploadTasksIfOffline();
-    }
-  });
-}
+//   // Add a BroadcastReceiver to listen for network connectivity changes
+//   Connectivity().onConnectivityChanged.listen((connectivityResult) {
+//     if (connectivityResult != ConnectivityResult.none) {
+//       // Device is online, trigger the task
+//       uploadTasksIfOffline();
+//     }
+//   });
+// }
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> defaultTasks = [];
@@ -172,13 +172,148 @@ class _HomeScreenState extends State<HomeScreen> {
     printDefaultTasksWithStatus();
     loadDailyTasks();
     printSt();
+    checkAndUpdateTasks();
     //checkForNewDay();
     startNetworkListener();
-    scheduleTaskAtMidnight();
-    scheduleTaskAtTime(20, 18);
+    // scheduleTaskAtMidnight();
+    // scheduleTaskAtTime(20, 18);
     // scheduleTaskAtMidnight();
   }
 
+  Future<void> checkAndUpdateTasks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
+    String? storedDate = prefs.getString('tDate');
+
+    if (storedDate == null || storedDate != currentDate) {
+      await saveProgress();
+      await resetTasks();
+      await prefs.setString('tDate', currentDate);
+    }
+  }
+
+  Future<void> resetTasks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('defaultTasks', []);
+  }
+
+  // Future<void> saveProgress() async {
+  //   String? userId = auth.currentUser?.uid;
+  //   if (userId != null) {
+  //     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  //     DocumentReference taskRecordDoc = firestore
+  //         .collection('taskRecord')
+  //         .doc(userEmail)
+  //         .collection('records')
+  //         .doc(today);
+
+  //     List<Map<String, dynamic>> taskProgress = defaultTasks
+  //         .map((task) => {
+  //               'task': task['task'],
+  //               'status': task['completed'] ? 'completed' : 'incomplete'
+  //             })
+  //         .toList();
+
+  //     int totalTasks = taskProgress.length;
+  //     int completedTasks =
+  //         taskProgress.where((task) => task['status'] == 'completed').length;
+  //     double overallCompletion =
+  //         totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  //     await taskRecordDoc.set({
+  //       'tasks': taskProgress,
+  //       'overallCompletion': '$completedTasks/$totalTasks',
+  //       'date': today,
+  //     });
+  //   }
+  // }
+
+  Future<void> saveProgress() async {
+    String? userId = auth.currentUser?.uid;
+    if (userId != null) {
+      String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      List<Map<String, dynamic>> taskProgress = defaultTasks
+          .map((task) => {
+                'task': task['task'],
+                'status': task['completed'] ? 'completed' : 'incomplete'
+              })
+          .toList();
+
+      int totalTasks = taskProgress.length;
+      int completedTasks =
+          taskProgress.where((task) => task['status'] == 'completed').length;
+
+      // Check internet connectivity
+      ConnectivityResult connectivityResult =
+          (await Connectivity().checkConnectivity()) as ConnectivityResult;
+
+      if (connectivityResult == ConnectivityResult.none) {
+        // Device is offline, save data to be uploaded later
+        await saveToBeUploaded(today, taskProgress, completedTasks, totalTasks);
+      } else {
+        // Device is online, save data directly to Firebase
+        await uploadToFirebase(today, taskProgress, completedTasks, totalTasks);
+      }
+    }
+  }
+
+// Function to save data locally when offline
+  Future<void> saveToBeUploaded(String date, List<Map<String, dynamic>> tasks,
+      int completedTasks, int totalTasks) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> toBeUploaded =
+        prefs.getStringList('toBeUploaded') ?? []; // Existing data
+
+    // Create a new record and encode it as JSON
+    Map<String, dynamic> data = {
+      'date': date,
+      'tasks': tasks,
+      'overallCompletion': '$completedTasks/$totalTasks',
+    };
+
+    // Add the new record to the list as a JSON string
+    toBeUploaded.add(jsonEncode(data));
+    await prefs.setStringList('toBeUploaded', toBeUploaded);
+  }
+
+// Function to upload data directly to Firebase
+  Future<void> uploadToFirebase(String date, List<Map<String, dynamic>> tasks,
+      int completedTasks, int totalTasks) async {
+    DocumentReference taskRecordDoc = firestore
+        .collection('taskRecord')
+        .doc(userEmail)
+        .collection('records')
+        .doc(date);
+
+    await taskRecordDoc.set({
+      'tasks': tasks,
+      'overallCompletion': '$completedTasks/$totalTasks',
+      'date': date,
+    });
+  }
+
+// Function to upload saved tasks when back online
+  Future<void> uploadTasksIfOffline() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> toBeUploaded = prefs.getStringList('toBeUploaded') ?? [];
+
+    for (String record in toBeUploaded) {
+      // Parse the saved JSON string back to a map
+      Map<String, dynamic> data = jsonDecode(record);
+      await uploadToFirebase(
+        data['date'],
+        List<Map<String, dynamic>>.from(data['tasks']),
+        int.parse(data['overallCompletion'].split('/')[0]),
+        int.parse(data['overallCompletion'].split('/')[1]),
+      );
+    }
+
+    // Clear the list after successful upload
+    await prefs.remove('toBeUploaded');
+  }
+
+// Start network listener to handle offline data upload
   void startNetworkListener() {
     Connectivity().onConnectivityChanged.listen((connectivityResult) async {
       if (connectivityResult != ConnectivityResult.none) {
@@ -191,43 +326,55 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void scheduleTaskAtTime(int targetHour, int targetMinute) {
-    DateTime now = DateTime.now();
+  // void startNetworkListener() {
+  //   Connectivity().onConnectivityChanged.listen((connectivityResult) async {
+  //     if (connectivityResult != ConnectivityResult.none) {
+  //       await uploadTasksIfOffline().then((_) {
+  //         print('Tasks uploaded successfully.');
+  //       }).catchError((error) {
+  //         print('Error uploading tasks: $error');
+  //       });
+  //     }
+  //   });
+  // }
 
-    // Calculate how many hours and minutes are left until the target time
-    Duration delay;
-    if (now.hour < targetHour ||
-        (now.hour == targetHour && now.minute < targetMinute)) {
-      delay = Duration(
-        hours: targetHour - now.hour,
-        minutes: targetMinute - now.minute,
-        seconds: 00 - now.second,
-      );
-    } else {
-      // If the current time is past the target time, schedule it for the next day
-      delay = Duration(
-        hours: (24 - now.hour) + targetHour,
-        minutes: targetMinute - now.minute,
-        seconds: 00 - now.second,
-      );
-    }
+  // void scheduleTaskAtTime(int targetHour, int targetMinute) {
+  //   DateTime now = DateTime.now();
 
-    // Register the periodic task
-    Workmanager().registerPeriodicTask(
-      'dailyTaskUpload',
-      'uploadTasksAtFixedTime',
-      frequency: Duration(hours: 24), // Repeat every 24 hours
-      initialDelay: delay, // Delay until the specified time
-    );
+  //   // Calculate how many hours and minutes are left until the target time
+  //   Duration delay;
+  //   if (now.hour < targetHour ||
+  //       (now.hour == targetHour && now.minute < targetMinute)) {
+  //     delay = Duration(
+  //       hours: targetHour - now.hour,
+  //       minutes: targetMinute - now.minute,
+  //       seconds: 00 - now.second,
+  //     );
+  //   } else {
+  //     // If the current time is past the target time, schedule it for the next day
+  //     delay = Duration(
+  //       hours: (24 - now.hour) + targetHour,
+  //       minutes: targetMinute - now.minute,
+  //       seconds: 00 - now.second,
+  //     );
+  //   }
 
-    // Add a BroadcastReceiver to listen for network connectivity changes
-    Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult != ConnectivityResult.none) {
-        // Device is online, trigger the task
-        uploadTasksIfOffline();
-      }
-    });
-  }
+  //   // Register the periodic task
+  //   Workmanager().registerPeriodicTask(
+  //     'dailyTaskUpload',
+  //     'uploadTasksAtFixedTime',
+  //     frequency: Duration(hours: 24), // Repeat every 24 hours
+  //     initialDelay: delay, // Delay until the specified time
+  //   );
+
+  //   // Add a BroadcastReceiver to listen for network connectivity changes
+  //   Connectivity().onConnectivityChanged.listen((connectivityResult) {
+  //     if (connectivityResult != ConnectivityResult.none) {
+  //       // Device is online, trigger the task
+  //       uploadTasksIfOffline();
+  //     }
+  //   });
+  // }
 
   // void checkForNewDay() {
   //   DateTime now = DateTime.now();
@@ -269,11 +416,6 @@ class _HomeScreenState extends State<HomeScreen> {
   //   });
   // }
 
-  Future<void> resetTasks() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('defaultTasks', []);
-  }
-
   Future<void> loadUserEmail() async {
     User? user = auth.currentUser;
     if (user != null) {
@@ -306,72 +448,88 @@ class _HomeScreenState extends State<HomeScreen> {
     // Load the task names (task titles) for the day from SharedPreferences
     List<String>? dailyTasks = prefs.getStringList('dailyTasks') ?? [];
 
-    // Prepare a new list for updated defaultTasks
-    List<Map<String, dynamic>> newDefaultTasks = [];
+    // Check if dailyTasks is not empty
+    if (dailyTasks.isNotEmpty) {
+      // Prepare a new list for updated defaultTasks
+      List<Map<String, dynamic>> newDefaultTasks = [];
 
-    // Iterate through the dailyTasks and merge with savedTasks to retain their status
-    for (String taskName in dailyTasks) {
-      // Check if the task already exists in savedTasks
-      Map<String, dynamic>? existingTask = savedTasks.firstWhere(
-        (task) => task['task'] == taskName,
-        orElse: () => {},
-      );
+      // Iterate through the dailyTasks and merge with savedTasks to retain their status
+      for (String taskName in dailyTasks) {
+        // Check if the task already exists in savedTasks
+        Map<String, dynamic>? existingTask = savedTasks.firstWhere(
+          (task) => task['task'] == taskName,
+          orElse: () => {},
+        );
 
-      if (existingTask.isNotEmpty) {
-        // If the task exists, retain its status
-        newDefaultTasks.add(existingTask);
-      } else {
-        // If it's a new task, add it as incomplete
-        newDefaultTasks.add({'task': taskName, 'completed': false});
+        if (existingTask.isNotEmpty) {
+          // If the task exists, retain its status
+          newDefaultTasks.add(existingTask);
+        } else {
+          // If it's a new task, add it as incomplete
+          newDefaultTasks.add({'task': taskName, 'completed': false});
+        }
       }
+
+      // Update the defaultTasks in the state
+      setState(() {
+        defaultTasks = newDefaultTasks;
+      });
+
+      // Save updated defaultTasks back to SharedPreferences
+      await saveTasksToSharedPreferences(defaultTasks);
     }
-
-    // Update the defaultTasks in the state
-    setState(() {
-      defaultTasks = newDefaultTasks;
-    });
-
-    // Save updated defaultTasks back to SharedPreferences
-    await saveTasksToSharedPreferences(defaultTasks);
-
-    print('Updated defaultTasks saved to SharedPreferences.');
   }
 
   void markTaskAsCompleted(String taskName) {
-    setState(() {
-      // Find the task in the defaultTasks and update its status
-      for (var task in defaultTasks) {
-        if (task['task'] == taskName) {
-          task['completed'] = true; // Mark as completed
-          break;
-        }
-      }
-    });
-    // Save the updated tasks to SharedPreferences
-    saveTasksToSharedPreferences(defaultTasks);
+    // Check if the task exists in defaultTasks
+    Map<String, dynamic>? task = defaultTasks.firstWhere(
+      (task) => task['task'] == taskName,
+      orElse: () => {},
+    );
+
+    if (task.isNotEmpty) {
+      setState(() {
+        // Update task status (complete/incomplete)
+        task['completed'] = true;
+
+        // Save updated tasks to SharedPreferences
+        saveTasksToSharedPreferences(defaultTasks);
+      });
+    }
   }
 
   void deleteTask(String taskName) {
-    setState(() {
-      // Remove the task from the defaultTasks
-      defaultTasks.removeWhere((task) => task['task'] == taskName);
-    });
-    // Save the updated tasks to SharedPreferences
-    saveTasksToSharedPreferences(defaultTasks);
+    // Check if the task exists in defaultTasks
+    Map<String, dynamic>? task = defaultTasks.firstWhere(
+      (task) => task['task'] == taskName,
+      orElse: () => {},
+    );
+
+    if (task.isNotEmpty) {
+      setState(() {
+        // Remove the task from the defaultTasks
+        defaultTasks.remove(task);
+
+        // Save updated tasks to SharedPreferences
+        saveTasksToSharedPreferences(defaultTasks);
+      });
+    }
   }
 
   Future<void> saveTasksToSharedPreferences(
       List<Map<String, dynamic>> defaultTasks) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Convert updated defaultTasks to JSON strings
-    List<String> updatedDefaultTasksJson =
-        defaultTasks.map((task) => jsonEncode(task)).toList();
+    try {
+      // Convert updated defaultTasks to JSON strings
+      List<String> updatedDefaultTasksJson =
+          defaultTasks.map((task) => jsonEncode(task)).toList();
 
-    // Save updated task list to SharedPreferences
-    await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
-
-    print('Updated tasks saved to SharedPreferences.');
+      // Save updated task list to SharedPreferences
+      await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
+    } catch (e) {
+      print('Error saving tasks to SharedPreferences: $e');
+    }
   }
 
   Future<void> printDefaultTasksWithStatus() async {
@@ -379,10 +537,14 @@ class _HomeScreenState extends State<HomeScreen> {
     List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
 
     if (savedTasksJson.isNotEmpty) {
-      // Print each task with its status
-      for (String taskJson in savedTasksJson) {
-        Map<String, dynamic> task = jsonDecode(taskJson);
-        print('Task: ${task['task']}, Completed: ${task['completed']}');
+      try {
+        // Print each task with its status
+        for (String taskJson in savedTasksJson) {
+          Map<String, dynamic> task = jsonDecode(taskJson);
+          print('Task: ${task['task']}, Completed: ${task['completed']}');
+        }
+      } catch (e) {
+        print('Error decoding JSON: $e');
       }
     } else {
       print('No tasks found in SharedPreferences.');
@@ -413,37 +575,6 @@ class _HomeScreenState extends State<HomeScreen> {
   //     }
   //   }
   // }
-
-  Future<void> saveProgress() async {
-    String? userId = auth.currentUser?.uid;
-    if (userId != null) {
-      String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-      DocumentReference taskRecordDoc = firestore
-          .collection('taskRecord')
-          .doc(userEmail)
-          .collection('records')
-          .doc(today);
-
-      List<Map<String, dynamic>> taskProgress = defaultTasks
-          .map((task) => {
-                'task': task['task'],
-                'status': task['completed'] ? 'completed' : 'incomplete'
-              })
-          .toList();
-
-      int totalTasks = taskProgress.length;
-      int completedTasks =
-          taskProgress.where((task) => task['status'] == 'completed').length;
-      double overallCompletion =
-          totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-      await taskRecordDoc.set({
-        'tasks': taskProgress,
-        'overallCompletion': '$completedTasks/$totalTasks',
-        'date': today,
-      });
-    }
-  }
 
   // void checkIfNewDay() async {
   //   String? userId = auth.currentUser?.uid;

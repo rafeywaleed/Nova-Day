@@ -10,15 +10,6 @@ import 'package:sizer/sizer.dart';
 import 'package:workmanager/workmanager.dart';
 import 'firebase_options.dart'; // Generated Firebase options file
 
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    // Load the tasks from Shared Preferences
-    await HomeScreen().uploadTasksIfOffline();
-
-    return Future.value(true);
-  });
-}
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -27,7 +18,7 @@ void main() async {
   final encryptionKey = Hive.generateSecureKey(); // Generate a secure key
   await Hive.initFlutter();
   await Hive.openBox('userBox', encryptionCipher: HiveAesCipher(encryptionKey));
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  // Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(const HundredDays());
 }
@@ -39,7 +30,7 @@ class HundredDays extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) => MaterialApp(
-        theme: ThemeData(fontFamily: 'Manrope'),
+        // theme: ThemeData(fontFamily: 'Manrope'),
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
