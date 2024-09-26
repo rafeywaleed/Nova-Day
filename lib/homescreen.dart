@@ -222,7 +222,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> saveNormalProgress() async {
     String? userId = auth.currentUser?.uid;
-    if (userId != null) {
+    String? userEmail = auth.currentUser?.email;
+    if (userId != null && userEmail != null) {
       String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
       DocumentReference taskRecordDoc = firestore
           .collection('taskRecord')
@@ -253,7 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> saveProgress() async {
     String? userId = auth.currentUser?.uid;
-    if (userId != null) {
+    String? userEmail = auth.currentUser?.email;
+    if (userId != null && userEmail != null) {
       String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
       List<Map<String, dynamic>> taskProgress = defaultTasks
           .map((task) => {
@@ -735,9 +737,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             '$daysLeft',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 7.w,
+                              fontSize: 8.w,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -761,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.blue,
                         ),
                       ),
-                      progressColor: Colors.blue,
+                      progressColor: Colors.green,
                       backgroundColor: Colors.grey[300]!,
                     ),
                   ],

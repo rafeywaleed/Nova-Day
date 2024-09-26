@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FirebaseService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -18,17 +20,28 @@ class FirebaseService {
       if (user != null) {
         userId = user.uid; // Store user ID locally
 
-        // Store user data in Firestore
-        await _firestore.collection('users').doc(user.uid).set({
+        // Store user data in Firestore under UserDetails
+        await _firestore.collection('UserDetails').doc(user.uid).set({
           'name': name,
           'email': email,
           'createdAt': FieldValue.serverTimestamp(),
         });
+
+        // Save user data in SharedPreferences
+        await _saveUserDetailsToPreferences(name, email);
       }
     } on FirebaseAuthException catch (e) {
       print('Error signing up: ${e.message}');
-      throw e; // Optionally, throw a custom exception
+      throw e;
     }
+  }
+
+  Future<void> _saveUserDetailsToPreferences(String name, String email) async {
+    String? joinedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userName', name);
+    await prefs.setString('userEmail', email);
+    await prefs.setString('joinedDate', joinedDate);
   }
 
   // Signin function
@@ -110,4 +123,24 @@ class FirebaseService {
     }
     return Stream.value(null);
   }
+
+    // FirebaseService class
+Future<Map<String, dynamic>> fetchUserData() async {
+  User? user = FirebaseAuth.instance.currentUser; // Get the current user
+  if (user == null) {
+    throw Exception("User is not logged in."); // Handle the case where there's no logged-in user
+  }
+
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .get(); // Fetch user data from Firestore
+
+  if (!snapshot.exists) {
+    throw Exception("User data not found in Firestore."); // Handle the case where user data doesn't exist
+  }
+
+  return snapshot.data() as Map<String, dynamic>; // Return user data
+}
+
 }

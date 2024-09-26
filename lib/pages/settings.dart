@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/pages/intro_screens.dart';
+import 'package:hundred_days/pages/profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
@@ -73,7 +75,10 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               'Profile',
               'Update your name and password as needed.',
               () {
-                // Navigate to Profile
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                );
               },
             ),
             _buildSection(
@@ -89,13 +94,16 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => IntroScreen(input: 1,)),
+                  MaterialPageRoute(
+                      builder: (context) => IntroScreen(
+                            input: 1,
+                          )),
                 );
               },
             ),
             const Spacer(),
             ElevatedButton(
-              onPressed: () => logout(),
+              onPressed: () => logout(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 padding: EdgeInsets.symmetric(
@@ -170,9 +178,15 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     );
   }
 
-  void logout() async {
+  void logout(BuildContext context) async {
     try {
+    
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+  
       await FirebaseAuth.instance.signOut();
+
       Navigator.popUntil(context, (route) => route.isFirst);
       Navigator.pushReplacement(
         context,

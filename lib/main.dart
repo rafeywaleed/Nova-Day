@@ -30,6 +30,13 @@ class HundredDays extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) => MaterialApp(
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          primaryColor: Colors.blue,
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            secondary: Colors.blue, // Use secondary instead of accentColor
+          ),
+        ),
         // theme: ThemeData(fontFamily: 'Manrope'),
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
