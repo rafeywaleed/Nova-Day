@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hundred_days/homescreen.dart';
 import 'package:sizer/sizer.dart';
 
 class IntroScreen extends StatefulWidget {
@@ -11,94 +12,154 @@ class IntroScreen extends StatefulWidget {
   State<IntroScreen> createState() => _IntroScreenState();
 }
 
-class _IntroScreenState extends State<IntroScreen> {
+class _IntroScreenState extends State<IntroScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedPage = 0;
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward(); // Start animation when the screen opens
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox(
-        height: 100.h,
-        width: 100.w,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Background image
-            Image.asset(
-              'assets/images/pc.png',
-              fit: BoxFit.cover,
-              height: 100.h,
-              width: 100.w,
-            ),
-            // Intro screen content
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: child,
-              ),
-              child: _selectedPage == 0 ? IntroPage1() : IntroPage2(),
-            ),
-            // Buttons at the bottom
-            Positioned(
-              bottom: 10.h,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Previous button
-                  if (_selectedPage != 0)
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedPage = 0;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 15,
-                        ),
-                        textStyle: GoogleFonts.plusJakartaSans(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      child: const Text('Previous'),
-                    ),
-                  // Next or Done button
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_selectedPage == 0) {
-                        setState(() {
-                          _selectedPage = 1;
-                        });
-                      } else {
-                        // Navigate to AddTask page
-                        Navigator.pushNamed(context, '/addTask');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 15,
-                      ),
-                      textStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    child: _selectedPage == 0
-                        ? const Text('Next')
-                        : const Text('Done'),
+      body: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 1), // Start from bottom
+          end: Offset.zero, // Move to original position
+        ).animate(CurvedAnimation(
+          parent: _controller,
+          curve: Curves.easeInOut,
+        )),
+        child: SizedBox(
+          height: 100.h,
+          width: 100.w,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background image with opacity
+              Container(
+                height: 100.h,
+                width: 100.w,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/pc.png'),
+                    fit: BoxFit.cover,
                   ),
-                ],
+                ),
+                child: Container(
+                  color: Colors.black.withOpacity(0.5), // Adjust opacity here
+                ),
               ),
-            ),
-          ],
+              // Intro screen content
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: _selectedPage == 0 ? IntroPage1() : IntroPage2(),
+              ),
+              // Buttons at the bottom
+              Positioned(
+                bottom: 10.h,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Previous button
+                    if (_selectedPage != 0)
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 500),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedPage = 0;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(30), // Rounded corners
+                            ),
+                            elevation: 5, // Add shadow
+                          ),
+                          child: Text(
+                            'Previous',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 500),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_selectedPage == 0) {
+                              setState(() {
+                                _selectedPage = 1;
+                              });
+                            } else {
+                              if (widget.input == 0) {
+                                 Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                );
+                              } else {
+                                Navigator.pop(context); // Pop back
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(30), // Rounded corners
+                            ),
+                            elevation: 5,
+                          ),
+                          child: Text(
+                            _selectedPage == 0 ? 'Next' : 'Done',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

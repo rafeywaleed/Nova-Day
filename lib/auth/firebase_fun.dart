@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FirebaseService {
-
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? userId;
@@ -20,9 +18,8 @@ class FirebaseService {
       );
       User? user = userCredential.user;
       if (user != null) {
-        userId = user.uid; 
+        userId = user.uid;
 
-       
         await _saveUserDetails(name, email, user.uid);
       }
     } on FirebaseAuthException catch (e) {
@@ -93,7 +90,7 @@ class FirebaseService {
       userId = null; // Clear stored user ID
     } on FirebaseAuthException catch (e) {
       print('Error signing out: ${e.message}');
-      throw e; 
+      throw e;
     }
   }
 
@@ -102,7 +99,7 @@ class FirebaseService {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        await _firestore.collection('users').doc(user.uid).update({
+        await _firestore.collection('userDetails').doc(user.uid).update({
           'name': newName,
         });
       } else {
@@ -149,22 +146,20 @@ class FirebaseService {
 
   // FirebaseService class
   Future<Map<String, dynamic>> fetchUserData() async {
-    User? user = FirebaseAuth.instance.currentUser; 
+    User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception(
-          "User is not logged in."); 
+      throw Exception("User is not logged in.");
     }
 
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
-        .get(); 
+        .get();
 
     if (!snapshot.exists) {
-      throw Exception(
-          "User data not found in Firestore."); 
+      throw Exception("User data not found in Firestore.");
     }
 
-    return snapshot.data() as Map<String, dynamic>; 
+    return snapshot.data() as Map<String, dynamic>;
   }
 }

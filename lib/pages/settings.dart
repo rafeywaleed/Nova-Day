@@ -1,4 +1,6 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,6 +45,31 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     }
   }
 
+  void _launchEmail() async {
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'a.rafeywaleeda5@gmail.com',
+      query: encodeQueryParameters({
+        'subject': 'Your Subject Here',
+        'body': 'Your message here',
+      }),
+    );
+
+    // Launch the email client
+    if (await canLaunch(emailLaunchUri.toString())) {
+      await launch(emailLaunchUri.toString());
+    } else {
+      throw 'Could not launch $emailLaunchUri';
+    }
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +90,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             ),
             _buildSection(
               'Edit Tasks',
-              'Modify your daily tasks effortlessly.',
+              'Effortlessly modify your daily tasks.',
               () {
                 Navigator.push(
                   context,
@@ -73,7 +100,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             ),
             _buildSection(
               'Profile',
-              'Update your name and password as needed.',
+              'Update your name and password as necessary.',
               () {
                 Navigator.push(
                   context,
@@ -83,14 +110,14 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             ),
             _buildSection(
               'Contact',
-              'Reach out for suggestions or to report issues at a.rafeywaleeda5@gmail.com',
+              'For requests, reports, and suggestions, click here to contact a.rafeywaleeda5@gmail.com.',
               () {
-                // Navigate to Contact
+                _launchEmail();
               },
             ),
             _buildSection(
               'Guide',
-              '',
+              'For user notes and details regarding task lists.',
               () {
                 Navigator.push(
                   context,
@@ -106,24 +133,12 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               onPressed: () => logout(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
-                padding: EdgeInsets.symmetric(
-                    horizontal: 8.w, vertical: 2.h), // Responsive padding
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
               ),
               child: Text(
                 'Log Out',
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
-                ),
-              ),
-            ),
-            Padding(
-              padding:
-                  EdgeInsets.symmetric(vertical: 1.h), // Responsive padding
-              child: Text(
-                'Joined on: ${joinDate ?? "Loading..."}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 121, 121, 121),
                 ),
               ),
             ),

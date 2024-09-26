@@ -218,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> resetTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('defaultTasks', []);
+    print("Tasks delte kar diya saab");
   }
 
   Future<void> saveNormalProgress() async {
