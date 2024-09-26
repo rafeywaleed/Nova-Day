@@ -15,6 +15,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String s_password = "";
+  String s_email = "";
   var focusNodeEmail = FocusNode();
   var focusNodePassword = FocusNode();
   bool isFocusedEmail = false;
@@ -230,7 +232,20 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                           ],
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_email = value!;
+                            });
+                          },
+                          keyboardType: TextInputType.emailAddress,
                           controller: _emailController,
                           style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.w500),
@@ -278,7 +293,19 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                           ],
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Password';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_password = value!;
+                            });
+                          },
                           controller: _passwordController,
                           style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.w500),

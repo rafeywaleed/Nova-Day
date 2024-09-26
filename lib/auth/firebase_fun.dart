@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FirebaseService {
+
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String? userId; // Variable to store user ID
+  String? userId;
 
   // Signup function
   Future<void> signUp(String name, String email, String password) async {
@@ -18,21 +20,42 @@ class FirebaseService {
       );
       User? user = userCredential.user;
       if (user != null) {
-        userId = user.uid; // Store user ID locally
+        userId = user.uid; 
 
-        // Store user data in Firestore under UserDetails
-        await _firestore.collection('UserDetails').doc(user.uid).set({
-          'name': name,
-          'email': email,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        // Save user data in SharedPreferences
-        await _saveUserDetailsToPreferences(name, email);
+       
+        await _saveUserDetails(name, email, user.uid);
       }
     } on FirebaseAuthException catch (e) {
       print('Error signing up: ${e.message}');
       throw e;
+    }
+  }
+
+  // Method to save user details in Firestore and SharedPreferences
+  Future<void> _saveUserDetails(String name, String email, String uid) async {
+    String joinedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
+    try {
+      await FirebaseFirestore.instance.collection('userDetails').doc(uid).set({
+        'name': name,
+        'email': email,
+        'joinedDate': joinedDate,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      print('User data stored in Firestore');
+    } catch (error) {
+      print('Error storing user data in Firestore: $error');
+    }
+
+    // Save user data in SharedPreferences
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userName', name);
+      await prefs.setString('userEmail', email);
+      await prefs.setString('joinedDate', joinedDate);
+      print('User data stored in SharedPreferences');
+    } catch (error) {
+      print('Error storing user data in SharedPreferences: $error');
     }
   }
 
@@ -70,7 +93,7 @@ class FirebaseService {
       userId = null; // Clear stored user ID
     } on FirebaseAuthException catch (e) {
       print('Error signing out: ${e.message}');
-      throw e; // Optionally, throw a custom exception
+      throw e; 
     }
   }
 
@@ -124,23 +147,24 @@ class FirebaseService {
     return Stream.value(null);
   }
 
-    // FirebaseService class
-Future<Map<String, dynamic>> fetchUserData() async {
-  User? user = FirebaseAuth.instance.currentUser; // Get the current user
-  if (user == null) {
-    throw Exception("User is not logged in."); // Handle the case where there's no logged-in user
+  // FirebaseService class
+  Future<Map<String, dynamic>> fetchUserData() async {
+    User? user = FirebaseAuth.instance.currentUser; 
+    if (user == null) {
+      throw Exception(
+          "User is not logged in."); 
+    }
+
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get(); 
+
+    if (!snapshot.exists) {
+      throw Exception(
+          "User data not found in Firestore."); 
+    }
+
+    return snapshot.data() as Map<String, dynamic>; 
   }
-
-  DocumentSnapshot snapshot = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .get(); // Fetch user data from Firestore
-
-  if (!snapshot.exists) {
-    throw Exception("User data not found in Firestore."); // Handle the case where user data doesn't exist
-  }
-
-  return snapshot.data() as Map<String, dynamic>; // Return user data
-}
-
 }

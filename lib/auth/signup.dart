@@ -16,6 +16,11 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  String s_name = "";
+  String s_email = "";
+  String s_password = "";
+  String s_Cpassword = "";
+
   var focusNodeName = FocusNode();
   var focusNodeEmail = FocusNode();
   var focusNodePassword = FocusNode();
@@ -231,16 +236,31 @@ class _SignUpPageState extends State<SignUpPage> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 5.w, vertical: .3.h),
                         decoration: BoxDecoration(
-                          color: isFocusedName ? Colors.white : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          color:
+                              isFocusedName ? Colors.white : Color(0xFFF1F0F5),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_name = value!;
+                            });
+                          },
                           controller: _nameController,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Name',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeName,
                           style: GoogleFonts.plusJakartaSans(), // Text style
@@ -267,19 +287,38 @@ class _SignUpPageState extends State<SignUpPage> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 5.w, vertical: .3.h),
                         decoration: BoxDecoration(
-                          color: isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          color:
+                              isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_email = value!;
+                            });
+                          },
+
                           controller: _emailController,
+
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Email',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeEmail,
-                          style: GoogleFonts.plusJakartaSans(), // Text style
+                          style: GoogleFonts.plusJakartaSans(),
+                          // Text style
                         ),
                       ),
                     ),
@@ -306,10 +345,23 @@ class _SignUpPageState extends State<SignUpPage> {
                           color: isFocusedPassword
                               ? Colors.white
                               : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter a password';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_password = value!;
+                            });
+                          },
                           controller: _passwordController,
                           obscureText: !showPassword,
                           decoration: InputDecoration(
@@ -327,7 +379,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Password',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodePassword,
                           style: GoogleFonts.plusJakartaSans(), // Text style
@@ -357,10 +410,23 @@ class _SignUpPageState extends State<SignUpPage> {
                           color: isFocusedConfirmPassword
                               ? Colors.white
                               : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_Cpassword = value!;
+                            });
+                          },
                           controller: _confirmPasswordController,
                           obscureText: !showConfirmPassword,
                           decoration: InputDecoration(
@@ -378,7 +444,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Confirm Password',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeConfirmPassword,
                           style: GoogleFonts.plusJakartaSans(), // Text style

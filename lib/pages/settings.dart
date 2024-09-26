@@ -180,12 +180,23 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
   void logout(BuildContext context) async {
     try {
-    
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
+      print("Shared prefences cleared");
 
-  
       await FirebaseAuth.instance.signOut();
+
+      // Show a SnackBar or any other form of feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logged out successfully\n(local data cleared)'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ),
+      );
 
       Navigator.popUntil(context, (route) => route.isFirst);
       Navigator.pushReplacement(
@@ -194,6 +205,16 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       );
     } catch (e) {
       print("Logout error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout error: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ),
+      );
     }
   }
 }
