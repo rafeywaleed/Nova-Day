@@ -1,9 +1,14 @@
+import 'package:animate_do/animate_do.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import 'package:hundred_days/utils/loader.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sizer/sizer.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProgressTracker extends StatefulWidget {
   const ProgressTracker({super.key});
@@ -13,33 +18,30 @@ class ProgressTracker extends StatefulWidget {
 }
 
 class _ProgressTrackerState extends State<ProgressTracker> {
-  Map<DateTime, int> dateMap = {}; // Task completion data from Firebase
-  DateTime startDate = DateTime(2024, 1, 1);
-  DateTime endDate = DateTime(2024, 12, 31);
+  Map<DateTime, int> dateMap = {};
+  DateTime currentMonth =
+      DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime? selectedDate;
   String userEmail = '';
-  
-  double weeklyProgress = 0.7; // Placeholder, to be fetched from Firebase
-  double allTimeProgress = 0.8; // Placeholder, to be fetched from Firebase
+  List<Map<String, dynamic>> tasks = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadUserEmail(); // Fetch user email for Firebase data
+    loadUserEmail();
   }
 
-  // Fetch user email for authenticated user
   Future<void> loadUserEmail() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
         userEmail = user.email!;
-        fetchTaskDataFromFirebase(); // Load the task data from Firebase after fetching email
+        fetchTaskDataFromFirebase();
       });
     }
   }
 
-  // Fetch user task completion data from Firebase
   void fetchTaskDataFromFirebase() async {
     if (userEmail.isEmpty) return;
 
@@ -51,19 +53,19 @@ class _ProgressTrackerState extends State<ProgressTracker> {
 
     Map<DateTime, int> tempDateMap = {};
     for (var record in taskRecords.docs) {
-      final dateStr = record.id; // Date in 'dd-MM-yyyy' format
-      final taskCompletion = record.data()['completedTasks'] as int;
+      final dateStr = record.id;
+      final taskCompletion = record.data()['overallCompletion'];
 
       DateTime recordDate = DateFormat('dd-MM-yyyy').parse(dateStr);
-      tempDateMap[recordDate] = taskCompletion; // Map date to completion status
+      tempDateMap[recordDate] = int.parse(taskCompletion.split('/')[0]);
     }
 
     setState(() {
-      dateMap = tempDateMap; // Update state with fetched data
+      dateMap = tempDateMap;
+      isLoading = false;
     });
   }
 
-  // Fetch tasks for the selected date
   Future<List<Map<String, dynamic>>> fetchTasksForDate(DateTime date) async {
     if (userEmail.isEmpty) return [];
 
@@ -77,114 +79,322 @@ class _ProgressTrackerState extends State<ProgressTracker> {
 
     if (!taskSnapshot.exists) return [];
 
-    final tasks = List<Map<String, dynamic>>.from(taskSnapshot.data()?['tasks'] ?? []);
+    final tasks =
+        List<Map<String, dynamic>>.from(taskSnapshot.data()?['tasks'] ?? []);
     return tasks;
   }
 
+  void nextMonth() {
+    setState(() {
+      currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
+    });
+  }
+  Future<void> _handleRefresh() async {
+  setState(() {
+    isLoading = true;
+  });
+  fetchTaskDataFromFirebase();
+  setState(() {
+    isLoading = false;
+  });
+}
+
+  void previousMonth() {
+    setState(() {
+      currentMonth = DateTime(currentMonth.year, currentMonth.month - 1, 1);
+    });
+  }
+
+  
+
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> tasks = [];
-
+    if (isLoading) {
+    return Center(
+      child: PLoader(),
+    );
+  }
     return Scaffold(
-      body: Column(
-        children: [
-          // Heatmap Calendar
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: HeatMap(
-                  datasets: dateMap,
-                  startDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
-                  endDate: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
-                  colorMode: ColorMode.color,
-                  showText: true, // Show small date inside each box
-                  scrollable: true, // Allow horizontal scrolling for months
-                  size: 50, // Increase box size for better readability
-                  onClick: (date) {
-                    setState(() {
-                      selectedDate = date;
-                      fetchTasksForDate(selectedDate!).then((fetchedTasks) {
-                        setState(() {
-                          tasks = fetchedTasks;
-                        });
-                      });
-                    });
-                  },
-                  colorsets: {
-                    1: Colors.green[200]!,
-                    2: Colors.green[400]!,
-                    3: Colors.green[600]!,
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          if (selectedDate == null) ...[
-            // Circular Progress Indicators for Weekly and All-Time Progress
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        child: RefreshIndicator(
+          color: Colors.blue,
+          onRefresh: _handleRefresh,
+          child: SingleChildScrollView(
+            child: Column(
               children: [
-                CircularPercentIndicator(
-                  radius: 60,
-                  lineWidth: 10.0,
-                  percent: weeklyProgress,
-                  center: Text("${(weeklyProgress * 100).toStringAsFixed(0)}%"),
-                  progressColor: Colors.blue,
-                  backgroundColor: Colors.grey[300]!,
-                  header: Text("This Week"),
-                ),
-                CircularPercentIndicator(
-                  radius: 60,
-                  lineWidth: 10.0,
-                  percent: allTimeProgress,
-                  center: Text("${(allTimeProgress * 100).toStringAsFixed(0)}%"),
-                  progressColor: Colors.green,
-                  backgroundColor: Colors.grey[300]!,
-                  header: Text("All Time"),
-                ),
-              ],
-            ),
-          ] else ...[
-            // Display Tasks and Day Completion for the selected date
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                SizedBox(height: 1.h),
+                // Month Navigation
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Tasks for ${DateFormat('dd-MM-yyyy').format(selectedDate!)}",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_ios),
+                      onPressed: previousMonth,
                     ),
-                    const SizedBox(height: 8),
-                    ...tasks.map((task) => ListTile(
-                          title: Text(task['task']),
-                          trailing: Icon(task['status']
-                              ? Icons.check_circle
-                              : Icons.circle),
-                        )),
-                    const SizedBox(height: 16),
-                    CircularPercentIndicator(
-                      radius: 60,
-                      lineWidth: 10.0,
-                      percent: tasks.isNotEmpty
-                          ? tasks.where((task) => task['status']).length / tasks.length
-                          : 0.0,
-                      center: Text(
-                          "${(tasks.where((task) => task['status']).length / tasks.length * 100).toStringAsFixed(0)}%"),
-                      progressColor: Colors.purple,
-                      backgroundColor: Colors.grey[300]!,
-                      header: Text("Task Completion"),
+                    Text(
+                      DateFormat.yMMMM().format(currentMonth),
+                      style: GoogleFonts.openSans(
+                          fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.arrow_forward_ios),
+                      onPressed: nextMonth,
                     ),
                   ],
                 ),
-              ),
+                // Heatmap Calendar
+                Container(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: EdgeInsets.all(2.w),
+                      child: HeatMap(
+                        datasets: dateMap,
+                        startDate: currentMonth,
+                        endDate: DateTime(
+                            currentMonth.year, currentMonth.month + 1, 0),
+                        colorMode: ColorMode.color,
+                        showText: true,
+                        scrollable: false,
+                        size: 10.w,
+                        onClick: (date) {
+                          setState(() {
+                            selectedDate = date;
+                            fetchTasksForDate(selectedDate!).then((fetchedTasks) {
+                              setState(() {
+                                tasks = fetchedTasks;
+                              });
+                            });
+                          });
+                        },
+                        colorsets: {
+                          1: Colors.green[200]!,
+                          2: Colors.green[400]!,
+                          3: Colors.green[600]!,
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+          
+                if (selectedDate == null) ...[
+                  // Display Circular Progress Indicators when no date is selected
+                  Container(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 2.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          buildCircularProgressIndicator(
+                            radius: 10.w,
+                            percent: 0.7,
+                            progressColor: Colors.blue,
+                            header: "This Week",
+                          ),
+                          buildCircularProgressIndicator(
+                            radius: 10.w,
+                            percent: 0.8,
+                            progressColor: Colors.purple,
+                            header: "All Time",
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Bar Graph
+                  // Bar Graph
+                  Container(
+                    child: Padding(
+                      padding: EdgeInsets.all(2.w),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Text(
+                              "Task Completion Progress",
+                              style: GoogleFonts.openSans(
+                                  fontSize: 14.sp, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 1.h),
+                            Container(
+                              height: 40.h,
+                              child: FutureBuilder(
+                                future: Future.wait(dateMap.keys
+                                    .map((date) => fetchTasksForDate(date))),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return PLoader();
+                                  }
+          
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                        child: Text('Error: ${snapshot.error}'));
+                                  }
+          
+                                  if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return Center(
+                                        child: Text('No data available.'));
+                                  }
+          
+                                  List<List<Map<String, dynamic>>> tasksList =
+                                      snapshot.data
+                                          as List<List<Map<String, dynamic>>>;
+          
+                                  return ListView.builder(
+                                    itemCount: dateMap.length,
+                                    itemBuilder: (context, index) {
+                                      final date = dateMap.keys
+                                          .elementAt(dateMap.length - 1 - index);
+                                      final completion = dateMap[date]!;
+                                      final tasks =
+                                          tasksList[dateMap.length - 1 - index];
+                                      double completionRate = tasks.isEmpty
+                                          ? 0
+                                          : completion / tasks.length;
+          
+                                      return ListTile(
+                                        title: Text(
+                                          DateFormat('dd-MM-yyyy').format(date),
+                                          style: GoogleFonts.openSans(
+                                              fontSize: 12.sp),
+                                        ),
+                                        trailing: Container(
+                                          width: 30.w,
+                                          height: 2.h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: completionRate,
+                                            child: Container(
+                                              height: 2.h,
+                                              decoration: BoxDecoration(
+                                                color: Colors.green,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Display Tasks for the selected date
+                  FadeOut(
+                    child: Container(
+                      child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 1.h, horizontal: 2.w),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Tasks for ${DateFormat('dd-MM-yyyy').format(selectedDate!)} :",
+                                style: GoogleFonts.openSans(
+                                    fontSize: 14.sp, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 1.h),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  buildCircularProgressIndicator(
+                                    radius: 10.w,
+                                    percent: tasks.isNotEmpty
+                                        ? tasks
+                                                .where((task) =>
+                                                    task['status'] == 'completed')
+                                                .length /
+                                            tasks.length
+                                        : 0.0,
+                                    progressColor: Colors.purple,
+                                    header: "Task Completion",
+                                  ),
+                                  Text(
+                                    "${tasks.where((task) => task['status'] == 'completed').length} / ${tasks.length}",
+                                    style: GoogleFonts.openSans(fontSize: 25.sp),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 2.h),
+                              Container(
+                                height: 30.h,
+                                child: ListView.builder(
+                                  itemCount: tasks.length,
+                                  itemBuilder: (context, index) {
+                                    final task = tasks[index];
+          
+                                    return ListTile(
+                                      title: Text(
+                                        task['task'],
+                                        style:
+                                            GoogleFonts.openSans(fontSize: 12.sp),
+                                      ),
+                                      trailing: Icon(
+                                        task['status'] == 'completed'
+                                            ? Icons.check_circle
+                                            : Icons.circle,
+                                        color: task['status'] == 'completed'
+                                            ? Colors.green
+                                            : Colors.red,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildCircularProgressIndicator({
+    required double radius,
+    required double percent,
+    required Color progressColor,
+    required String header,
+  }) {
+    return CircularPercentIndicator(
+      radius: radius,
+      lineWidth: 8.0,
+      percent: percent,
+      progressColor: progressColor,
+      backgroundColor: Colors.grey[300]!,
+      center: Text(
+        "${(percent * 100).toStringAsFixed(1)}%",
+        style:
+            GoogleFonts.openSans(fontSize: 10.sp, fontWeight: FontWeight.bold),
+      ),
+      footer: Padding(
+        padding: EdgeInsets.symmetric(vertical: 1.h),
+        child: Text(
+          header,
+          style: GoogleFonts.openSans(
+              fontSize: 12.sp, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

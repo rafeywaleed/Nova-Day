@@ -168,16 +168,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    saveNormalProgress();
     loadUserEmail();
     printDefaultTasksWithStatus();
     loadDailyTasks();
     printSt();
+    resetTaskAnyway();
     checkAndUpdateTasks();
     //checkForNewDay();
     startNetworkListener();
     // scheduleTaskAtMidnight();
     // scheduleTaskAtTime(20, 18);
     // scheduleTaskAtMidnight();
+    Future.wait([
+      resetTaskAnyway(),
+      loadDailyTasks(),
+      checkAndUpdateTasks(),
+    ]);
   }
 
   Future<void> checkAndUpdateTasks() async {
@@ -193,41 +200,56 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> resetTaskAnyway() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String? storedData = prefs.getString('tDate');
+    print('Currently stored date: $storedData'); // Debugging output
+
+    String todayDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
+    if (storedData == null || storedData != todayDate) {
+      await resetTasks();
+      await prefs.setString('tDate', todayDate);
+      print('Saved new date: $todayDate'); // Debugging output
+    }
+  }
+
   Future<void> resetTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('defaultTasks', []);
   }
 
-  // Future<void> saveProgress() async {
-  //   String? userId = auth.currentUser?.uid;
-  //   if (userId != null) {
-  //     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-  //     DocumentReference taskRecordDoc = firestore
-  //         .collection('taskRecord')
-  //         .doc(userEmail)
-  //         .collection('records')
-  //         .doc(today);
+  Future<void> saveNormalProgress() async {
+    String? userId = auth.currentUser?.uid;
+    if (userId != null) {
+      String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      DocumentReference taskRecordDoc = firestore
+          .collection('taskRecord')
+          .doc(userEmail)
+          .collection('records')
+          .doc(today);
 
-  //     List<Map<String, dynamic>> taskProgress = defaultTasks
-  //         .map((task) => {
-  //               'task': task['task'],
-  //               'status': task['completed'] ? 'completed' : 'incomplete'
-  //             })
-  //         .toList();
+      List<Map<String, dynamic>> taskProgress = defaultTasks
+          .map((task) => {
+                'task': task['task'],
+                'status': task['completed'] ? 'completed' : 'incomplete'
+              })
+          .toList();
 
-  //     int totalTasks = taskProgress.length;
-  //     int completedTasks =
-  //         taskProgress.where((task) => task['status'] == 'completed').length;
-  //     double overallCompletion =
-  //         totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+      int totalTasks = taskProgress.length;
+      int completedTasks =
+          taskProgress.where((task) => task['status'] == 'completed').length;
+      double overallCompletion =
+          totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  //     await taskRecordDoc.set({
-  //       'tasks': taskProgress,
-  //       'overallCompletion': '$completedTasks/$totalTasks',
-  //       'date': today,
-  //     });
-  //   }
-  // }
+      await taskRecordDoc.set({
+        'tasks': taskProgress,
+        'overallCompletion': '$completedTasks/$totalTasks',
+        'date': today,
+      });
+    }
+  }
 
   Future<void> saveProgress() async {
     String? userId = auth.currentUser?.uid;
@@ -326,96 +348,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // void startNetworkListener() {
-  //   Connectivity().onConnectivityChanged.listen((connectivityResult) async {
-  //     if (connectivityResult != ConnectivityResult.none) {
-  //       await uploadTasksIfOffline().then((_) {
-  //         print('Tasks uploaded successfully.');
-  //       }).catchError((error) {
-  //         print('Error uploading tasks: $error');
-  //       });
-  //     }
-  //   });
-  // }
-
-  // void scheduleTaskAtTime(int targetHour, int targetMinute) {
-  //   DateTime now = DateTime.now();
-
-  //   // Calculate how many hours and minutes are left until the target time
-  //   Duration delay;
-  //   if (now.hour < targetHour ||
-  //       (now.hour == targetHour && now.minute < targetMinute)) {
-  //     delay = Duration(
-  //       hours: targetHour - now.hour,
-  //       minutes: targetMinute - now.minute,
-  //       seconds: 00 - now.second,
-  //     );
-  //   } else {
-  //     // If the current time is past the target time, schedule it for the next day
-  //     delay = Duration(
-  //       hours: (24 - now.hour) + targetHour,
-  //       minutes: targetMinute - now.minute,
-  //       seconds: 00 - now.second,
-  //     );
-  //   }
-
-  //   // Register the periodic task
-  //   Workmanager().registerPeriodicTask(
-  //     'dailyTaskUpload',
-  //     'uploadTasksAtFixedTime',
-  //     frequency: Duration(hours: 24), // Repeat every 24 hours
-  //     initialDelay: delay, // Delay until the specified time
-  //   );
-
-  //   // Add a BroadcastReceiver to listen for network connectivity changes
-  //   Connectivity().onConnectivityChanged.listen((connectivityResult) {
-  //     if (connectivityResult != ConnectivityResult.none) {
-  //       // Device is online, trigger the task
-  //       uploadTasksIfOffline();
-  //     }
-  //   });
-  // }
-
-  // void checkForNewDay() {
-  //   DateTime now = DateTime.now();
-  //   DateTime tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0);
-  //   Duration timeUntilMidnight = tomorrow.difference(now);
-
-  //   Future.delayed(timeUntilMidnight, () async {
-  //     await widget.uploadTasksIfOffline();
-  //     checkForNewDay(); // Re-schedule for next day
-  //   });
-  // }
-
-  // void scheduleTaskAtMidnight() {
-  //   Workmanager().registerPeriodicTask(
-  //     'dailyTaskUpload',
-  //     'uploadTasksAtMidnight',
-  //     frequency: Duration(hours: 24),
-  //     initialDelay: Duration(
-  //       hours: 23 - DateTime.now().hour,
-  //       minutes: 59 - DateTime.now().minute,
-  //       seconds: 59 - DateTime.now().second,
-  //     ),
-  //   );
-  // }
-
-  // void startNetworkListener() {
-  //   Connectivity()
-  //       .onConnectivityChanged
-  //       .listen((List<ConnectivityResult> results) {
-  //     // Check if there is a valid connectivity result
-  //     if (results.isNotEmpty &&
-  //         results.any((result) => result != ConnectivityResult.none)) {
-  //       widget.uploadTasksIfOffline().then((_) {
-  //         print('Tasks uploaded successfully.');
-  //       }).catchError((error) {
-  //         print('Error uploading tasks: $error');
-  //       });
-  //     }
-  //   });
-  // }
-
   Future<void> loadUserEmail() async {
     User? user = auth.currentUser;
     if (user != null) {
@@ -428,6 +360,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> printSt() async {
     final prefs = await SharedPreferences.getInstance();
     print(prefs.getStringList('dailyTasks'));
+
+    print(prefs.getString('tDate'));
   }
 
   Future<void> loadDailyTasks() async {
@@ -443,6 +377,9 @@ class _HomeScreenState extends State<HomeScreen> {
           .map((taskJson) => jsonDecode(taskJson))
           .toList()
           .cast<Map<String, dynamic>>();
+    } else {
+      // If no tasks are found in SharedPreferences, fetch from Firebase
+      await fetchDailyTasksFromFirebase();
     }
 
     // Load the task names (task titles) for the day from SharedPreferences
@@ -477,6 +414,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Save updated defaultTasks back to SharedPreferences
       await saveTasksToSharedPreferences(defaultTasks);
+    }
+  }
+
+  Future<void> fetchDailyTasksFromFirebase() async {
+    try {
+      String? userEmail = auth.currentUser?.email;
+      if (userEmail != null) {
+        // Reference to user's daily tasks in Firebase
+        DocumentSnapshot userTasksSnapshot =
+            await firestore.collection('dailyTasks').doc(userEmail).get();
+
+        if (userTasksSnapshot.exists) {
+          // Extract task data from Firebase
+          var data = userTasksSnapshot.data() as Map<String, dynamic>;
+          List<dynamic> firebaseTasks = data['tasks'] ?? [];
+
+          // Convert tasks into a usable format
+          List<Map<String, dynamic>> fetchedTasks = firebaseTasks.map((task) {
+            return {
+              'task': task['task'],
+              'completed': task['completed'],
+            };
+          }).toList();
+
+          // Save the tasks fetched from Firebase to SharedPreferences
+          await saveTasksToSharedPreferences(fetchedTasks);
+
+          // Update the defaultTasks with the fetched data
+          setState(() {
+            defaultTasks = fetchedTasks;
+          });
+        } else {
+          print("No tasks found in Firebase.");
+        }
+      }
+    } catch (e) {
+      print("Error fetching tasks from Firebase: $e");
     }
   }
 
@@ -719,7 +693,9 @@ class _HomeScreenState extends State<HomeScreen> {
     int completedTasks =
         defaultTasks.where((task) => task['completed'] == true).length;
     double taskCompletion = totalTasks > 0 ? completedTasks / totalTasks : 0;
-    int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
+    int daysLeft = DateTime(DateTime.now().year + 1, 1, 1)
+        .difference(DateTime.now())
+        .inDays;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -728,8 +704,8 @@ class _HomeScreenState extends State<HomeScreen> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: FadeInDown(
-            delay: const Duration(milliseconds: 300),
-            duration: const Duration(milliseconds: 1000),
+            delay: const Duration(milliseconds: 100),
+            duration: const Duration(milliseconds: 800),
             child: Container(
               height: 15.h,
               decoration: BoxDecoration(
@@ -753,12 +729,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          '$daysLeft',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 7.w,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                        Flash(
+                          delay: Duration(milliseconds: 800),
+                          duration: Duration(milliseconds: 800),
+                          child: Text(
+                            '$daysLeft',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 7.w,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
                           ),
                         ),
                         Text(
@@ -820,6 +800,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           defaultTasks.removeAt(index);
                         });
                         deleteTask(defaultTasks[index]['task']);
+                        saveNormalProgress();
                       },
                       onChanged: (value) {
                         setState(() {
@@ -828,6 +809,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // Save updated tasks to SharedPreferences
                           saveTasksToSharedPreferences(defaultTasks);
+                          saveProgress();
+                          saveNormalProgress();
                         });
                       },
                     );
@@ -836,7 +819,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(height: 2.h),
         TextButton(
-            onPressed: printDefaultTasksWithStatus, child: Text('button')),
+            onPressed: () {
+              printDefaultTasksWithStatus();
+              printSt();
+            },
+            child: Text('button')),
         Text(
           "Additional Tasks:",
           style: GoogleFonts.plusJakartaSans(

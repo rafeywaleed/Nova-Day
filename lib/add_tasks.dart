@@ -31,10 +31,48 @@ class _AddTasksState extends State<AddTasks> {
 
   Future<void> loadDailyTasksFromPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      currentDailyTasks = prefs.getStringList('dailyTasks') ?? [];
-    });
-    print('Tasks loaded from SharedPreferences: $currentDailyTasks');
+
+    // Load tasks from SharedPreferences
+    currentDailyTasks = prefs.getStringList('dailyTasks') ?? [];
+
+    // If no tasks are found in SharedPreferences, load from Firestore
+    if (currentDailyTasks.isEmpty) {
+      print('SharedPreferences are empty, fetching from Firebase.');
+      await loadDailyTasksFromFirestore();
+    } else {
+      print('Tasks loaded from SharedPreferences: $currentDailyTasks');
+      setState(() {}); // Update UI with loaded tasks
+    }
+  }
+
+  Future<void> loadDailyTasksFromFirestore() async {
+    try {
+      String? userEmail = auth.currentUser?.email;
+      if (userEmail != null) {
+        DocumentReference userTasksDoc =
+            firestore.collection('dailyTasks').doc(userEmail);
+        DocumentSnapshot snapshot = await userTasksDoc.get();
+
+        if (snapshot.exists) {
+          var data = snapshot.data() as Map<String, dynamic>;
+          var tasksData = List<String>.from(data['tasks'] ?? []);
+
+          // Update currentDailyTasks
+          setState(() {
+            currentDailyTasks = tasksData;
+          });
+
+          // Save fetched tasks to SharedPreferences for future use
+          await saveDailyTasksToPreferences(tasksData);
+          print(
+              'Tasks loaded from Firestore and saved to SharedPreferences: $currentDailyTasks');
+        } else {
+          print('No tasks found in Firestore.');
+        }
+      }
+    } catch (e) {
+      print("Error loading tasks from Firestore: $e");
+    }
   }
 
   Future<void> saveDailyTasksToFirestore(List<String> tasks) async {
