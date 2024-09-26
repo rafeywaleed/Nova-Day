@@ -169,24 +169,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    saveNormalProgress();
     loadUserEmail();
-    printDefaultTasksWithStatus();
     loadDailyTasks();
     printSt();
     resetTaskAnyway();
     checkAndUpdateTasks();
-    //checkForNewDay();
     startNetworkListener();
-    // scheduleTaskAtMidnight();
-    // scheduleTaskAtTime(20, 18);
-    // scheduleTaskAtMidnight();
     WidgetsBinding.instance.addObserver(this);
-    Future.wait([
-      resetTaskAnyway(),
-      loadDailyTasks(),
-      checkAndUpdateTasks(),
-    ]);
   }
 
   @override
@@ -203,10 +192,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     print("inside check and Update");
 
     if (storedDate == null || storedDate != currentDate) {
-      await saveProgress();
+      print("entered if condition");
+      // await saveProgress();
+      print("save progress complete");
       await resetTasks();
+      print("task's reset");
       await prefs.setString('tDate', currentDate);
       print(prefs.getString('tDate'));
+    } else {
+      print("date matched");
     }
   }
 
@@ -225,10 +219,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  // Future<void> resetTasks() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   await prefs.setStringList('defaultTasks', []);
+  //   print("Tasks delte kar diya saab");
+  // }
+
   Future<void> resetTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('defaultTasks', []);
-    print("Tasks delte kar diya saab");
+
+    List<String>? taskJsonList = prefs.getStringList('defaultTasks');
+
+    if (taskJsonList != null) {
+      List<Map<String, dynamic>> tasks = taskJsonList.map((taskJson) {
+        return Map<String, dynamic>.from(jsonDecode(taskJson));
+      }).toList();
+
+      List<Map<String, dynamic>> updatedTasks = tasks.map((task) {
+        return {
+          'task': task['task'], // Use 'task' instead of 'name'
+          'completed': false,
+        };
+      }).toList();
+
+      // Convert the updated tasks back to JSON and save them
+      List<String> updatedTaskJsonList = updatedTasks.map((task) {
+        return jsonEncode(task);
+      }).toList();
+
+      await prefs.setStringList('defaultTasks', updatedTaskJsonList);
+      print("All tasks marked as incomplete.");
+
+      // Update the defaultTasks in the state
+      setState(() {
+        defaultTasks = updatedTasks;
+      });
+    } else {
+      print("No tasks found to reset.");
+    }
   }
 
   Future<void> saveNormalProgress() async {
@@ -305,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Map<String, dynamic> data = {
       'date': date,
       'tasks': tasks,
-      'overallCompletion': '$completedTasks/$totalTasks',
+      'overallCompletion': '$completedTasks /$totalTasks',
     };
 
     // Add the new record to the list as a JSON string
@@ -539,60 +567,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  // Future<void> loadDailyTasks() async {
-  //   String? userEmail = auth.currentUser?.email;
-  //   if (userEmail != null) {
-  //     DocumentReference userTasksDoc =
-  //         firestore.collection('dailyTasks').doc(userEmail);
-  //     DocumentSnapshot snapshot = await userTasksDoc.get();
-
-  //     if (snapshot.exists) {
-  //       var data = snapshot.data() as Map<String, dynamic>;
-  //       var tasksData = data['tasks'];
-
-  //       if (tasksData is List) {
-  //         setState(() {
-  //           defaultTasks = tasksData
-  //               .map((task) => {
-  //                     'task': task,
-  //                     'completed': false,
-  //                   })
-  //               .toList();
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
-
-  // void checkIfNewDay() async {
-  //   String? userId = auth.currentUser?.uid;
-  //   if (userId != null) {
-  //     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-  //     DocumentReference taskRecordDoc = firestore
-  //         .collection('taskRecord')
-  //         .doc(userEmail)
-  //         .collection('records')
-  //         .doc(today);
-
-  //     DocumentSnapshot snapshot = await taskRecordDoc.get();
-  //     if (!snapshot.exists) {
-  //       await saveProgress(); // Save progress if new day
-  //       await loadDailyTasks(); // Load new tasks
-  //     }
-  //   }
-  // }
-
-  // void checkForNewDay() {
-  //   DateTime now = DateTime.now();
-  //   DateTime tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0);
-  //   Duration timeUntilMidnight = tomorrow.difference(now);
-
-  //   Future.delayed(timeUntilMidnight, () async {
-  //     await saveProgress();
-  //     await loadDailyTasks();
-  //     checkForNewDay();
-  //   });
-  // }
   bool isLoading = true;
 
   Future<void> _handleRefresh() async {
@@ -724,178 +698,169 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .difference(DateTime.now())
         .inDays;
 
-    return FutureBuilder(
-        future: saveNormalProgress(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return RefreshIndicator(
-              color: Colors.blue,
-              onRefresh: _handleRefresh,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: FadeInDown(
-                      delay: const Duration(milliseconds: 100),
-                      duration: const Duration(milliseconds: 800),
-                      child: Container(
-                        height: 15.h,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                              color: Colors.grey,
-                              offset: const Offset(0, 5),
+    return RefreshIndicator(
+      color: Colors.blue,
+      onRefresh: _handleRefresh,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: FadeInDown(
+              delay: const Duration(milliseconds: 100),
+              duration: const Duration(milliseconds: 800),
+              child: Container(
+                height: 15.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                      color: Colors.grey,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                  color: Colors.white,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(5.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flash(
+                            delay: Duration(milliseconds: 800),
+                            duration: Duration(milliseconds: 800),
+                            child: Text(
+                              '$daysLeft',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 8.w,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
-                          ],
-                          color: Colors.white,
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(5.w),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flash(
-                                    delay: Duration(milliseconds: 800),
-                                    duration: Duration(milliseconds: 800),
-                                    child: Text(
-                                      '$daysLeft',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 8.w,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    'days left for new year',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 3.w,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              CircularPercentIndicator(
-                                radius: 10.w,
-                                lineWidth: 8.0,
-                                percent: taskCompletion,
-                                center: Text(
-                                  "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 5.w,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                progressColor: Colors.green,
-                                backgroundColor: Colors.grey[300]!,
-                              ),
-                            ],
+                          ),
+                          Text(
+                            'days left for new year',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 3.w,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      CircularPercentIndicator(
+                        radius: 10.w,
+                        lineWidth: 8.0,
+                        percent: taskCompletion,
+                        center: Text(
+                          "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 5.w,
+                            color: Colors.blue,
                           ),
                         ),
+                        progressColor: Colors.green,
+                        backgroundColor: Colors.grey[300]!,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            "Daily Tasks:",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 5.w,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          Container(
+            height: 40.h,
+            child: defaultTasks.isEmpty
+                ? Center(
+                    child: Text(
+                      'No tasks for today.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 4.w,
+                        color: Colors.grey,
                       ),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Daily Tasks:",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 5.w,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Container(
-                    height: 40.h,
-                    child: defaultTasks.isEmpty
-                        ? Center(
-                            child: Text(
-                              'No tasks for today.',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 4.w,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: defaultTasks.length,
-                            itemBuilder: (context, index) {
-                              return TaskCard(
-                                task: defaultTasks[index],
-                                onDismissed: () {
-                                  setState(() {
-                                    defaultTasks.removeAt(index);
-                                  });
-                                  deleteTask(defaultTasks[index]['task']);
-                                  saveNormalProgress();
-                                },
-                                onChanged: (value) {
-                                  setState(() {
-                                    // Update task status (complete/incomplete)
-                                    defaultTasks[index]['completed'] = value!;
+                  )
+                : ListView.builder(
+                    itemCount: defaultTasks.length,
+                    itemBuilder: (context, index) {
+                      return TaskCard(
+                        task: defaultTasks[index],
+                        onDismissed: () {
+                          setState(() {
+                            defaultTasks.removeAt(index);
+                          });
+                          deleteTask(defaultTasks[index]['task']);
+                          saveNormalProgress();
+                        },
+                        onChanged: (value) {
+                          setState(() {
+                            // Update task status (complete/incomplete)
+                            defaultTasks[index]['completed'] = value!;
 
-                                    // Save updated tasks to SharedPreferences
-                                    saveTasksToSharedPreferences(defaultTasks);
-                                    saveProgress();
-                                    saveNormalProgress();
-                                  });
-                                },
-                              );
-                            },
-                          ),
+                            // Save updated tasks to SharedPreferences
+                            saveTasksToSharedPreferences(defaultTasks);
+                            saveProgress();
+                            saveNormalProgress();
+                          });
+                        },
+                      );
+                    },
                   ),
-                  SizedBox(height: 2.h),
-                  TextButton(
-                      onPressed: () {
-                        printDefaultTasksWithStatus();
-                        printSt();
-                      },
-                      child: Text('button')),
-                  Text(
-                    "Additional Tasks:",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 5.w,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: additionalTasks.length,
-                      itemBuilder: (context, index) {
-                        return TaskCard(
-                          task: additionalTasks[index],
-                          onDismissed: () {
-                            setState(() {
-                              additionalTasks.removeAt(index);
-                            });
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              additionalTasks[index]['completed'] = value!;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            return Center(
-              child: PLoader(),
-            );
-          }
-        });
+          ),
+          SizedBox(height: 2.h),
+          TextButton(
+              onPressed: () {
+                printDefaultTasksWithStatus();
+                printSt();
+                checkAndUpdateTasks();
+              },
+              child: Text('button')),
+          Text(
+            "Additional Tasks:",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 5.w,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: additionalTasks.length,
+              itemBuilder: (context, index) {
+                return TaskCard(
+                  task: additionalTasks[index],
+                  onDismissed: () {
+                    setState(() {
+                      additionalTasks.removeAt(index);
+                    });
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      additionalTasks[index]['completed'] = value!;
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
