@@ -8,6 +8,7 @@ import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
+import 'package:hundred_days/utils/loader.dart';
 import 'package:iconly/iconly.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -156,7 +157,7 @@ class HomeScreen extends StatefulWidget {
 //   });
 // }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Map<String, dynamic>> defaultTasks = [];
   List<Map<String, dynamic>> additionalTasks = [];
   String? userEmail;
@@ -180,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // scheduleTaskAtMidnight();
     // scheduleTaskAtTime(20, 18);
     // scheduleTaskAtMidnight();
+    WidgetsBinding.instance.addObserver(this);
     Future.wait([
       resetTaskAnyway(),
       loadDailyTasks(),
@@ -187,16 +189,24 @@ class _HomeScreenState extends State<HomeScreen> {
     ]);
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   Future<void> checkAndUpdateTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     String? storedDate = prefs.getString('tDate');
+    print("inside check and Update");
 
     if (storedDate == null || storedDate != currentDate) {
       await saveProgress();
       await resetTasks();
       await prefs.setString('tDate', currentDate);
+      print(prefs.getString('tDate'));
     }
   }
 
@@ -256,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> saveProgress() async {
     String? userId = auth.currentUser?.uid;
     String? userEmail = auth.currentUser?.email;
+    print("inside saveProgress");
     if (userId != null && userEmail != null) {
       String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
       List<Map<String, dynamic>> taskProgress = defaultTasks
@@ -582,6 +593,18 @@ class _HomeScreenState extends State<HomeScreen> {
   //     checkForNewDay();
   //   });
   // }
+  bool isLoading = true;
+
+  Future<void> _handleRefresh() async {
+    setState(() {
+      isLoading = true;
+    });
+    loadDailyTasks();
+    saveNormalProgress();
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -605,6 +628,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
             selectedIndex: _selectedIndex,
             onDestinationSelected: (value) {
+              saveNormalProgress();
               setState(() {
                 _selectedIndex = value;
               });
@@ -700,163 +724,178 @@ class _HomeScreenState extends State<HomeScreen> {
         .difference(DateTime.now())
         .inDays;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: FadeInDown(
-            delay: const Duration(milliseconds: 100),
-            duration: const Duration(milliseconds: 800),
-            child: Container(
-              height: 15.h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                    color: Colors.grey,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-                color: Colors.white,
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(5.w),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flash(
-                          delay: Duration(milliseconds: 800),
-                          duration: Duration(milliseconds: 800),
-                          child: Text(
-                            '$daysLeft',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 8.w,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+    return FutureBuilder(
+        future: saveNormalProgress(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return RefreshIndicator(
+              color: Colors.blue,
+              onRefresh: _handleRefresh,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: FadeInDown(
+                      delay: const Duration(milliseconds: 100),
+                      duration: const Duration(milliseconds: 800),
+                      child: Container(
+                        height: 15.h,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                              color: Colors.grey,
+                              offset: const Offset(0, 5),
                             ),
-                          ),
+                          ],
+                          color: Colors.white,
                         ),
-                        Text(
-                          'days left for new year',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 3.w,
-                            color: Colors.grey[600],
+                        child: Padding(
+                          padding: EdgeInsets.all(5.w),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flash(
+                                    delay: Duration(milliseconds: 800),
+                                    duration: Duration(milliseconds: 800),
+                                    child: Text(
+                                      '$daysLeft',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 8.w,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'days left for new year',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 3.w,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              CircularPercentIndicator(
+                                radius: 10.w,
+                                lineWidth: 8.0,
+                                percent: taskCompletion,
+                                center: Text(
+                                  "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 5.w,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                progressColor: Colors.green,
+                                backgroundColor: Colors.grey[300]!,
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                    CircularPercentIndicator(
-                      radius: 10.w,
-                      lineWidth: 8.0,
-                      percent: taskCompletion,
-                      center: Text(
-                        "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 5.w,
-                          color: Colors.blue,
                         ),
                       ),
-                      progressColor: Colors.green,
-                      backgroundColor: Colors.grey[300]!,
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 10),
-        Text(
-          "Daily Tasks:",
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 5.w,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-          ),
-        ),
-        Expanded(
-          child: defaultTasks.isEmpty
-              ? Center(
-                  child: Text(
-                    'No tasks for today.',
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Daily Tasks:",
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 4.w,
+                      fontSize: 5.w,
+                      fontWeight: FontWeight.bold,
                       color: Colors.grey,
                     ),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: defaultTasks.length,
-                  itemBuilder: (context, index) {
-                    return TaskCard(
-                      task: defaultTasks[index],
-                      onDismissed: () {
-                        setState(() {
-                          defaultTasks.removeAt(index);
-                        });
-                        deleteTask(defaultTasks[index]['task']);
-                        saveNormalProgress();
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          // Update task status (complete/incomplete)
-                          defaultTasks[index]['completed'] = value!;
+                  Container(
+                    height: 40.h,
+                    child: defaultTasks.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No tasks for today.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 4.w,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: defaultTasks.length,
+                            itemBuilder: (context, index) {
+                              return TaskCard(
+                                task: defaultTasks[index],
+                                onDismissed: () {
+                                  setState(() {
+                                    defaultTasks.removeAt(index);
+                                  });
+                                  deleteTask(defaultTasks[index]['task']);
+                                  saveNormalProgress();
+                                },
+                                onChanged: (value) {
+                                  setState(() {
+                                    // Update task status (complete/incomplete)
+                                    defaultTasks[index]['completed'] = value!;
 
-                          // Save updated tasks to SharedPreferences
-                          saveTasksToSharedPreferences(defaultTasks);
-                          saveProgress();
-                          saveNormalProgress();
-                        });
+                                    // Save updated tasks to SharedPreferences
+                                    saveTasksToSharedPreferences(defaultTasks);
+                                    saveProgress();
+                                    saveNormalProgress();
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                  SizedBox(height: 2.h),
+                  TextButton(
+                      onPressed: () {
+                        printDefaultTasksWithStatus();
+                        printSt();
                       },
-                    );
-                  },
-                ),
-        ),
-        SizedBox(height: 2.h),
-        TextButton(
-            onPressed: () {
-              printDefaultTasksWithStatus();
-              printSt();
-            },
-            child: Text('button')),
-        Text(
-          "Additional Tasks:",
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 5.w,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: additionalTasks.length,
-            itemBuilder: (context, index) {
-              return TaskCard(
-                task: additionalTasks[index],
-                onDismissed: () {
-                  setState(() {
-                    additionalTasks.removeAt(index);
-                  });
-                },
-                onChanged: (value) {
-                  setState(() {
-                    additionalTasks[index]['completed'] = value!;
-                  });
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
+                      child: Text('button')),
+                  Text(
+                    "Additional Tasks:",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 5.w,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: additionalTasks.length,
+                      itemBuilder: (context, index) {
+                        return TaskCard(
+                          task: additionalTasks[index],
+                          onDismissed: () {
+                            setState(() {
+                              additionalTasks.removeAt(index);
+                            });
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              additionalTasks[index]['completed'] = value!;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return Center(
+              child: PLoader(),
+            );
+          }
+        });
   }
 }
 
