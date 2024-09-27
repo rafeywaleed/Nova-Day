@@ -35,43 +35,43 @@ void main() async {
   runApp(const HundredDays());
 }
 
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    print("Background task executed: $task");
+// void callbackDispatcher() {
+//   Workmanager().executeTask((task, inputData) async {
+//     print("Background task executed: $task");
 
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
+//     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+//         FlutterLocalNotificationsPlugin();
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+//     const AndroidInitializationSettings initializationSettingsAndroid =
+//         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+//     const InitializationSettings initializationSettings =
+//         InitializationSettings(android: initializationSettingsAndroid);
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+//     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    // Request notification permissions
-    if (await Permission.notification.request().isGranted) {
-      // Schedule notifications
-      List<NotificationTime> notificationTimes = [
-        NotificationTime(hour: 3, minute: 45),
-        NotificationTime(hour: 18, minute: 0),
-        NotificationTime(hour: 22, minute: 0),
-      ];
+//     // Request notification permissions
+//     if (await Permission.notification.request().isGranted) {
+//       // Schedule notifications
+//       List<NotificationTime> notificationTimes = [
+//         NotificationTime(hour: 3, minute: 45),
+//         NotificationTime(hour: 18, minute: 0),
+//         NotificationTime(hour: 22, minute: 0),
+//       ];
 
-      for (var notificationTime in notificationTimes) {
-        await NotificationScheduler.scheduleDailyNotifications(
-          flutterLocalNotificationsPlugin,
-          notificationTime,
-        );
-      }
-    } else {
-      print('Notification permission denied');
-    }
+//       for (var notificationTime in notificationTimes) {
+//         await NotificationScheduler.scheduleDailyNotifications(
+//           flutterLocalNotificationsPlugin,
+//           notificationTime,
+//         );
+//       }
+//     } else {
+//       print('Notification permission denied');
+//     }
 
-    return Future.value(true);
-  });
-}
+//     return Future.value(true);
+//   });
+// }
 
 class HundredDays extends StatelessWidget {
   const HundredDays({super.key});
