@@ -26,10 +26,68 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   List<Map<String, dynamic>> tasks = [];
   bool isLoading = true;
 
+  int totalTasksAllTime = 0;
+  int completedTasksAllTime = 0;
+  int totalTasksThisWeek = 0;
+  int completedTasksThisWeek = 0;
+
   @override
   void initState() {
     super.initState();
     loadUserEmail();
+  }
+
+  void fetchTotalTaskDataFromFirebase() async {
+    if (userEmail.isEmpty) return;
+
+    final taskRecords = await FirebaseFirestore.instance
+        .collection('taskRecord')
+        .doc(userEmail)
+        .collection('records')
+        .get();
+
+    Map<DateTime, int> tempDateMap = {};
+    int totalTasksAllTime = 0;
+    int completedTasksAllTime = 0;
+
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+
+    int totalTasksThisWeek = 0;
+    int completedTasksThisWeek = 0;
+
+    for (var record in taskRecords.docs) {
+      final dateStr = record.id;
+      final taskCompletion = record.data()['overallCompletion'];
+      final tasks =
+          List<Map<String, dynamic>>.from(record.data()['tasks'] ?? []);
+
+      DateTime recordDate = DateFormat('dd-MM-yyyy').parse(dateStr);
+      tempDateMap[recordDate] = int.parse(taskCompletion.split('/')[0]);
+
+      int totalTasks = tasks.length;
+      int completedTasks =
+          tasks.where((task) => task['status'] == 'completed').length;
+
+      totalTasksAllTime += totalTasks;
+      completedTasksAllTime += completedTasks;
+
+      if (recordDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
+          recordDate.isBefore(endOfWeek.add(Duration(days: 1)))) {
+        totalTasksThisWeek += totalTasks;
+        completedTasksThisWeek += completedTasks;
+      }
+    }
+
+    setState(() {
+      dateMap = tempDateMap;
+      isLoading = false;
+      this.totalTasksAllTime = totalTasksAllTime;
+      this.completedTasksAllTime = completedTasksAllTime;
+      this.totalTasksThisWeek = totalTasksThisWeek;
+      this.completedTasksThisWeek = completedTasksThisWeek;
+    });
   }
 
   Future<void> loadUserEmail() async {
@@ -38,6 +96,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       setState(() {
         userEmail = user.email!;
         fetchTaskDataFromFirebase();
+        fetchTotalTaskDataFromFirebase();
       });
     }
   }
@@ -89,15 +148,16 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
     });
   }
+
   Future<void> _handleRefresh() async {
-  setState(() {
-    isLoading = true;
-  });
-  fetchTaskDataFromFirebase();
-  setState(() {
-    isLoading = false;
-  });
-}
+    setState(() {
+      isLoading = true;
+    });
+    fetchTaskDataFromFirebase();
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   void previousMonth() {
     setState(() {
@@ -105,17 +165,13 @@ class _ProgressTrackerState extends State<ProgressTracker> {
     });
   }
 
-  
-
-  
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-    return Center(
-      child: PLoader(),
-    );
-  }
+      return Center(
+        child: PLoader(),
+      );
+    }
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
@@ -163,7 +219,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                         onClick: (date) {
                           setState(() {
                             selectedDate = date;
-                            fetchTasksForDate(selectedDate!).then((fetchedTasks) {
+                            fetchTasksForDate(selectedDate!)
+                                .then((fetchedTasks) {
                               setState(() {
                                 tasks = fetchedTasks;
                               });
@@ -179,7 +236,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                     ),
                   ),
                 ),
-          
+
                 if (selectedDate == null) ...[
                   // Display Circular Progress Indicators when no date is selected
                   Container(
@@ -190,13 +247,17 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                         children: [
                           buildCircularProgressIndicator(
                             radius: 10.w,
-                            percent: 0.7,
+                            percent: totalTasksThisWeek > 0
+                                ? completedTasksThisWeek / totalTasksThisWeek
+                                : 0.0,
                             progressColor: Colors.blue,
                             header: "This Week",
                           ),
                           buildCircularProgressIndicator(
                             radius: 10.w,
-                            percent: 0.8,
+                            percent: totalTasksAllTime > 0
+                                ? completedTasksAllTime / totalTasksAllTime
+                                : 0.0,
                             progressColor: Colors.purple,
                             header: "All Time",
                           ),
@@ -228,34 +289,35 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                       ConnectionState.waiting) {
                                     return PLoader();
                                   }
-          
+
                                   if (snapshot.hasError) {
                                     return Center(
-                                        child: Text('Error: ${snapshot.error}'));
+                                        child:
+                                            Text('Error: ${snapshot.error}'));
                                   }
-          
+
                                   if (!snapshot.hasData ||
                                       snapshot.data!.isEmpty) {
                                     return Center(
                                         child: Text('No data available.'));
                                   }
-          
+
                                   List<List<Map<String, dynamic>>> tasksList =
                                       snapshot.data
                                           as List<List<Map<String, dynamic>>>;
-          
+
                                   return ListView.builder(
                                     itemCount: dateMap.length,
                                     itemBuilder: (context, index) {
-                                      final date = dateMap.keys
-                                          .elementAt(dateMap.length - 1 - index);
+                                      final date = dateMap.keys.elementAt(
+                                          dateMap.length - 1 - index);
                                       final completion = dateMap[date]!;
                                       final tasks =
                                           tasksList[dateMap.length - 1 - index];
                                       double completionRate = tasks.isEmpty
                                           ? 0
                                           : completion / tasks.length;
-          
+
                                       return ListTile(
                                         title: Text(
                                           DateFormat('dd-MM-yyyy').format(date),
@@ -299,8 +361,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                   FadeOut(
                     child: Container(
                       child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 1.h, horizontal: 2.w),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 1.h, horizontal: 2.w),
                         child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,18 +370,21 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                               Text(
                                 "Tasks for ${DateFormat('dd-MM-yyyy').format(selectedDate!)} :",
                                 style: GoogleFonts.openSans(
-                                    fontSize: 14.sp, fontWeight: FontWeight.bold),
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold),
                               ),
                               SizedBox(height: 1.h),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
                                   buildCircularProgressIndicator(
                                     radius: 10.w,
                                     percent: tasks.isNotEmpty
                                         ? tasks
                                                 .where((task) =>
-                                                    task['status'] == 'completed')
+                                                    task['status'] ==
+                                                    'completed')
                                                 .length /
                                             tasks.length
                                         : 0.0,
@@ -328,7 +393,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                   ),
                                   Text(
                                     "${tasks.where((task) => task['status'] == 'completed').length} / ${tasks.length}",
-                                    style: GoogleFonts.openSans(fontSize: 25.sp),
+                                    style:
+                                        GoogleFonts.openSans(fontSize: 25.sp),
                                   ),
                                 ],
                               ),
@@ -339,12 +405,12 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                   itemCount: tasks.length,
                                   itemBuilder: (context, index) {
                                     final task = tasks[index];
-          
+
                                     return ListTile(
                                       title: Text(
                                         task['task'],
-                                        style:
-                                            GoogleFonts.openSans(fontSize: 12.sp),
+                                        style: GoogleFonts.openSans(
+                                            fontSize: 12.sp),
                                       ),
                                       trailing: Icon(
                                         task['status'] == 'completed'

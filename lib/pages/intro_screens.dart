@@ -74,7 +74,7 @@ class _IntroScreenState extends State<IntroScreen>
               ),
               // Buttons at the bottom
               Positioned(
-                bottom: 10.h,
+                bottom: 8.h,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -103,7 +103,7 @@ class _IntroScreenState extends State<IntroScreen>
                           child: Text(
                             'Previous',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16.sp,
+                              fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -123,10 +123,11 @@ class _IntroScreenState extends State<IntroScreen>
                               });
                             } else {
                               if (widget.input == 0) {
-                                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => HomeScreen()),
+                                );
                               } else {
                                 Navigator.pop(context); // Pop back
                               }
@@ -147,7 +148,7 @@ class _IntroScreenState extends State<IntroScreen>
                           child: Text(
                             _selectedPage == 0 ? 'Next' : 'Done',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16.sp,
+                              fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -158,6 +159,22 @@ class _IntroScreenState extends State<IntroScreen>
                   ],
                 ),
               ),
+              widget.input == 0
+                  ? Positioned(
+                      bottom: 1.h,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                        child: Text(
+                          'Note: you can refer this points again \nas guide in settings screen',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Text("")
             ],
           ),
         ),
@@ -177,44 +194,53 @@ class IntroPage1 extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Image or Icon
-          FadeIn(
-            duration: const Duration(milliseconds: 1000),
-            child: Icon(
-              Icons.checklist,
-              size: 80.sp,
-              color: Colors.blue,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          // Title
-          FadeIn(
-            duration: const Duration(milliseconds: 1500),
-            child: Text(
-              'Daily Tasks',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          SizedBox(height: 2.h),
+
           // Description
           FadeIn(
             duration: const Duration(milliseconds: 2000),
             child: Container(
-              padding: const EdgeInsets.all(16.0),
+              width: 80.w,
+              padding: const EdgeInsets.fromLTRB(15, 25, 15, 25),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 color: Colors.white,
               ),
-              child: Text(
-                'Note: The list you finish with will be your daily renewing tasks. Deleting daily tasks from the home screen will remove that task for the day only and will not affect your daily tasks, which will be renewed.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.sp,
-                  color: Colors.grey,
-                ),
+              child: Column(
+                children: [
+                  FadeIn(
+                    duration: const Duration(milliseconds: 1000),
+                    child: Icon(
+                      Icons.checklist,
+                      size: 80.sp,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  // Title
+                  FadeIn(
+                    duration: const Duration(milliseconds: 1500),
+                    child: Text(
+                      'Daily Tasks',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Note: The list you finish with will be your daily renewing tasks. Deleting daily tasks from the home screen will remove that task for the day only and will not affect your daily tasks, which will be renewed. Logging out may result in loss of progress of that day',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -235,44 +261,50 @@ class IntroPage2 extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Image or Icon
-          FadeIn(
-            duration: const Duration(milliseconds: 1000),
-            child: Icon(
-              Icons.add_circle_outline,
-              size: 80.sp,
-              color: Colors.blue,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          // Title
-          FadeIn(
-            duration: const Duration(milliseconds: 1500),
-            child: Text(
-              'Additional Tasks',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          SizedBox(height: 2.h),
+
           // Description
           FadeIn(
             duration: const Duration(milliseconds: 2000),
             child: Container(
-              padding: const EdgeInsets.all(16.0),
+             width: 80.w,
+              padding: const EdgeInsets.fromLTRB(15, 25, 15, 25),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 color: Colors.white,
               ),
-              child: Text(
-                'Note: These daily tasks will be renewed every day, and your progress will be recorded for daily tasks. Your additional tasks are simply your to-do tasks for the day and will not be tracked for progress. You can add additional tasks by tapping the [+] button on the home screen and delete additional tasks by swiping them to the right.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.sp,
-                  color: Colors.grey,
-                ),
+              child: Column(
+                children: [
+                  FadeIn(
+                    duration: const Duration(milliseconds: 1000),
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      size: 80.sp,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  // Title
+                  FadeIn(
+                    duration: const Duration(milliseconds: 1500),
+                    child: Text(
+                      'Additional Tasks',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    'Note: These daily tasks will be renewed every day, and your progress will be recorded for daily tasks. Your additional tasks are simply your to-do tasks for the day and will not be tracked for progress. You can add additional tasks by tapping the [+] button on the home screen and delete additional tasks by swiping them to the right.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14.sp,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
