@@ -171,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     loadUserEmail();
     loadDailyTasks();
+    fetchAdditionalTasks();
     printSt();
     resetTaskAnyway();
     checkAndUpdateTasks();
@@ -193,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (storedDate == null || storedDate != currentDate) {
       print("entered if condition");
-      // await saveProgress();
+      await saveProgress();
       print("save progress complete");
       await resetTasks();
       print("task's reset");
@@ -201,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       print(prefs.getString('tDate'));
     } else {
       print("date matched");
+      loadDailyTasks();
     }
   }
 
@@ -227,7 +229,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> resetTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     List<String>? taskJsonList = prefs.getStringList('defaultTasks');
 
     if (taskJsonList != null) {
@@ -419,6 +420,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           .map((taskJson) => jsonDecode(taskJson))
           .toList()
           .cast<Map<String, dynamic>>();
+      print('Daily tasks fetched from shredPrefrnces');
     } else {
       // If no tasks are found in SharedPreferences, fetch from Firebase
       await fetchDailyTasksFromFirebase();
@@ -480,6 +482,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             };
           }).toList();
 
+          print('daily tasks fetched from firebase');
           // Save the tasks fetched from Firebase to SharedPreferences
           await saveTasksToSharedPreferences(fetchedTasks);
 
@@ -514,7 +517,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void deleteTask(String taskName) {
+  Future<void> deleteTask(String taskName) async {
+    print("Attempting to delete task: $taskName");
+
+    // Print current defaultTasks
+    print("Current defaultTasks: $defaultTasks");
+
     // Check if the task exists in defaultTasks
     Map<String, dynamic>? task = defaultTasks.firstWhere(
       (task) => task['task'] == taskName,
@@ -522,14 +530,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
 
     if (task.isNotEmpty) {
-      setState(() {
+      setState(() async {
         // Remove the task from the defaultTasks
-        defaultTasks.remove(task);
+        defaultTasks.removeWhere((element) => element['task'] == taskName);
+
+        // Print updated defaultTasks
+        print("Updated defaultTasks: $defaultTasks");
 
         // Save updated tasks to SharedPreferences
         saveTasksToSharedPreferences(defaultTasks);
+
+        await printSharedPreferencesData();
       });
+
+      // Remove the task from the dailyTasks list in SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? dailyTasks = prefs.getStringList('dailyTasks');
+      if (dailyTasks != null) {
+        print("Current dailyTasks: $dailyTasks");
+        dailyTasks.remove(taskName);
+        await prefs.setStringList('dailyTasks', dailyTasks);
+        print("Updated dailyTasks: $dailyTasks");
+        print("daily task removed from sharedPreferences");
+      }
+    } else {
+      print("Task not found in defaultTasks");
     }
+  }
+
+  Future<void> printSharedPreferencesData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? savedDefaultTasks = prefs.getStringList('defaultTasks');
+    List<String>? savedDailyTasks = prefs.getStringList('dailyTasks');
+
+    print("Saved defaultTasks in SharedPreferences: $savedDefaultTasks");
+    print("Saved dailyTasks in SharedPreferences: $savedDailyTasks");
   }
 
   Future<void> saveTasksToSharedPreferences(
@@ -570,14 +605,147 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool isLoading = true;
 
   Future<void> _handleRefresh() async {
+    print("refreshing");
     setState(() {
       isLoading = true;
     });
+    checkAndUpdateTasks();
+    fetchAdditionalTasks();
     loadDailyTasks();
     saveNormalProgress();
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> saveAdditionalTasksToSharedPreferences(
+      List<Map<String, dynamic>> additionalTasks) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> taskList =
+        additionalTasks.map((task) => jsonEncode(task)).toList();
+    await prefs.setStringList('additionalTasks', taskList);
+    print('task saved in sharedPref\n ${taskList}');
+  }
+
+  Future<void> saveAdditionalTasksToFirebase(
+      List<Map<String, dynamic>> additionalTasks) async {
+    String? userEmail = auth.currentUser?.email;
+    if (userEmail != null) {
+      DocumentReference taskRecordDoc = firestore
+          .collection('taskRecord')
+          .doc(userEmail)
+          .collection('addTasks')
+          .doc('tasks');
+
+      await taskRecordDoc.set({
+        'tasks': additionalTasks,
+      });
+    }
+    print("task saved in firebase");
+  }
+
+  Future<void> createNewAdditionalTask(String taskName) async {
+    Map<String, dynamic> newTask = {
+      'task': taskName,
+      'status': 'incomplete',
+    };
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? taskJsonList = prefs.getStringList('additionalTasks');
+    List<Map<String, dynamic>> tasks = taskJsonList != null
+        ? taskJsonList
+            .map((taskJson) => jsonDecode(taskJson))
+            .toList()
+            .cast<Map<String, dynamic>>()
+        : [];
+
+    tasks.add(newTask);
+    print('New additional task created !!');
+
+    await saveAdditionalTasksToSharedPreferences(tasks);
+
+    await saveAdditionalTasksToFirebase(tasks);
+  }
+
+  Future<void> deleteAdditionalTask(String taskName) async {
+    // Fetch existing tasks
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? taskJsonList = prefs.getStringList('additionalTasks');
+    if (taskJsonList != null) {
+      List<Map<String, dynamic>> tasks = taskJsonList
+          .map((taskJson) => jsonDecode(taskJson))
+          .toList()
+          .cast<Map<String, dynamic>>();
+
+      // Remove task
+      tasks.removeWhere((task) => task['task'] == taskName);
+      print('Additional tasks removed');
+
+      // Save updated tasks
+      await saveAdditionalTasksToSharedPreferences(tasks);
+      await saveAdditionalTasksToFirebase(tasks);
+    }
+  }
+
+  Future<void> updateAdditionalTask(String taskName, bool completed) async {
+    // Fetch existing tasks
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? taskJsonList = prefs.getStringList('additionalTasks');
+    if (taskJsonList != null) {
+      List<Map<String, dynamic>> tasks = taskJsonList
+          .map((taskJson) => jsonDecode(taskJson))
+          .toList()
+          .cast<Map<String, dynamic>>();
+
+      // Update task status
+      for (var task in tasks) {
+        if (task['task'] == taskName) {
+          task['status'] = completed ? 'complete' : 'incomplete';
+          print('Additional tasks updated \n ${tasks}');
+        }
+      }
+
+      // Save updated tasks
+      await saveAdditionalTasksToSharedPreferences(tasks);
+      await saveAdditionalTasksToFirebase(tasks);
+    }
+  }
+
+  Future<void> fetchAdditionalTasks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? taskJsonList = prefs.getStringList('additionalTasks');
+
+    if (taskJsonList == null || taskJsonList.isEmpty) {
+      String? userEmail = auth.currentUser?.email;
+      if (userEmail != null) {
+        DocumentReference taskRecordDoc = firestore
+            .collection('taskRecord')
+            .doc(userEmail)
+            .collection('addTasks')
+            .doc('tasks');
+
+        DocumentSnapshot<Object?> querySnapshot = await taskRecordDoc.get();
+        print('Additional tasks fetched from firebase');
+        if (querySnapshot.exists) {
+          List<Map<String, dynamic>> tasks =
+              List<Map<String, dynamic>>.from(querySnapshot.get('tasks'));
+          List<String> taskJsonList =
+              tasks.map((task) => jsonEncode(task)).toList();
+          await prefs.setStringList('additionalTasks', taskJsonList);
+          setState(() {
+            additionalTasks = tasks; // Update the additionalTasks list here
+          });
+        }
+      }
+    } else {
+      setState(() {
+        additionalTasks = taskJsonList
+            .map((taskJson) => jsonDecode(taskJson))
+            .toList()
+            .cast<Map<String, dynamic>>();
+      });
+    }
+    print('Additional tasks fetched from shredPrefrnces');
   }
 
   @override
@@ -589,91 +757,98 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            labelType: labelType,
-            useIndicator: false,
-            indicatorShape: Border.all(width: 20),
-            indicatorColor: Colors.transparent,
-            minWidth: 15.w,
-            groupAlignment: 0,
-            backgroundColor:
-                const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (value) {
-              saveNormalProgress();
-              setState(() {
-                _selectedIndex = value;
-              });
-            },
-            destinations: [
-              NavigationRailDestination(
-                icon: _selectedIndex == 0
-                    ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
-                    : Icon(IconlyBroken.home, size: 9.w),
-                label: Text(
-                  'Home',
-                  style: GoogleFonts.plusJakartaSans(),
+        body: Row(
+          children: [
+            NavigationRail(
+              labelType: labelType,
+              useIndicator: false,
+              indicatorShape: Border.all(width: 20),
+              indicatorColor: Colors.transparent,
+              minWidth: 15.w,
+              groupAlignment: 0,
+              backgroundColor:
+                  const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (value) {
+                saveNormalProgress();
+                setState(() {
+                  _selectedIndex = value;
+                });
+              },
+              destinations: [
+                NavigationRailDestination(
+                  icon: _selectedIndex == 0
+                      ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
+                      : Icon(IconlyBroken.home, size: 9.w),
+                  label: Text(
+                    'Home',
+                    style: GoogleFonts.plusJakartaSans(),
+                  ),
                 ),
-              ),
-              NavigationRailDestination(
-                icon: _selectedIndex == 1
-                    ? Icon(IconlyLight.graph, color: Colors.blue, size: 12.w)
-                    : Icon(IconlyBroken.graph, size: 9.w),
-                label: Text(
-                  'Record',
-                  style: GoogleFonts.plusJakartaSans(),
+                NavigationRailDestination(
+                  icon: _selectedIndex == 1
+                      ? Icon(IconlyLight.graph, color: Colors.blue, size: 12.w)
+                      : Icon(IconlyBroken.graph, size: 9.w),
+                  label: Text(
+                    'Record',
+                    style: GoogleFonts.plusJakartaSans(),
+                  ),
                 ),
-              ),
-              NavigationRailDestination(
-                icon: _selectedIndex == 2
-                    ? Icon(IconlyLight.setting, color: Colors.blue, size: 12.w)
-                    : Icon(IconlyBroken.setting, size: 9.w),
-                label: Text(
-                  'Settings',
-                  style: GoogleFonts.plusJakartaSans(),
+                NavigationRailDestination(
+                  icon: _selectedIndex == 2
+                      ? Icon(IconlyLight.setting,
+                          color: Colors.blue, size: 12.w)
+                      : Icon(IconlyBroken.setting, size: 9.w),
+                  label: Text(
+                    'Settings',
+                    style: GoogleFonts.plusJakartaSans(),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(2.w),
-              child: _buildContent(),
+              ],
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: _selectedIndex != 0
-          ? null
-          : FloatingActionButton(
-              onPressed: () {
-                final _controller = TextEditingController();
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return DialogBox(
-                      Controller: _controller,
-                      onSave: () {
-                        if (_controller.text.isNotEmpty) {
-                          setState(() {
-                            additionalTasks.add(
-                                {'task': _controller.text, 'completed': false});
-                          });
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      onCancel: () {
-                        Navigator.of(context).pop();
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(2.w),
+                child: _buildContent(),
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: _selectedIndex != 0
+            ? null
+            : SafeArea(
+                child: FloatingActionButton(
+                  onPressed: () {
+                    final _controller = TextEditingController();
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return DialogBox(
+                          Controller: _controller,
+                          onSave: () {
+                            if (_controller.text.isNotEmpty) {
+                              setState(() {
+                                additionalTasks.add({
+                                  'task': _controller.text,
+                                  'completed': false
+                                });
+                              });
+                              saveAdditionalTasksToSharedPreferences(
+                                  additionalTasks);
+                              saveAdditionalTasksToFirebase(additionalTasks);
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          onCancel: () {
+                            Navigator.of(context).pop();
+                          },
+                        );
                       },
                     );
                   },
-                );
-              },
-              child: Icon(Icons.add),
-            ),
-    );
+                  child: Icon(Icons.add),
+                ),
+              ));
   }
 
   Widget _buildContent() {
@@ -690,6 +865,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildHomeContent() {
+    // fetchAdditionalTasks();
     int totalTasks = defaultTasks.length;
     int completedTasks =
         defaultTasks.where((task) => task['completed'] == true).length;
@@ -701,164 +877,174 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return RefreshIndicator(
       color: Colors.blue,
       onRefresh: _handleRefresh,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: FadeInDown(
-              delay: const Duration(milliseconds: 100),
-              duration: const Duration(milliseconds: 800),
-              child: Container(
-                height: 15.h,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                      color: Colors.grey,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(5.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flash(
-                            delay: Duration(milliseconds: 800),
-                            duration: Duration(milliseconds: 800),
-                            child: Text(
-                              '$daysLeft',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 8.w,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            'days left for new year',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 3.w,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      CircularPercentIndicator(
-                        radius: 10.w,
-                        lineWidth: 8.0,
-                        percent: taskCompletion,
-                        center: Text(
-                          "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 5.w,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        progressColor: Colors.green,
-                        backgroundColor: Colors.grey[300]!,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: FadeInDown(
+                delay: const Duration(milliseconds: 100),
+                duration: const Duration(milliseconds: 800),
+                child: Container(
+                  height: 15.h,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        color: Colors.grey,
+                        offset: const Offset(0, 5),
                       ),
                     ],
+                    color: Colors.white,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(5.w),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flash(
+                              delay: Duration(milliseconds: 800),
+                              duration: Duration(milliseconds: 800),
+                              child: Text(
+                                '$daysLeft',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 8.w,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'days left for new year',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 3.w,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        CircularPercentIndicator(
+                          radius: 10.w,
+                          lineWidth: 8.0,
+                          percent: taskCompletion,
+                          center: Text(
+                            "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 5.w,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          progressColor: Colors.green,
+                          backgroundColor: Colors.grey[300]!,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 10),
-          Text(
-            "Daily Tasks:",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 5.w,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+            SizedBox(height: 10),
+            Text(
+              "Daily Tasks:",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 5.w,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
             ),
-          ),
-          Container(
-            height: 40.h,
-            child: defaultTasks.isEmpty
-                ? Center(
-                    child: Text(
-                      'No tasks for today.',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 4.w,
-                        color: Colors.grey,
+            Container(
+              height: 40.h,
+              child: defaultTasks.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No tasks for today.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 4.w,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    )
+                  : SafeArea(
+                      bottom: true,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: defaultTasks.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> task = defaultTasks[index];
+                          return TaskCard(
+                            task: task,
+                            onDelete: () {
+                              setState(() {
+                                defaultTasks.removeAt(index);
+                              });
+                              deleteTask(task['task']);
+                              saveNormalProgress();
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                defaultTasks[index]['completed'] = value!;
+                                saveTasksToSharedPreferences(defaultTasks);
+                                saveProgress();
+                                saveNormalProgress();
+                              });
+                            },
+                          );
+                        },
                       ),
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: defaultTasks.length,
-                    itemBuilder: (context, index) {
-                      return TaskCard(
-                        task: defaultTasks[index],
-                        onDismissed: () {
-                          setState(() {
-                            defaultTasks.removeAt(index);
-                          });
-                          deleteTask(defaultTasks[index]['task']);
-                          saveNormalProgress();
-                        },
-                        onChanged: (value) {
-                          setState(() {
-                            // Update task status (complete/incomplete)
-                            defaultTasks[index]['completed'] = value!;
-
-                            // Save updated tasks to SharedPreferences
-                            saveTasksToSharedPreferences(defaultTasks);
-                            saveProgress();
-                            saveNormalProgress();
-                          });
-                        },
-                      );
-                    },
-                  ),
-          ),
-          SizedBox(height: 2.h),
-          TextButton(
-              onPressed: () {
-                printDefaultTasksWithStatus();
-                printSt();
-                checkAndUpdateTasks();
-              },
-              child: Text('button')),
-          Text(
-            "Additional Tasks:",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 5.w,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
+            SizedBox(height: 2.h),
+            TextButton(
+                onPressed: () {
+                  printDefaultTasksWithStatus();
+                  printSt();
+                  checkAndUpdateTasks();
+                },
+                child: Text('button')),
+            Text(
+              "Additional Tasks:",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 5.w,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
               itemCount: additionalTasks.length,
               itemBuilder: (context, index) {
                 return TaskCard(
                   task: additionalTasks[index],
-                  onDismissed: () {
+                  onDelete: () {
+                    String taskName = additionalTasks[index]['task'];
                     setState(() {
-                      additionalTasks.removeAt(index);
+                      additionalTasks
+                          .removeWhere((task) => task['task'] == taskName);
                     });
+                    deleteAdditionalTask(taskName);
                   },
                   onChanged: (value) {
                     setState(() {
                       additionalTasks[index]['completed'] = value!;
                     });
+                    updateAdditionalTask(
+                        additionalTasks[index]['task'], value!);
                   },
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -866,12 +1052,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 class TaskCard extends StatelessWidget {
   final Map<String, dynamic> task;
-  final VoidCallback onDismissed;
+  final VoidCallback onDelete;
   final ValueChanged<bool?> onChanged;
 
   const TaskCard({
     required this.task,
-    required this.onDismissed,
+    required this.onDelete,
     required this.onChanged,
     Key? key,
   }) : super(key: key);
@@ -879,9 +1065,9 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(task['task']),
+      key: Key(task['task'] + task['completed'].toString()), // Use a unique key
       direction: DismissDirection.startToEnd,
-      onDismissed: (direction) => onDismissed(),
+      onDismissed: (direction) => onDelete(),
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,

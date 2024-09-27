@@ -152,7 +152,7 @@ class FirebaseService {
     }
 
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection('users')
+        .collection('userDetails')
         .doc(user.uid)
         .get();
 

@@ -231,6 +231,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                           1: Colors.green[200]!,
                           2: Colors.green[400]!,
                           3: Colors.green[600]!,
+                          4: Colors.green[800]!,
                         },
                       ),
                     ),
