@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
+import 'package:hundred_days/pages/splash_screen.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:hundred_days/utils/loader.dart';
 import 'package:iconly/iconly.dart';
@@ -1008,6 +1009,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   printDefaultTasksWithStatus();
                   printSt();
                   checkAndUpdateTasks();
+                   Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SplashScreen(),
+                                  ),
+                                );
                 },
                 child: Text('button')),
             Text(
