@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hundred_days/pages/notification.dart';
 import 'package:hundred_days/pages/notification_services.dart';
 import 'package:sizer/sizer.dart';
 
@@ -27,8 +28,20 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    // Initialize Notification Service and schedule notifications
-    NotificationService.scheduleNotifications();
+    NotificationService.sendTestNotification(); // Send a test notification
+    NotificationService.scheduleNotifications(); // Schedule daily notifications
+
+    //   NotificationService.requestNotificationPermission();
+
+    //   // Initialize Notification Service and schedule notifications
+    //   // NotificationService.scheduleNotifications();
+    //  NotificationService.requestNotificationPermission().then((_) {
+    //   NotificationService.initialize().then((_) {
+    //     NotificationService.sendTestNotification();
+    //     NotificationService.scheduleNotifications();
+    //     NotificationService.schedulePeriodicNotification();
+    //   });
+    // });
 
     _timer = Timer(Duration(milliseconds: 3500), () {
       _auth.authStateChanges().listen((User? user) {

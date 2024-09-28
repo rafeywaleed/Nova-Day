@@ -34,13 +34,22 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.default_notification_channel_id"
+            android:value="daily_tasks_channel" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.default_notification_channel_name"
+            android:value="Channel for daily tasks notifications" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.default_notification_channel_description"
+            android:value="channelDescription" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
         <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED"/>
-        <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-        <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-        <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
         </intent-filter>
         </receiver>
     </application>

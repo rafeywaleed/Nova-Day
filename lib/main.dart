@@ -4,8 +4,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
+import 'package:hundred_days/pages/notification.dart';
+import 'package:hundred_days/pages/notification_helper.dart';
 import 'package:hundred_days/pages/notification_services.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
+import 'package:hundred_days/pages/work_manager_service.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -14,8 +17,12 @@ import 'package:timezone/data/latest.dart' as tz;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure initialization
   await Firebase.initializeApp();
-  tz.initializeTimeZones(); // Add this line
+  tz.initializeTimeZones(); // Initialize timezone data
   await NotificationService.initialize();
+  // await NotificationService.scheduleNotifications();
+  // await NotificationService.schedulePeriodicNotification();
+    // await LocalNotificationService.init();
+    // await WorkManagerService().init();
   runApp(const HundredDays());
 }
 
@@ -33,6 +40,7 @@ class HundredDays extends StatelessWidget {
             secondary: Colors.blue,
           ),
         ),
+        debugShowCheckedModeBanner: false,
         home: const SplashScreen(),
       ),
     );

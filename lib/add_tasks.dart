@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hundred_days/auth/firebase_fun.dart';
 import 'package:hundred_days/homescreen.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,11 +17,38 @@ class AddTasks extends StatefulWidget {
 }
 
 class _AddTasksState extends State<AddTasks> {
+  final FirebaseService _firebaseService = FirebaseService();
+  String userName = "";
   List<String> currentDailyTasks = [];
   bool isTaskListModified = false; // Flag to track modifications
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedUserName = prefs.getString('userName');
+
+    if (storedUserName != null) {
+      setState(() {
+        userName = storedUserName;
+      });
+    } else {
+      try {
+        final userData = await _firebaseService.fetchUserData();
+        setState(() {
+          userName = userData['name'];
+        });
+        await prefs.setString('userName', userName);
+      } catch (e) {
+        print('Error fetching user data: ${e.toString()}');
+        setState(() {
+          userName = 'User';
+        });
+        print('Error fetching user data: ${e.toString()}');
+      }
+    }
+  }
 
   Future<void> saveDailyTasksToPreferences(List<String> tasks) async {
     final prefs = await SharedPreferences.getInstance();
@@ -94,12 +122,11 @@ class _AddTasksState extends State<AddTasks> {
   void initState() {
     super.initState();
     loadDailyTasksFromPreferences();
+    _loadUsername();
   }
 
   @override
   Widget build(BuildContext context) {
-    String username = auth.currentUser?.displayName ?? 'User';
-
     return Scaffold(
       appBar: widget.input == 0
           ? AppBar()
@@ -123,7 +150,7 @@ class _AddTasksState extends State<AddTasks> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hello $username!',
+              'Hello $userName',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
