@@ -16,8 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:workmanager/src/workmanager.dart';
-import 'package:workmanager/workmanager.dart';
+//import 'package:workmanager/src/workmanager.dart';
+//import 'package:workmanager/workmanager.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -158,7 +158,12 @@ class HomeScreen extends StatefulWidget {
 //   });
 // }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  late AnimationController _logoAnimationController = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: 8000),
+  );
   List<Map<String, dynamic>> defaultTasks = [];
   List<Map<String, dynamic>> additionalTasks = [];
   String? userEmail;
@@ -166,6 +171,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final FirebaseAuth auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
   NavigationRailLabelType labelType = NavigationRailLabelType.all;
+
+  void _initAnimationController() {
+    _logoAnimationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 5000),
+    );
+  }
 
   @override
   void initState() {
@@ -178,11 +190,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     checkAndUpdateTasks();
     startNetworkListener();
     WidgetsBinding.instance.addObserver(this);
+    _initAnimationController();
+    _animate();
+  }
+
+  void _animate() async {
+    await _logoAnimationController.forward();
+    await Future.delayed(Duration(seconds: 3));
+    _logoAnimationController.reset();
+    _animate();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _logoAnimationController.dispose();
+
     super.dispose();
   }
 
@@ -610,6 +633,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() {
       isLoading = true;
     });
+     loadUserEmail();
+    loadDailyTasks();
+    printSt();
+    resetTaskAnyway();
     checkAndUpdateTasks();
     fetchAdditionalTasks();
     loadDailyTasks();
@@ -761,6 +788,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         body: Row(
           children: [
             NavigationRail(
+              leading: Padding(
+                padding: const EdgeInsets.only(top: 14.0),
+                child: AnimatedBuilder(
+                    animation: _logoAnimationController,
+                    builder: (context, child) {
+                      return Roulette(
+                        // delay: Duration(milliseconds: 3000),
+                        duration: Duration(milliseconds: 5000),
+                        infinite: true,
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          scale: 4.w,
+                        ),
+                      );
+                    }),
+              ),
               labelType: labelType,
               useIndicator: false,
               indicatorShape: Border.all(width: 20),
@@ -1009,12 +1052,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   printDefaultTasksWithStatus();
                   printSt();
                   checkAndUpdateTasks();
-                   Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SplashScreen(),
-                                  ),
-                                );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SplashScreen(),
+                    ),
+                  );
                 },
                 child: Text('button')),
             Text(
