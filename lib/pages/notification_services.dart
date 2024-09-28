@@ -1,58 +1,79 @@
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
-// class NotificationService {
-//   final FlutterLocalNotificationsPlugin notificationsPlugin =
-//       FlutterLocalNotificationsPlugin();
+class NotificationService {
+  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
-//   Future<void> initNotification() async {
-//     AndroidInitializationSettings initializationSettingsAndroid =
-//         const AndroidInitializationSettings('flutter_logo');
+  static Future<void> initialize() async {
+    const AndroidInitializationSettings androidInitializationSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-//     var initializationSettingsIOS = DarwinInitializationSettings(
-//         requestAlertPermission: true,
-//         requestBadgePermission: true,
-//         requestSoundPermission: true,
-//         onDidReceiveLocalNotification:
-//             (int id, String? title, String? body, String? payload) async {});
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: androidInitializationSettings);
 
-//     var initializationSettings = InitializationSettings(
-//         android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-//     await notificationsPlugin.initialize(initializationSettings,
-//         onDidReceiveNotificationResponse:
-//             (NotificationResponse notificationResponse) async {});
-//   }
+    await _notificationsPlugin.initialize(initializationSettings);
+  }
 
-//   notificationDetails() {
-//     return const NotificationDetails(
-//         android: AndroidNotificationDetails('channelId', 'channelName',
-//             importance: Importance.max),
-//         iOS: DarwinNotificationDetails());
-//   }
+  static Future<void> scheduleNotifications() async {
+    print('Scheduling notifications...');
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails('daily_tasks_channel', 'Daily Tasks',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher');
 
-//   Future showNotification(
-//       {int id = 0, String? title, String? body, String? payLoad}) async {
-//     return notificationsPlugin.show(
-//         id, title, body, await notificationDetails());
-//   }
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidDetails);
 
-//   Future scheduleNotification(
-//       {int id = 0,
-//       String? title,
-//       String? body,
-//       String? payLoad,
-//       required DateTime scheduledNotificationDateTime}) async {
-//     return notificationsPlugin.zonedSchedule(
-//         id,
-//         title,
-//         body,
-//         tz.TZDateTime.from(
-//           scheduledNotificationDateTime,
-//           tz.local,
-//         ),
-//         await notificationDetails(),
-//         androidAllowWhileIdle: true,
-//         uiLocalNotificationDateInterpretation:
-//             UILocalNotificationDateInterpretation.absoluteTime);
-//   }
-// }
+    print("Scheduling notification at 17:50");
+
+    await _notificationsPlugin.zonedSchedule(
+      0,
+      'Your App Name',
+      'Have you done your tasks for today?',
+      _nextInstanceOfTime(18, 02),
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+
+    await _notificationsPlugin.zonedSchedule(
+      1,
+      'Your App Name',
+      'Have you done your tasks for today?',
+      _nextInstanceOfTime(18, 0),
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+
+    await _notificationsPlugin.zonedSchedule(
+      2,
+      'Your App Name',
+      'Have you done your tasks for today?',
+      _nextInstanceOfTime(22, 0),
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
+    print('Scheduling notification for: $hour:$minute');
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
+  }
+}

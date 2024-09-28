@@ -1,18 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
+import 'package:hundred_days/pages/notification_services.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
 import 'package:sizer/sizer.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure initialization
   await Firebase.initializeApp();
-  
+  tz.initializeTimeZones(); // Add this line
+  await NotificationService.initialize();
   runApp(const HundredDays());
 }
 
@@ -30,7 +33,7 @@ class HundredDays extends StatelessWidget {
             secondary: Colors.blue,
           ),
         ),
-        home: const SplashScreen(), // Splash screen as the home
+        home: const SplashScreen(),
       ),
     );
   }

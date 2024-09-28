@@ -4,160 +4,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
-import 'package:hundred_days/utils/loader.dart';
 import 'package:iconly/iconly.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'package:workmanager/src/workmanager.dart';
-//import 'package:workmanager/workmanager.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
-
-  // Future<void> uploadTasksIfOffline() async {
-  //   final connectivityResult = await Connectivity().checkConnectivity();
-  //   if (connectivityResult == ConnectivityResult.none) {
-  //     await saveTasksToSharedPreferences([]);
-  //   } else {
-  //     await saveProgress();
-  //   }
-  // }
 }
-
-// Future<void> uploadTasksIfOffline() async {
-//   final connectivityResult = await Connectivity().checkConnectivity();
-//   if (connectivityResult == ConnectivityResult.none) {
-//     await saveTasksToSharedPreferences([]);
-//   } else {
-//     await saveProgress();
-//   }
-// }
-
-// void callbackDispatcher() {
-//   Workmanager().executeTask((task) async {
-//     final connectivityResult = await Connectivity().checkConnectivity();
-//     if (connectivityResult == ConnectivityResult.none) {
-//       await saveTasksToSharedPreferences([]);
-//     } else {
-//       await saveProgress();
-//     }
-//     return Future.value(true);
-//   } as BackgroundTaskHandler);
-// }
-
-// Future<void> saveTasksToSharedPreferences(
-//     List<Map<String, dynamic>> tasks) async {
-//   SharedPreferences prefs = await SharedPreferences.getInstance();
-//   List<String> taskList = tasks.map((task) => jsonEncode(task)).toList();
-//   await prefs.setStringList('defaultTasks', taskList);
-// }
-
-// Future<void> saveProgress() async {
-//   final firestore = FirebaseFirestore.instance;
-//   final String? userEmail = FirebaseAuth.instance.currentUser?.email;
-
-//   if (userEmail != null) {
-//     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-//     DocumentReference taskRecordDoc = firestore
-//         .collection('taskRecord')
-//         .doc(userEmail)
-//         .collection('records')
-//         .doc(today);
-
-//     List<Map<String, dynamic>> defaultTasks = [
-//       {'task': 'Task 1', 'completed': false},
-//       {'task': 'Task 2', 'completed': true},
-//     ];
-
-//     List<Map<String, dynamic>> taskProgress = defaultTasks
-//         .map((task) => {
-//               'task': task['task'],
-//               'status': task['completed'] ? 'completed' : 'incomplete'
-//             })
-//         .toList();
-
-//     int totalTasks = taskProgress.length;
-//     int completedTasks =
-//         taskProgress.where((task) => task['status'] == 'completed').length;
-//     double overallCompletion =
-//         totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-//     await taskRecordDoc.set({
-//       'tasks': taskProgress,
-//       'overallCompletion': '$completedTasks/$totalTasks',
-//       'date': today,
-//     });
-//   }
-// }
-
-// void scheduleTaskAtTime(int targetHour, int targetMinute) {
-//   DateTime now = DateTime.now();
-
-//   // Calculate how many hours and minutes are left until the target time
-//   Duration delay;
-//   if (now.hour < targetHour ||
-//       (now.hour == targetHour && now.minute < targetMinute)) {
-//     delay = Duration(
-//       hours: targetHour - now.hour,
-//       minutes: targetMinute - now.minute,
-//       seconds: 00 - now.second,
-//     );
-//   } else {
-//     // If the current time is past the target time, schedule it for the next day
-//     delay = Duration(
-//       hours: (24 - now.hour) + targetHour,
-//       minutes: targetMinute - now.minute,
-//       seconds: 00 - now.second,
-//     );
-//   }
-
-//   // Register the periodic task
-//   Workmanager().registerPeriodicTask(
-//     'dailyTaskUpload',
-//     'uploadTasksAtFixedTime',
-//     frequency: Duration(hours: 24), // Repeat every 24 hours
-//     initialDelay: delay, // Delay until the specified time
-//   );
-
-//   // Add a BroadcastReceiver to listen for network connectivity changes
-//   Connectivity().onConnectivityChanged.listen((connectivityResult) {
-//     if (connectivityResult != ConnectivityResult.none) {
-//       // Device is online, trigger the task
-//       uploadTasksIfOffline();
-//     }
-//   });
-// }
-
-// void scheduleTaskAtMidnight() {
-//   Workmanager().registerPeriodicTask(
-//     'dailyTaskUpload',
-//     'uploadTasksAtMidnight',
-//     frequency: Duration(hours: 24),
-//     initialDelay: Duration(
-//       hours: 19 - DateTime.now().hour,
-//       minutes: 59 - DateTime.now().minute,
-//       seconds: 00 - DateTime.now().second,
-//     ),
-//   );
-
-//   // Add a BroadcastReceiver to listen for network connectivity changes
-//   Connectivity().onConnectivityChanged.listen((connectivityResult) {
-//     if (connectivityResult != ConnectivityResult.none) {
-//       // Device is online, trigger the task
-//       uploadTasksIfOffline();
-//     }
-//   });
-// }
-
 class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AnimationController _logoAnimationController = AnimationController(
@@ -245,12 +106,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  // Future<void> resetTasks() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setStringList('defaultTasks', []);
-  //   print("Tasks delte kar diya saab");
-  // }
-
   Future<void> resetTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? taskJsonList = prefs.getStringList('defaultTasks');
@@ -275,7 +130,6 @@ class _HomeScreenState extends State<HomeScreen>
       await prefs.setStringList('defaultTasks', updatedTaskJsonList);
       print("All tasks marked as incomplete.");
 
-      // Update the defaultTasks in the state
       setState(() {
         defaultTasks = updatedTasks;
       });
@@ -333,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen>
       int completedTasks =
           taskProgress.where((task) => task['status'] == 'completed').length;
 
-      // Check internet connectivity
+
       ConnectivityResult connectivityResult =
           (await Connectivity().checkConnectivity()) as ConnectivityResult;
 
@@ -354,14 +208,14 @@ class _HomeScreenState extends State<HomeScreen>
     List<String> toBeUploaded =
         prefs.getStringList('toBeUploaded') ?? []; // Existing data
 
-    // Create a new record and encode it as JSON
+
     Map<String, dynamic> data = {
       'date': date,
       'tasks': tasks,
       'overallCompletion': '$completedTasks /$totalTasks',
     };
 
-    // Add the new record to the list as a JSON string
+
     toBeUploaded.add(jsonEncode(data));
     await prefs.setStringList('toBeUploaded', toBeUploaded);
   }
@@ -388,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen>
     List<String> toBeUploaded = prefs.getStringList('toBeUploaded') ?? [];
 
     for (String record in toBeUploaded) {
-      // Parse the saved JSON string back to a map
       Map<String, dynamic> data = jsonDecode(record);
       await uploadToFirebase(
         data['date'],
@@ -398,7 +251,6 @@ class _HomeScreenState extends State<HomeScreen>
       );
     }
 
-    // Clear the list after successful upload
     await prefs.remove('toBeUploaded');
   }
 
@@ -434,11 +286,10 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> loadDailyTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Load the saved tasks with status from SharedPreferences
     List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
     List<Map<String, dynamic>> savedTasks = [];
 
-    // If there are saved tasks, decode them from JSON
+
     if (savedTasksJson.isNotEmpty) {
       savedTasks = savedTasksJson
           .map((taskJson) => jsonDecode(taskJson))
@@ -489,16 +340,15 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       String? userEmail = auth.currentUser?.email;
       if (userEmail != null) {
-        // Reference to user's daily tasks in Firebase
         DocumentSnapshot userTasksSnapshot =
             await firestore.collection('dailyTasks').doc(userEmail).get();
 
         if (userTasksSnapshot.exists) {
-          // Extract task data from Firebase
+
           var data = userTasksSnapshot.data() as Map<String, dynamic>;
           List<dynamic> firebaseTasks = data['tasks'] ?? [];
 
-          // Convert tasks into a usable format
+
           List<Map<String, dynamic>> fetchedTasks = firebaseTasks.map((task) {
             return {
               'task': task['task'],
@@ -524,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void markTaskAsCompleted(String taskName) {
-    // Check if the task exists in defaultTasks
+
     Map<String, dynamic>? task = defaultTasks.firstWhere(
       (task) => task['task'] == taskName,
       orElse: () => {},
@@ -532,10 +382,10 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (task.isNotEmpty) {
       setState(() {
-        // Update task status (complete/incomplete)
+
         task['completed'] = true;
 
-        // Save updated tasks to SharedPreferences
+
         saveTasksToSharedPreferences(defaultTasks);
       });
     }
@@ -544,10 +394,9 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> deleteTask(String taskName) async {
     print("Attempting to delete task: $taskName");
 
-    // Print current defaultTasks
+
     print("Current defaultTasks: $defaultTasks");
 
-    // Check if the task exists in defaultTasks
     Map<String, dynamic>? task = defaultTasks.firstWhere(
       (task) => task['task'] == taskName,
       orElse: () => {},
@@ -558,10 +407,10 @@ class _HomeScreenState extends State<HomeScreen>
         // Remove the task from the defaultTasks
         defaultTasks.removeWhere((element) => element['task'] == taskName);
 
-        // Print updated defaultTasks
+
         print("Updated defaultTasks: $defaultTasks");
 
-        // Save updated tasks to SharedPreferences
+
         saveTasksToSharedPreferences(defaultTasks);
 
         await printSharedPreferencesData();
@@ -596,11 +445,11 @@ class _HomeScreenState extends State<HomeScreen>
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     try {
-      // Convert updated defaultTasks to JSON strings
+
       List<String> updatedDefaultTasksJson =
           defaultTasks.map((task) => jsonEncode(task)).toList();
 
-      // Save updated task list to SharedPreferences
+
       await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
     } catch (e) {
       print('Error saving tasks to SharedPreferences: $e');
@@ -633,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen>
     setState(() {
       isLoading = true;
     });
-     loadUserEmail();
+    loadUserEmail();
     loadDailyTasks();
     printSt();
     resetTaskAnyway();
@@ -709,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen>
       tasks.removeWhere((task) => task['task'] == taskName);
       print('Additional tasks removed');
 
-      // Save updated tasks
+
       await saveAdditionalTasksToSharedPreferences(tasks);
       await saveAdditionalTasksToFirebase(tasks);
     }
@@ -795,11 +644,11 @@ class _HomeScreenState extends State<HomeScreen>
                     builder: (context, child) {
                       return Roulette(
                         // delay: Duration(milliseconds: 3000),
-                        duration: Duration(milliseconds: 5000),
+                        duration: Duration(milliseconds: 3000),
                         infinite: true,
                         child: Image.asset(
                           'assets/images/app_icon.png',
-                          scale: 4.w,
+                          scale: 3.w,
                         ),
                       );
                     }),
