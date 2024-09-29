@@ -377,7 +377,7 @@ class NotificationService {
     await _notificationsPlugin.zonedSchedule(
       0,
       'Daily Task Reminder',
-      'Have you done your tasks for today?',
+      'Have you started doing your tasks for today?',
       _nextInstanceOfTime(6, 30),
       notificationDetails,
       androidAllowWhileIdle: true,
@@ -389,8 +389,8 @@ class NotificationService {
     await _notificationsPlugin.zonedSchedule(
       1,
       'Daily Task Reminder',
-      'Have you done your tasks for today?',
-      _nextInstanceOfTime(12, 30), // Schedule for 6:00 PM
+      'Have you done your tasks for today? Update on the App',
+      _nextInstanceOfTime(12, 30),
       notificationDetails,
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
@@ -401,8 +401,8 @@ class NotificationService {
     await _notificationsPlugin.zonedSchedule(
       2,
       'Daily Task Reminder',
-      'Have you done your tasks for today?',
-      _nextInstanceOfTime(16, 30), // Schedule for 10:00 PM
+      'Have you done your tasks for today? Day is about to end',
+      _nextInstanceOfTime(16, 30),
       notificationDetails,
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:

@@ -192,7 +192,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                     ),
                     Text(
                       DateFormat.yMMMM().format(currentMonth),
-                      style: GoogleFonts.openSans(
+                      style: GoogleFonts.plusJakartaSans(
                           fontSize: 14.sp, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
@@ -276,7 +276,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                           children: [
                             Text(
                               "Task Completion Progress",
-                              style: GoogleFonts.openSans(
+                              style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14.sp, fontWeight: FontWeight.bold),
                             ),
                             SizedBox(height: 1.h),
@@ -322,8 +322,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                       return ListTile(
                                         title: Text(
                                           DateFormat('dd-MM-yyyy').format(date),
-                                          style: GoogleFonts.openSans(
-                                              fontSize: 12.sp),
+                                          style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 10.sp),
                                         ),
                                         trailing: Container(
                                           width: 30.w,
@@ -370,7 +370,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                             children: [
                               Text(
                                 "Tasks for ${DateFormat('dd-MM-yyyy').format(selectedDate!)} :",
-                                style: GoogleFonts.openSans(
+                                style: GoogleFonts.plusJakartaSans(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.bold),
                               ),
@@ -394,8 +394,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                   ),
                                   Text(
                                     "${tasks.where((task) => task['status'] == 'completed').length} / ${tasks.length}",
-                                    style:
-                                        GoogleFonts.openSans(fontSize: 25.sp),
+                                    style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 25.sp),
                                   ),
                                 ],
                               ),
@@ -410,7 +410,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                     return ListTile(
                                       title: Text(
                                         task['task'],
-                                        style: GoogleFonts.openSans(
+                                        style: GoogleFonts.plusJakartaSans(
                                             fontSize: 12.sp),
                                       ),
                                       trailing: Icon(
@@ -454,14 +454,14 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       backgroundColor: Colors.grey[300]!,
       center: Text(
         "${(percent * 100).toStringAsFixed(1)}%",
-        style:
-            GoogleFonts.openSans(fontSize: 10.sp, fontWeight: FontWeight.bold),
+        style: GoogleFonts.plusJakartaSans(
+            fontSize: 10.sp, fontWeight: FontWeight.bold),
       ),
       footer: Padding(
         padding: EdgeInsets.symmetric(vertical: 1.h),
         child: Text(
           header,
-          style: GoogleFonts.openSans(
+          style: GoogleFonts.plusJakartaSans(
               fontSize: 12.sp, fontWeight: FontWeight.bold),
         ),
       ),

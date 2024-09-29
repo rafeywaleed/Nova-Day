@@ -27,7 +27,7 @@ class _AddTasksState extends State<AddTasks> {
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  bool notificationsEnabled = false;
+  bool notificationsEnabled = true;
 
   void toggleNotifications(bool value) async {
     setState(() {
@@ -43,9 +43,41 @@ class _AddTasksState extends State<AddTasks> {
   Future<void> loadNotificationState() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false;
+      notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
     });
   }
+
+  Future<void> showInfoBox() async {
+  if (widget.input == 0) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Remember',
+            style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                fontSize: 14.sp,
+                color: Colors.black),
+          ),
+          content: Text(
+            'You can modify the task and change notification settings anytime\n\nSettings -> Edit Tasks',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: Colors.grey),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 
   Future<void> _loadUsername() async {
     final prefs = await SharedPreferences.getInstance();
@@ -172,6 +204,7 @@ class _AddTasksState extends State<AddTasks> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // TextButton(onPressed: (){showInfoBox();}, child: Text("data")),
             Text(
               'Hello $userName',
               style: GoogleFonts.plusJakartaSans(
@@ -197,7 +230,8 @@ class _AddTasksState extends State<AddTasks> {
                     value: notificationsEnabled,
                     onChanged: toggleNotifications,
                     activeColor: Colors.blue, // Switch active color
-                    inactiveThumbColor: Colors.grey, // Thumb color when inactive
+                    inactiveThumbColor:
+                        Colors.grey, // Thumb color when inactive
                     inactiveTrackColor:
                         Colors.grey[300], // Track color when inactive
                   ),
@@ -311,7 +345,7 @@ class _AddTasksState extends State<AddTasks> {
                       onDismissed: (direction) {
                         setState(() {
                           currentDailyTasks.removeAt(index);
-                          isTaskListModified = true; // Mark as modified
+                          isTaskListModified = true;
                         });
                       },
                       background: Container(
@@ -350,13 +384,15 @@ class _AddTasksState extends State<AddTasks> {
                   ),
                   minimumSize: const Size(100, 40),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   if (isTaskListModified) {
                     saveDailyTasksToFirestore(currentDailyTasks);
                     saveDailyTasksToPreferences(currentDailyTasks);
                   } else {
                     print("No changes to task list, not saving.");
                   }
+
+                  await showInfoBox();
 
                   Navigator.push(
                     context,

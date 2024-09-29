@@ -28,7 +28,6 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  android_alarm_manager_plus: ^4.0.4
   animate_do: ^3.3.4
   cloud_firestore: ^5.4.2
   connectivity_plus: ^6.0.5
@@ -50,7 +49,6 @@ dependencies:
   sizer: ^2.0.15
   timezone: ^0.9.4
   url_launcher: ^6.3.0
-  workmanager: ^0.5.2
 
 dev_dependencies:
   flutter_lints: ^4.0.0

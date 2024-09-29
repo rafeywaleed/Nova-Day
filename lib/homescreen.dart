@@ -761,7 +761,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: FadeInDown(
@@ -928,6 +928,7 @@ class _HomeScreenState extends State<HomeScreen>
                 );
               },
             ),
+            SizedBox(height: 20.h,)
           ],
         ),
       ),

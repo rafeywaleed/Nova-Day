@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/homescreen.dart';
 import 'package:sizer/sizer.dart';
 
@@ -126,7 +127,7 @@ class _IntroScreenState extends State<IntroScreen>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => HomeScreen()),
+                                      builder: (context) => AddTasks(input: 0,)),
                                 );
                               } else {
                                 Navigator.pop(context); // Pop back
