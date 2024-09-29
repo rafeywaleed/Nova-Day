@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    NotificationService.sendTestNotification(); // Send a test notification
+    // NotificationService.sendTestNotification(); // Send a test notification
     NotificationService.scheduleNotifications(); // Schedule daily notifications
 
     //   NotificationService.requestNotificationPermission();

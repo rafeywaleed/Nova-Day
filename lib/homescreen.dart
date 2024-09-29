@@ -19,6 +19,7 @@ class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
+
 class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AnimationController _logoAnimationController = AnimationController(
@@ -187,7 +188,6 @@ class _HomeScreenState extends State<HomeScreen>
       int completedTasks =
           taskProgress.where((task) => task['status'] == 'completed').length;
 
-
       ConnectivityResult connectivityResult =
           (await Connectivity().checkConnectivity()) as ConnectivityResult;
 
@@ -208,13 +208,11 @@ class _HomeScreenState extends State<HomeScreen>
     List<String> toBeUploaded =
         prefs.getStringList('toBeUploaded') ?? []; // Existing data
 
-
     Map<String, dynamic> data = {
       'date': date,
       'tasks': tasks,
       'overallCompletion': '$completedTasks /$totalTasks',
     };
-
 
     toBeUploaded.add(jsonEncode(data));
     await prefs.setStringList('toBeUploaded', toBeUploaded);
@@ -289,7 +287,6 @@ class _HomeScreenState extends State<HomeScreen>
     List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
     List<Map<String, dynamic>> savedTasks = [];
 
-
     if (savedTasksJson.isNotEmpty) {
       savedTasks = savedTasksJson
           .map((taskJson) => jsonDecode(taskJson))
@@ -344,10 +341,8 @@ class _HomeScreenState extends State<HomeScreen>
             await firestore.collection('dailyTasks').doc(userEmail).get();
 
         if (userTasksSnapshot.exists) {
-
           var data = userTasksSnapshot.data() as Map<String, dynamic>;
           List<dynamic> firebaseTasks = data['tasks'] ?? [];
-
 
           List<Map<String, dynamic>> fetchedTasks = firebaseTasks.map((task) {
             return {
@@ -374,7 +369,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void markTaskAsCompleted(String taskName) {
-
     Map<String, dynamic>? task = defaultTasks.firstWhere(
       (task) => task['task'] == taskName,
       orElse: () => {},
@@ -382,9 +376,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (task.isNotEmpty) {
       setState(() {
-
         task['completed'] = true;
-
 
         saveTasksToSharedPreferences(defaultTasks);
       });
@@ -393,7 +385,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> deleteTask(String taskName) async {
     print("Attempting to delete task: $taskName");
-
 
     print("Current defaultTasks: $defaultTasks");
 
@@ -407,9 +398,7 @@ class _HomeScreenState extends State<HomeScreen>
         // Remove the task from the defaultTasks
         defaultTasks.removeWhere((element) => element['task'] == taskName);
 
-
         print("Updated defaultTasks: $defaultTasks");
-
 
         saveTasksToSharedPreferences(defaultTasks);
 
@@ -445,10 +434,8 @@ class _HomeScreenState extends State<HomeScreen>
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     try {
-
       List<String> updatedDefaultTasksJson =
           defaultTasks.map((task) => jsonEncode(task)).toList();
-
 
       await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
     } catch (e) {
@@ -557,7 +544,6 @@ class _HomeScreenState extends State<HomeScreen>
       // Remove task
       tasks.removeWhere((task) => task['task'] == taskName);
       print('Additional tasks removed');
-
 
       await saveAdditionalTasksToSharedPreferences(tasks);
       await saveAdditionalTasksToFirebase(tasks);
@@ -896,19 +882,19 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
             ),
             SizedBox(height: 2.h),
-            TextButton(
-                onPressed: () {
-                  printDefaultTasksWithStatus();
-                  printSt();
-                  checkAndUpdateTasks();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SplashScreen(),
-                    ),
-                  );
-                },
-                child: Text('button')),
+            // TextButton(
+            //     onPressed: () {
+            //       printDefaultTasksWithStatus();
+            //       printSt();
+            //       checkAndUpdateTasks();
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (context) => SplashScreen(),
+            //         ),
+            //       );
+            //     },
+            //     child: Text('button')),
             Text(
               "Additional Tasks:",
               style: GoogleFonts.plusJakartaSans(

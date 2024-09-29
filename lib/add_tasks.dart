@@ -2,11 +2,14 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/auth/firebase_fun.dart';
+import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/homescreen.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hundred_days/pages/notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sizer/sizer.dart';
 
 class AddTasks extends StatefulWidget {
   final int input;
@@ -24,6 +27,25 @@ class _AddTasksState extends State<AddTasks> {
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
+  bool notificationsEnabled = false;
+
+  void toggleNotifications(bool value) async {
+    setState(() {
+      notificationsEnabled = value;
+    });
+    await NotificationService.enableNotifications(value);
+
+    // Save the state to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationsEnabled', value);
+  }
+
+  Future<void> loadNotificationState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false;
+    });
+  }
 
   Future<void> _loadUsername() async {
     final prefs = await SharedPreferences.getInstance();
@@ -123,6 +145,7 @@ class _AddTasksState extends State<AddTasks> {
     super.initState();
     loadDailyTasksFromPreferences();
     _loadUsername();
+    loadNotificationState();
   }
 
   @override
@@ -156,8 +179,31 @@ class _AddTasksState extends State<AddTasks> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 32),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Reminder notifications will be sent everyday at 12pm, 6pm and 10pm (GMT+5:30)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: notificationsEnabled,
+                    onChanged: toggleNotifications,
+                    activeColor: Colors.blue, // Switch active color
+                    inactiveThumbColor: Colors.grey, // Thumb color when inactive
+                    inactiveTrackColor:
+                        Colors.grey[300], // Track color when inactive
+                  ),
+                ],
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -323,8 +369,8 @@ class _AddTasksState extends State<AddTasks> {
             const SizedBox(height: 16),
             Text(
               'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
-              style:
-                  GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.grey),
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.sp, color: Colors.grey),
             ),
           ],
         ),
