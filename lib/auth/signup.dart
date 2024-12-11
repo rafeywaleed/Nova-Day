@@ -1,10 +1,13 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hundred_days/add_tasks.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hundred_days/pages/intro_screens.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:hundred_days/intro_screen.dart'; // Import your IntroScreen
 import 'package:sizer/sizer.dart';
 import 'package:iconly/iconly.dart';
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:google_fonts/google_fonts.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -15,6 +18,12 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String s_name = "";
+  String s_email = "";
+  String s_password = "";
+  String s_Cpassword = "";
 
   var focusNodeName = FocusNode();
   var focusNodeEmail = FocusNode();
@@ -84,27 +93,40 @@ class _SignUpPageState extends State<SignUpPage> {
         email: email,
         password: password,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Account created successfully!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
+
+      // Store user details in Firestore
+      await _firestore
+          .collection('userDetails')
+          .doc(_auth.currentUser?.uid)
+          .set({
+        'name': name,
+        'email': email,
+        'joinedDate': DateTime.now().toString(),
+      });
+
+      // Store user details in SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userName', name);
+      await prefs.setString('userEmail', email);
+      await prefs.setString('joinedDate', DateTime.now().toString());
+
+      // Print stored values
+      print('Stored values in Firestore:');
+      print('Name: $name');
+      print('Email: $email');
+      print('Joined Date: ${DateTime.now().toString()}');
+      print('Stored values in SharedPreferences:');
+      print('Name: ${prefs.getString('userName')}');
+      print('Email: ${prefs.getString('userEmail')}');
+      print('Joined Date: ${prefs.getString('joinedDate')}');
+
+      // Navigate to IntroScreen without delay
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IntroScreen(input: 0),
         ),
       );
-      // Navigate to the home screen after a delay
-      Future.delayed(const Duration(seconds: 1), () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AddTasks(
-              input: 0,
-            ),
-          ),
-        );
-      });
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -231,19 +253,21 @@ class _SignUpPageState extends State<SignUpPage> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 5.w, vertical: .3.h),
                         decoration: BoxDecoration(
-                          color: isFocusedName ? Colors.white : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          color:
+                              isFocusedName ? Colors.white : Color(0xFFF1F0F5),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Name',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle: GoogleFonts.plusJakartaSans(),
                           ),
                           focusNode: focusNodeName,
-                          style: GoogleFonts.plusJakartaSans(), // Text style
+                          style: GoogleFonts.plusJakartaSans(),
                         ),
                       ),
                     ),
@@ -267,19 +291,38 @@ class _SignUpPageState extends State<SignUpPage> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 5.w, vertical: .3.h),
                         decoration: BoxDecoration(
-                          color: isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          color:
+                              isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_email = value!;
+                            });
+                          },
+
                           controller: _emailController,
+
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Your Email',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeEmail,
-                          style: GoogleFonts.plusJakartaSans(), // Text style
+                          style: GoogleFonts.plusJakartaSans(),
+                          // Text style
                         ),
                       ),
                     ),
@@ -306,10 +349,23 @@ class _SignUpPageState extends State<SignUpPage> {
                           color: isFocusedPassword
                               ? Colors.white
                               : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter a password';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_password = value!;
+                            });
+                          },
                           controller: _passwordController,
                           obscureText: !showPassword,
                           decoration: InputDecoration(
@@ -327,7 +383,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Password',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodePassword,
                           style: GoogleFonts.plusJakartaSans(), // Text style
@@ -357,10 +414,23 @@ class _SignUpPageState extends State<SignUpPage> {
                           color: isFocusedConfirmPassword
                               ? Colors.white
                               : Color(0xFFF1F0F5),
-                          border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                          border:
+                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_Cpassword = value!;
+                            });
+                          },
                           controller: _confirmPasswordController,
                           obscureText: !showConfirmPassword,
                           decoration: InputDecoration(
@@ -378,7 +448,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             border: InputBorder.none,
                             hintText: 'Confirm Password',
-                            hintStyle: GoogleFonts.plusJakartaSans(), // Hint style
+                            hintStyle:
+                                GoogleFonts.plusJakartaSans(), // Hint style
                           ),
                           focusNode: focusNodeConfirmPassword,
                           style: GoogleFonts.plusJakartaSans(), // Text style
@@ -386,9 +457,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                     const Expanded(
-                      child: SizedBox(
-                        height: 10,
-                      ),
+                      child: SizedBox(height: 10),
                     ),
                     FadeInUp(
                       delay: const Duration(milliseconds: 300),

@@ -30,22 +30,26 @@ environment:
 dependencies:
   animate_do: ^3.3.4
   cloud_firestore: ^5.4.2
-  cupertino_icons: ^1.0.8
+  connectivity_plus: ^6.0.5
   encrypt: ^5.0.3
   firebase_auth: ^5.3.0
   firebase_core: ^3.5.0
   flutter:
     sdk: flutter
   flutter_heatmap_calendar: ^1.0.5
+  flutter_local_notifications: ^17.2.3
+  # flutter_native_timezone: ^2.0.0
   flutter_slidable: ^3.1.1
+  flutter_timezone: ^3.0.1
   google_fonts: ^6.2.1
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   iconly: ^1.0.1
   intl: ^0.19.0
   percent_indicator: ^4.2.3
+  permission_handler: ^11.3.1
+  shared_preferences: ^2.3.2
   sizer: ^2.0.15
-  syncfusion_flutter_charts: ^27.1.48
+  timezone: ^0.9.4
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_lints: ^4.0.0
@@ -65,7 +69,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
-
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

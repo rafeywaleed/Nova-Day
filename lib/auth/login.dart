@@ -1,11 +1,12 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hundred_days/add_tasks.dart';
 import 'package:sizer/sizer.dart';
 import 'package:hundred_days/auth/signup.dart';
 import 'package:iconly/iconly.dart';
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:google_fonts/google_fonts.dart';
+
+import '../pages/add_tasks.dart'; // Import Google Fonts
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +16,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String s_password = "";
+  String s_email = "";
   var focusNodeEmail = FocusNode();
   var focusNodePassword = FocusNode();
   bool isFocusedEmail = false;
@@ -230,7 +233,20 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                           ],
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Email';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_email = value!;
+                            });
+                          },
+                          keyboardType: TextInputType.emailAddress,
                           controller: _emailController,
                           style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.w500),
@@ -278,7 +294,19 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                           ],
                         ),
-                        child: TextField(
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please Enter your Password';
+                            } else {
+                              return null;
+                            }
+                          },
+                          onSaved: (value) {
+                            setState(() {
+                              s_password = value!;
+                            });
+                          },
                           controller: _passwordController,
                           style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.w500),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hundred_days/utils/buttons.dart';
 
 class DialogBox extends StatelessWidget {
   final Controller;
@@ -20,20 +19,23 @@ class DialogBox extends StatelessWidget {
       backgroundColor: Colors.white,
       contentPadding: EdgeInsets.all(16), // Add padding
       content: Container(
-        height: MediaQuery.of(context).size.height*0.2,
+        height: MediaQuery.of(context).size.height * 0.2,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            
             // Get user input
             TextField(
               controller: Controller,
               decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey, width: 1.0),
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Make corners rounded
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 hintText: "Add a new Task",
-                hintStyle: TextStyle(fontFamily: 'Manrope'), // Change font family
+                hintStyle: TextStyle(fontFamily: 'Manrope'),
               ),
             ),
 
@@ -46,7 +48,8 @@ class DialogBox extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue, // Change button color
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Make corners rounded
+                      borderRadius:
+                          BorderRadius.circular(10), // Make corners rounded
                     ),
                   ),
                   onPressed: onSave,
@@ -62,9 +65,11 @@ class DialogBox extends StatelessWidget {
                 // Cancel
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.red, backgroundColor: Colors.white, // Change text color
+                    foregroundColor: Colors.red,
+                    backgroundColor: Colors.white, // Change text color
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Make corners rounded
+                      borderRadius:
+                          BorderRadius.circular(10), // Make corners rounded
                       side: BorderSide(color: Colors.red), // Add border
                     ),
                   ),

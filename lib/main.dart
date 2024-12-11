@@ -1,24 +1,32 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
+import 'package:hundred_days/pages/notification.dart';
+import 'package:hundred_days/pages/notification_helper.dart';
+import 'package:hundred_days/pages/notification_services.dart';
+import 'package:hundred_days/pages/set_notification.dart';
+import 'package:hundred_days/pages/splash_screen.dart';
+import 'package:hundred_days/pages/work_manager_service.dart';
 import 'package:sizer/sizer.dart';
-import 'firebase_options.dart'; // Generated Firebase options file
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
-  // Initialize Hive with encryption
-  final encryptionKey = Hive.generateSecureKey(); // Generate a secure key
-  await Hive.initFlutter();
-  await Hive.openBox('userBox', encryptionCipher: HiveAesCipher(encryptionKey));
+  tz.initializeTimeZones(); 
+  await NotificationService.initialize();
+  // await NotificationService.scheduleNotifications();
+  // await NotificationService.schedulePeriodicNotification();
+  // await LocalNotificationService.init();
+  // await WorkManagerService().init();
 
   runApp(const HundredDays());
+  //runApp(NotificationSettingsPage());
 }
 
 class HundredDays extends StatelessWidget {
@@ -28,18 +36,15 @@ class HundredDays extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) => MaterialApp(
-        theme: ThemeData(fontFamily: 'Manrope'),
-        home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return HomeScreen();
-            //BoxEx();
-          } else {
-            return const WelcomePage();
-          }
-        },
-      ), // Adjust the home page as needed
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          primaryColor: Colors.blue,
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            secondary: Colors.blue,
+          ),
+        ),
+        debugShowCheckedModeBanner: false,
+        home: const SplashScreen(),
       ),
     );
   }
