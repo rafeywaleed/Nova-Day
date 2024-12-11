@@ -4,13 +4,15 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hundred_days/add_tasks.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/pages/intro_screens.dart';
 import 'package:hundred_days/pages/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:google_fonts/google_fonts.dart';
+
+import 'add_tasks.dart';
+import 'set_notification.dart'; // Import Google Fonts
 
 class UserSettingsPage extends StatefulWidget {
   const UserSettingsPage({Key? key}) : super(key: key);
@@ -56,8 +58,8 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     );
 
     // Launch the email client
-    if (await canLaunch(emailLaunchUri.toString())) {
-      await launch(emailLaunchUri.toString());
+    if (await canLaunchUrl(emailLaunchUri)) {
+      await launchUrl(emailLaunchUri);
     } else {
       throw 'Could not launch $emailLaunchUri';
     }
@@ -98,6 +100,16 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                 );
               },
             ),
+             _buildSection(
+              'Notifications',
+              'You can change your notification settings here',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationSettingsPage()),
+                );
+              },
+            ),
             _buildSection(
               'Profile',
               'Update your name and password as necessary.',
@@ -115,6 +127,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                 _launchEmail();
               },
             ),
+
             _buildSection(
               'Guide',
               'For user notes and details regarding task lists.',

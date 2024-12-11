@@ -1,3 +1,117 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+class NotificationService {
+  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  static Future<void> initialize() async {
+    const AndroidInitializationSettings androidInitializationSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: androidInitializationSettings);
+    await _notificationsPlugin.initialize(initializationSettings);
+  }
+
+  static Future<void> enableNotifications(bool enable) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', enable);
+    if (enable) {
+      // If enabled, schedule the notifications
+      await scheduleNotifications();
+    } else {
+      // If disabled, cancel all notifications
+      await _notificationsPlugin.cancelAll();
+    }
+  }
+
+  static Future<void> scheduleNotifications() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? notificationsEnabled =
+        prefs.getBool('notifications_enabled') ?? false;
+
+    if (!notificationsEnabled) {
+      return;
+    }
+
+    // Retrieve user-defined notification times
+    String? firstTimeString = prefs.getString('firstNotificationTime');
+    String? secondTimeString = prefs.getString('secondNotificationTime');
+
+    TimeOfDay firstNotificationTime = firstTimeString != null
+        ? TimeOfDay.fromDateTime(DateTime.parse(firstTimeString))
+        : TimeOfDay(hour: 12, minute: 0); // Default time
+
+    TimeOfDay secondNotificationTime = secondTimeString != null
+        ? TimeOfDay.fromDateTime(DateTime.parse(secondTimeString))
+        : TimeOfDay(hour: 18, minute: 0); // Default time
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'daily_tasks_channel',
+      'Daily Tasks',
+      channelDescription: 'Daily task reminder notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      playSound: true,
+      enableVibration: true,
+      color: const Color(0xFF42A5F5),
+      largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+      styleInformation: BigTextStyleInformation(
+        'Have you done your tasks for today? Remember to complete your tasks to stay on track!',
+        contentTitle: 'Daily Task Reminder',
+        htmlFormatContent: true,
+        htmlFormatContentTitle: true,
+      ),
+    );
+
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidDetails);
+
+    // Schedule the notifications at specified times
+    await _notificationsPlugin.zonedSchedule(
+      0,
+      'First Task Reminder',
+      'Have you started doing your tasks for today?',
+      _nextInstanceOfTime(
+          firstNotificationTime.hour, firstNotificationTime.minute),
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+
+    await _notificationsPlugin.zonedSchedule(
+      1,
+      'Second Task Reminder',
+      'Have you done your tasks for today? Update on the App',
+      _nextInstanceOfTime(
+          secondNotificationTime.hour, secondNotificationTime.minute),
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
+  }
+}
+
+
 // import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:timezone/timezone.dart' as tz;
 
@@ -297,127 +411,3 @@
 //   }
 // }
 
-import 'dart:ui';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart' as tz;
-
-class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  static Future<void> initialize() async {
-    const AndroidInitializationSettings androidInitializationSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: androidInitializationSettings);
-
-    await _notificationsPlugin.initialize(initializationSettings);
-  }
-
-  static Future<void> enableNotifications(bool enable) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notifications_enabled', enable);
-
-    if (enable) {
-      // If enabled, schedule the notifications
-      await scheduleNotifications();
-    } else {
-      // If disabled, cancel all notifications
-      await _notificationsPlugin.cancelAll();
-    }
-  }
-
-  static Future<void> scheduleNotifications() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? notificationsEnabled =
-        prefs.getBool('notifications_enabled') ?? false;
-
-    if (!notificationsEnabled) {
-      return;
-    }
-
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'daily_tasks_channel',
-      'Daily Tasks',
-      channelDescription: 'Daily task reminder notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-      playSound: true,
-      enableVibration: true,
-      color: const Color(0xFF42A5F5),
-      largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-      styleInformation: BigTextStyleInformation(
-        'Have you done your tasks for today? Remember to complete your tasks to stay on track!',
-        contentTitle: 'Daily Task Reminder',
-        htmlFormatContent: true,
-        htmlFormatContentTitle: true,
-      ),
-    );
-
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidDetails);
-
-    // Schedule the notifications at specified times
-    // await _notificationsPlugin.zonedSchedule(
-    //   0,
-    //   'Daily Task Reminder',
-    //   'Have you done your tasks for today?',
-    //   _nextInstanceOfTime(8, 50),
-    //   notificationDetails,
-    //   androidAllowWhileIdle: true,
-    //   uiLocalNotificationDateInterpretation:
-    //       UILocalNotificationDateInterpretation.wallClockTime,
-    //   matchDateTimeComponents: DateTimeComponents.time,
-    // );
-
-    await _notificationsPlugin.zonedSchedule(
-      0,
-      'Daily Task Reminder',
-      'Have you started doing your tasks for today?',
-      _nextInstanceOfTime(6, 30),
-      notificationDetails,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-
-    await _notificationsPlugin.zonedSchedule(
-      1,
-      'Daily Task Reminder',
-      'Have you done your tasks for today? Update on the App',
-      _nextInstanceOfTime(12, 30),
-      notificationDetails,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-
-    await _notificationsPlugin.zonedSchedule(
-      2,
-      'Daily Task Reminder',
-      'Have you done your tasks for today? Day is about to end',
-      _nextInstanceOfTime(16, 30),
-      notificationDetails,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
-
-  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-    return scheduledDate;
-  }
-}

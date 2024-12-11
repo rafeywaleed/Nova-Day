@@ -23,29 +23,29 @@ class _AddTasksState extends State<AddTasks> {
   final FirebaseService _firebaseService = FirebaseService();
   String userName = "";
   List<String> currentDailyTasks = [];
-  bool isTaskListModified = false; // Flag to track modifications
+  bool isTaskListModified = false; 
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  bool notificationsEnabled = true;
+  // bool notificationsEnabled = true;
 
-  void toggleNotifications(bool value) async {
-    setState(() {
-      notificationsEnabled = value;
-    });
-    await NotificationService.enableNotifications(value);
+  // void toggleNotifications(bool value) async {
+  //   setState(() {
+  //     notificationsEnabled = value;
+  //   });
+  //   await NotificationService.enableNotifications(value);
 
-    // Save the state to SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notificationsEnabled', value);
-  }
+  //   // Save the state to SharedPreferences
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.setBool('notificationsEnabled', value);
+  // }
 
-  Future<void> loadNotificationState() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
-    });
-  }
+  // Future<void> loadNotificationState() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+  //   });
+  // }
 
   Future<void> showInfoBox() async {
   if (widget.input == 0) {
@@ -177,7 +177,7 @@ class _AddTasksState extends State<AddTasks> {
     super.initState();
     loadDailyTasksFromPreferences();
     _loadUsername();
-    loadNotificationState();
+    //loadNotificationState();
   }
 
   @override
@@ -212,32 +212,32 @@ class _AddTasksState extends State<AddTasks> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Reminder notifications will be sent everyday at 12pm, 6pm and 10pm (GMT+5:30)',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  Switch(
-                    value: notificationsEnabled,
-                    onChanged: toggleNotifications,
-                    activeColor: Colors.blue, // Switch active color
-                    inactiveThumbColor:
-                        Colors.grey, // Thumb color when inactive
-                    inactiveTrackColor:
-                        Colors.grey[300], // Track color when inactive
-                  ),
-                ],
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.all(8.0),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //     children: [
+            //       Flexible(
+            //         child: Text(
+            //           'Reminder notifications will be sent everyday at 12pm, 6pm and 10pm (GMT+5:30)',
+            //           style: GoogleFonts.plusJakartaSans(
+            //             fontSize: 12.sp,
+            //             color: Colors.grey,
+            //           ),
+            //         ),
+            //       ),
+            //       Switch(
+            //         value: notificationsEnabled,
+            //         onChanged: toggleNotifications,
+            //         activeColor: Colors.blue, // Switch active color
+            //         inactiveThumbColor:
+            //             Colors.grey, // Thumb color when inactive
+            //         inactiveTrackColor:
+            //             Colors.grey[300], // Track color when inactive
+            //       ),
+            //     ],
+            //   ),
+            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

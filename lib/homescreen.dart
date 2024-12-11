@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
@@ -619,115 +620,137 @@ class _HomeScreenState extends State<HomeScreen>
     double taskCompletion = totalTasks > 0 ? completedTasks / totalTasks : 0;
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
-    return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              leading: Padding(
-                padding: const EdgeInsets.only(top: 14.0),
-                child: AnimatedBuilder(
-                    animation: _logoAnimationController,
-                    builder: (context, child) {
-                      return Roulette(
-                        // delay: Duration(milliseconds: 3000),
-                        duration: Duration(milliseconds: 3000),
-                        infinite: true,
-                        child: Image.asset(
-                          'assets/images/app_icon.png',
-                          scale: 3.w,
-                        ),
-                      );
-                    }),
-              ),
-              labelType: labelType,
-              useIndicator: false,
-              indicatorShape: Border.all(width: 20),
-              indicatorColor: Colors.transparent,
-              minWidth: 15.w,
-              groupAlignment: 0,
-              backgroundColor:
-                  const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: (value) {
-                saveNormalProgress();
-                setState(() {
-                  _selectedIndex = value;
-                });
-              },
-              destinations: [
-                NavigationRailDestination(
-                  icon: _selectedIndex == 0
-                      ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
-                      : Icon(IconlyBroken.home, size: 9.w),
-                  label: Text(
-                    'Home',
-                    style: GoogleFonts.plusJakartaSans(),
-                  ),
-                ),
-                NavigationRailDestination(
-                  icon: _selectedIndex == 1
-                      ? Icon(IconlyLight.graph, color: Colors.blue, size: 12.w)
-                      : Icon(IconlyBroken.graph, size: 9.w),
-                  label: Text(
-                    'Record',
-                    style: GoogleFonts.plusJakartaSans(),
-                  ),
-                ),
-                NavigationRailDestination(
-                  icon: _selectedIndex == 2
-                      ? Icon(IconlyLight.setting,
-                          color: Colors.blue, size: 12.w)
-                      : Icon(IconlyBroken.setting, size: 9.w),
-                  label: Text(
-                    'Settings',
-                    style: GoogleFonts.plusJakartaSans(),
-                  ),
-                ),
-              ],
+    return WillPopScope(
+       onWillPop: () async {
+      // Show a dialog to confirm if the user wants to exit the app
+      return await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Confirm Exit'),
+          content: Text('Are you sure you want to exit the app?'),
+          actions: [
+            TextButton(
+              child: Text('No'),
+              onPressed: () => Navigator.of(context).pop(false),
             ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(2.w),
-                child: _buildContent(),
-              ),
+            TextButton(
+              child: Text('Yes'),
+              onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
         ),
-        floatingActionButton: _selectedIndex != 0
-            ? null
-            : SafeArea(
-                child: FloatingActionButton(
-                  onPressed: () {
-                    final _controller = TextEditingController();
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return DialogBox(
-                          Controller: _controller,
-                          onSave: () {
-                            if (_controller.text.isNotEmpty) {
-                              setState(() {
-                                additionalTasks.add({
-                                  'task': _controller.text,
-                                  'completed': false
-                                });
-                              });
-                              saveAdditionalTasksToSharedPreferences(
-                                  additionalTasks);
-                              saveAdditionalTasksToFirebase(additionalTasks);
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          onCancel: () {
-                            Navigator.of(context).pop();
-                          },
+      );
+    },
+      child: Scaffold(
+          body: Row(
+            children: [
+              NavigationRail(
+                leading: Padding(
+                  padding: const EdgeInsets.only(top: 14.0),
+                  child: AnimatedBuilder(
+                      animation: _logoAnimationController,
+                      builder: (context, child) {
+                        return Roulette(
+                          // delay: Duration(milliseconds: 3000),
+                          duration: Duration(milliseconds: 3000),
+                          infinite: true,
+                          child: Image.asset(
+                            'assets/images/app_icon.png',
+                            scale: 3.w,
+                          ),
                         );
-                      },
-                    );
-                  },
-                  child: Icon(Icons.add),
+                      }),
                 ),
-              ));
+                labelType: labelType,
+                useIndicator: false,
+                indicatorShape: Border.all(width: 20),
+                indicatorColor: Colors.transparent,
+                minWidth: 15.w,
+                groupAlignment: 0,
+                backgroundColor:
+                    const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (value) {
+                  saveNormalProgress();
+                  setState(() {
+                    _selectedIndex = value;
+                  });
+                },
+                destinations: [
+                  NavigationRailDestination(
+                    icon: _selectedIndex == 0
+                        ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
+                        : Icon(IconlyBroken.home, size: 9.w),
+                    label: Text(
+                      'Home',
+                      style: GoogleFonts.plusJakartaSans(),
+                    ),
+                  ),
+                  NavigationRailDestination(
+                    icon: _selectedIndex == 1
+                        ? Icon(IconlyLight.graph, color: Colors.blue, size: 12.w)
+                        : Icon(IconlyBroken.graph, size: 9.w),
+                    label: Text(
+                      'Record',
+                      style: GoogleFonts.plusJakartaSans(),
+                    ),
+                  ),
+                  NavigationRailDestination(
+                    icon: _selectedIndex == 2
+                        ? Icon(IconlyLight.setting,
+                            color: Colors.blue, size: 12.w)
+                        : Icon(IconlyBroken.setting, size: 9.w),
+                    label: Text(
+                      'Settings',
+                      style: GoogleFonts.plusJakartaSans(),
+                    ),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(2.w),
+                  child: _buildContent(),
+                ),
+              ),
+            ],
+          ),
+          floatingActionButton: _selectedIndex != 0
+              ? null
+              : SafeArea(
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      final _controller = TextEditingController();
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return DialogBox(
+                            Controller: _controller,
+                            onSave: () {
+                              if (_controller.text.isNotEmpty) {
+                                setState(() {
+                                  additionalTasks.add({
+                                    'task': _controller.text,
+                                    'completed': false
+                                  });
+                                });
+                                saveAdditionalTasksToSharedPreferences(
+                                    additionalTasks);
+                                saveAdditionalTasksToFirebase(additionalTasks);
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            onCancel: () {
+                              Navigator.of(context).pop();
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: Icon(Icons.add),
+                  ),
+                )),
+    );
   }
 
   Widget _buildContent() {

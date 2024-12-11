@@ -21,7 +21,9 @@ class _WelcomePageState extends State<WelcomePage> {
           color: Colors.white,
           child: Column(
             children: [
-              SizedBox(height: 10.h,),
+              SizedBox(
+                height: 10.h,
+              ),
               FadeInDown(
                 delay: const Duration(milliseconds: 800),
                 duration: const Duration(milliseconds: 800),
@@ -67,10 +69,10 @@ class _WelcomePageState extends State<WelcomePage> {
                             delay: const Duration(milliseconds: 900),
                             duration: const Duration(milliseconds: 1000),
                             child: Text(
-                              'Lets fix ourselves',
-                              textAlign: TextAlign.center,
+                              'Track habits, Manage tasks, and stay on top of your goals.',
+                              textAlign: TextAlign.start,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 15.sp,
+                                fontSize: 12.sp,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),

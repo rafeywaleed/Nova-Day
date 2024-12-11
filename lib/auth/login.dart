@@ -1,11 +1,12 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hundred_days/add_tasks.dart';
 import 'package:sizer/sizer.dart';
 import 'package:hundred_days/auth/signup.dart';
 import 'package:iconly/iconly.dart';
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:google_fonts/google_fonts.dart';
+
+import '../pages/add_tasks.dart'; // Import Google Fonts
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

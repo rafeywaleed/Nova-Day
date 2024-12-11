@@ -7,6 +7,7 @@ import 'package:hundred_days/homescreen.dart';
 import 'package:hundred_days/pages/notification.dart';
 import 'package:hundred_days/pages/notification_helper.dart';
 import 'package:hundred_days/pages/notification_services.dart';
+import 'package:hundred_days/pages/set_notification.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
 import 'package:hundred_days/pages/work_manager_service.dart';
 import 'package:sizer/sizer.dart';
@@ -15,15 +16,17 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure initialization
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  tz.initializeTimeZones(); // Initialize timezone data
+  tz.initializeTimeZones(); 
   await NotificationService.initialize();
   // await NotificationService.scheduleNotifications();
   // await NotificationService.schedulePeriodicNotification();
-    // await LocalNotificationService.init();
-    // await WorkManagerService().init();
+  // await LocalNotificationService.init();
+  // await WorkManagerService().init();
+
   runApp(const HundredDays());
+  //runApp(NotificationSettingsPage());
 }
 
 class HundredDays extends StatelessWidget {
