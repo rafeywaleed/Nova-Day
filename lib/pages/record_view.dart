@@ -306,15 +306,17 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                   List<List<Map<String, dynamic>>> tasksList =
                                       snapshot.data
                                           as List<List<Map<String, dynamic>>>;
+                                  List<DateTime> sortedDates = dateMap.keys
+                                      .toList()
+                                    ..sort((a, b) => b.compareTo(a));
 
                                   return ListView.builder(
-                                    itemCount: dateMap.length,
+                                    itemCount: sortedDates.length,
                                     itemBuilder: (context, index) {
-                                      final date = dateMap.keys.elementAt(
-                                          dateMap.length - 1 - index);
+                                      final date = sortedDates[index];
                                       final completion = dateMap[date]!;
-                                      final tasks =
-                                          tasksList[dateMap.length - 1 - index];
+                                      final tasks = tasksList[
+                                          dateMap.keys.toList().indexOf(date)];
                                       double completionRate = tasks.isEmpty
                                           ? 0
                                           : completion / tasks.length;
@@ -329,9 +331,9 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                           width: 30.w,
                                           height: 2.h,
                                           decoration: BoxDecoration(
-                                            color: Colors.grey,
+                                            color: const Color.fromARGB(255, 202, 202, 202),
                                             borderRadius:
-                                                BorderRadius.circular(10),
+                                                BorderRadius.circular(5),
                                           ),
                                           child: FractionallySizedBox(
                                             alignment: Alignment.centerLeft,
@@ -341,7 +343,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                               decoration: BoxDecoration(
                                                 color: Colors.green,
                                                 borderRadius:
-                                                    BorderRadius.circular(10),
+                                                    BorderRadius.circular(1),
                                               ),
                                             ),
                                           ),
@@ -356,7 +358,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                         ),
                       ),
                     ),
-                  ),
+                  )
                 ] else ...[
                   // Display Tasks for the selected date
                   FadeOut(

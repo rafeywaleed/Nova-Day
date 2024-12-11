@@ -12,7 +12,7 @@ import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'add_tasks.dart';
-import 'set_notification.dart'; // Import Google Fonts
+import 'set_notification.dart';
 
 class UserSettingsPage extends StatefulWidget {
   const UserSettingsPage({Key? key}) : super(key: key);
@@ -96,7 +96,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddTasks(input: 1)),
+                  MaterialPageRoute(builder: (context) => const AddTasks(input: 1)),
                 );
               },
             ),
@@ -106,7 +106,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => NotificationSettingsPage()),
+                  MaterialPageRoute(builder: (context) => const NotificationSettingsPage(intro:1)),
                 );
               },
             ),
@@ -116,7 +116,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
                 );
               },
             ),
@@ -135,8 +135,8 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => IntroScreen(
-                            input: 1,
+                      builder: (context) => const IntroScreen(
+                            input: 0,
                           )),
                 );
               },
@@ -172,11 +172,11 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
                 blurRadius: 4,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -217,7 +217,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       // Show a SnackBar or any other form of feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Logged out successfully\n(local data cleared)'),
+          content: const Text('Logged out successfully\n(local data cleared)'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hundred_days/homescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationSettingsPage extends StatefulWidget {
+  final int intro;
+  const NotificationSettingsPage({super.key, required this.intro});
+
   @override
   _NotificationSettingsPageState createState() =>
       _NotificationSettingsPageState();
 }
 
 class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
-  bool notificationsEnabled = false;
-  TimeOfDay firstNotificationTime = TimeOfDay(hour: 12, minute: 0);
-  TimeOfDay secondNotificationTime = TimeOfDay(hour: 18, minute: 0);
+  bool notificationsEnabled = true;
+  TimeOfDay firstDisplayTime = const TimeOfDay(hour: 12, minute: 0);
+  TimeOfDay secondDisplayTime = const TimeOfDay(hour: 18, minute: 0);
+
+  TimeOfDay firstNotificationTime = const TimeOfDay(hour: 6, minute: 30);
+  TimeOfDay secondNotificationTime = const TimeOfDay(hour: 12, minute: 30);
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -29,14 +36,14 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false;
-      firstNotificationTime = prefs.containsKey('firstNotificationTime')
-          ? TimeOfDay.fromDateTime(
-              DateTime.parse(prefs.getString('firstNotificationTime')!))
-          : const TimeOfDay(hour: 12, minute: 0);
-      secondNotificationTime = prefs.containsKey('secondNotificationTime')
-          ? TimeOfDay.fromDateTime(
-              DateTime.parse(prefs.getString('secondNotificationTime')!))
-          : const TimeOfDay(hour: 18, minute: 0);
+      firstNotificationTime = _getStoredTime(prefs, 'firstNotificationTime') ??
+          const TimeOfDay(hour: 6, minute: 30);
+      secondNotificationTime =
+          _getStoredTime(prefs, 'secondNotificationTime') ??
+              const TimeOfDay(hour: 12, minute: 30);
+
+      firstDisplayTime = _convertToDisplayTime(firstNotificationTime);
+      secondDisplayTime = _convertToDisplayTime(secondNotificationTime);
     });
 
     if (notificationsEnabled) {
@@ -45,6 +52,12 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       await _scheduleNotification(1, 'Second Task Reminder',
           'Remember to keep working on your tasks!', secondNotificationTime);
     }
+  }
+
+  TimeOfDay? _getStoredTime(SharedPreferences prefs, String key) {
+    if (!prefs.containsKey(key)) return null;
+    final storedTime = DateTime.parse(prefs.getString(key)!);
+    return TimeOfDay(hour: storedTime.hour, minute: storedTime.minute);
   }
 
   Future<void> _scheduleNotification(
@@ -80,7 +93,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     );
   }
 
-  void toggleNotifications(bool value) async {
+  Future<void> toggleNotifications(bool value) async {
     setState(() {
       notificationsEnabled = value;
     });
@@ -107,84 +120,72 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   }
 
   tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.UTC);
     tz.TZDateTime scheduledTime = tz.TZDateTime(
-        tz.local, now.year, now.month, now.day, time.hour, time.minute);
+        tz.UTC, now.year, now.month, now.day, time.hour, time.minute);
     if (scheduledTime.isBefore(now)) {
       scheduledTime = scheduledTime.add(const Duration(days: 1));
     }
     return scheduledTime;
   }
 
-  Future<void> _sendImmediateNotification() async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'immediate _task_channel',
-      'Immediate Task',
-      channelDescription: 'Send immediate task notification',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-      playSound: true,
-      enableVibration: true,
-      color: Color(0xFF42A5F5),
-    );
-
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidDetails);
-
-    await _notificationsPlugin.show(
-      999,
-      'Immediate Notification',
-      'This is an immediate notification sent right now.',
-      notificationDetails,
-    );
-  }
-
   Future<void> selectTime(BuildContext context, bool isFirstTime) async {
-    TimeOfDay selectedTime =
-        isFirstTime ? firstNotificationTime : secondNotificationTime;
+    TimeOfDay selectedTime = isFirstTime ? firstDisplayTime : secondDisplayTime;
 
-    selectedTime = TimeOfDay(
-        hour: selectedTime.hour + 5, minute: selectedTime.minute + 30);
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: selectedTime,
     );
     if (picked != null && picked != selectedTime) {
+      final TimeOfDay convertedNotificationTime = _convertToNotificationTime(
+          picked); // Convert to GMT+0:0 before saving
+
       setState(() {
         if (isFirstTime) {
-          firstNotificationTime = picked;
+          firstDisplayTime = picked;
+          firstNotificationTime = convertedNotificationTime;
         } else {
-          secondNotificationTime = picked;
+          secondDisplayTime = picked;
+          secondNotificationTime = convertedNotificationTime;
         }
       });
 
       final prefs = await SharedPreferences.getInstance();
-      if (isFirstTime) {
-        await prefs.setString(
-            'firstNotificationTime',
-            DateTime(0, 0, 0, picked.hour - 5, picked.minute - 30)
-                .toIso8601String());
-      } else {
-        await prefs.setString(
-            'secondNotificationTime',
-            DateTime(0, 0, 0, picked.hour - 5, picked.minute - 30)
-                .toIso8601String());
-      }
+      await prefs.setString(
+        isFirstTime ? 'firstNotificationTime' : 'secondNotificationTime',
+        DateTime(0, 0, 0, convertedNotificationTime.hour,
+                convertedNotificationTime.minute)
+            .toIso8601String(),
+      );
     }
   }
 
-  TimeOfDay displayJugaad(TimeOfDay time) {
-    TimeOfDay ret =
-        TimeOfDay(hour: (time.hour + 5) % 12, minute: (time.minute + 30) % 60);
-    return ret;
+  TimeOfDay _convertToNotificationTime(TimeOfDay displayTime) {
+    int hour = (displayTime.hour - 5) % 24;
+    int minute = (displayTime.minute - 30);
+    if (minute < 0) {
+      minute += 60;
+      hour = (hour - 1) % 24;
+    }
+    if (hour < 0) hour += 24;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  TimeOfDay _convertToDisplayTime(TimeOfDay notificationTime) {
+    int hour = (notificationTime.hour + 5) % 24;
+    int minute = (notificationTime.minute + 30);
+    if (minute >= 60) {
+      minute -= 60;
+      hour = (hour + 1) % 24;
+    }
+    return TimeOfDay(hour: hour, minute: minute);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: widget.intro == 1,
         title: const Text(
           'Notification Settings',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -212,7 +213,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     TextButton(
                       onPressed: () => selectTime(context, true),
                       child: Text(
-                        '${displayJugaad(firstNotificationTime).format(context)}',
+                        '${firstDisplayTime.format(context)}',
                         style: GoogleFonts.plusJakartaSans(
                             fontSize: 16, color: Colors.blue),
                       ),
@@ -228,7 +229,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     TextButton(
                       onPressed: () => selectTime(context, false),
                       child: Text(
-                        '${displayJugaad(secondNotificationTime).format(context)}',
+                        '${secondDisplayTime.format(context)}',
                         style: GoogleFonts.plusJakartaSans(
                             fontSize: 16, color: Colors.blue),
                       ),
@@ -270,23 +271,19 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         ),
                         onPressed: () async {
                           toggleNotifications(notificationsEnabled);
-                          Navigator.pop(context);
+                          if (widget.intro == 1) {
+                            Navigator.pop(context);
+                          } else if (widget.intro == 0) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HomeScreen()),
+                            );
+                          }
                         },
                         child: const Text('Save Settings'),
                       ),
                       const SizedBox(height: 10),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          minimumSize: const Size(100, 40),
-                        ),
-                        onPressed: _sendImmediateNotification,
-                        child: const Text('Send'),
-                      ),
                     ],
                   ),
                 ),

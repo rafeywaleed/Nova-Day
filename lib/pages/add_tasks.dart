@@ -8,6 +8,7 @@ import 'package:hundred_days/homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/pages/notification.dart';
+import 'package:hundred_days/pages/set_notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
@@ -23,7 +24,7 @@ class _AddTasksState extends State<AddTasks> {
   final FirebaseService _firebaseService = FirebaseService();
   String userName = "";
   List<String> currentDailyTasks = [];
-  bool isTaskListModified = false; 
+  bool isTaskListModified = false;
   final _controller = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -48,36 +49,42 @@ class _AddTasksState extends State<AddTasks> {
   // }
 
   Future<void> showInfoBox() async {
-  if (widget.input == 0) {
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Remember',
-            style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.bold,
-                fontSize: 14.sp,
-                color: Colors.black),
-          ),
-          content: Text(
-            'You can modify the task and change notification settings anytime\n\nSettings -> Edit Tasks',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: Colors.grey),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
+    if (widget.input == 0) {
+      return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              'Remember',
+              style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                  color: Colors.black),
             ),
-          ],
-        );
-      },
-    );
+            content: Text(
+              'You can modify the task and change notification settings anytime\n\nSettings->Edit Tasks\nSettings->Notification',
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.sp, color: Colors.grey),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  //Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            NotificationSettingsPage(intro: widget.input)),
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
-}
-
 
   Future<void> _loadUsername() async {
     final prefs = await SharedPreferences.getInstance();
