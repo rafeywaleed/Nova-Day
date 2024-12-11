@@ -9,6 +9,7 @@ import 'package:hundred_days/homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hundred_days/pages/notification.dart';
 import 'package:hundred_days/pages/notification_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,40 +25,50 @@ class _SplashScreenState extends State<SplashScreen>
   Timer? _timer;
 
   @override
-  void initState() {
-    super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+void initState() {
+  super.initState();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    NotificationService.scheduleNotifications(); 
+  // Call a method to schedule notifications with the correct time
+  _scheduleNotificationsOnStartup();
 
-    //   NotificationService.requestNotificationPermission();
+  _timer = Timer(Duration(milliseconds: 3500), () {
+    _auth.authStateChanges().listen((User? user) {
+      print("Checking auth state...");
 
-    //   // Initialize Notification Service and schedule notifications
-    //   // NotificationService.scheduleNotifications();
-    //  NotificationService.requestNotificationPermission().then((_) {
-    //   NotificationService.initialize().then((_) {
-    //     NotificationService.sendTestNotification();
-    //     NotificationService.scheduleNotifications();
-    //     NotificationService.schedulePeriodicNotification();
-    //   });
-    // });
-
-    _timer = Timer(Duration(milliseconds: 3500), () {
-      _auth.authStateChanges().listen((User? user) {
-        print("Checking auth state...");
-
-        if (user != null) {
-          print("Navigating to HomeScreen from Splash Screen");
-          Navigator.of(context)
-              .pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
-        } else {
-          print("Navigating to Welcome page from Splash Screen");
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => WelcomePage()));
-        }
-      });
+      if (user != null) {
+        print("Navigating to HomeScreen from Splash Screen");
+        Navigator.of(context)
+            .pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
+      } else {
+        print("Navigating to Welcome page from Splash Screen");
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => WelcomePage()));
+      }
     });
-  }
+  });
+}
+
+Future<void> _scheduleNotificationsOnStartup() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  // Retrieve the stored notification times from SharedPreferences
+  String? firstTimeString = prefs.getString('firstNotificationTime');
+  String? secondTimeString = prefs.getString('secondNotificationTime');
+
+  TimeOfDay firstNotificationTime = firstTimeString != null
+      ? TimeOfDay.fromDateTime(DateTime.parse(firstTimeString))
+      : TimeOfDay(hour: 9, minute: 0); // Default time if not set
+
+  TimeOfDay secondNotificationTime = secondTimeString != null
+      ? TimeOfDay.fromDateTime(DateTime.parse(secondTimeString))
+      : TimeOfDay(hour: 18, minute: 0); // Default time if not set
+
+  // Schedule the notifications with the retrieved times
+  await NotificationService.scheduleNotifications(0, firstNotificationTime);
+  await NotificationService.scheduleNotifications(1, secondNotificationTime);
+}
+
 
   @override
   void dispose() {
