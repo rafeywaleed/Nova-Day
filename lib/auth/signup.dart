@@ -102,6 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
         'name': name,
         'email': email,
         'joinedDate': DateTime.now().toString(),
+        'isPremium' : false,
       });
 
       // Store user details in SharedPreferences
