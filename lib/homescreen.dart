@@ -5,16 +5,19 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hundred_days/pages/ads_page.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
+import 'package:hundred_days/utils/loader.dart';
 import 'package:iconly/iconly.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -55,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen>
     WidgetsBinding.instance.addObserver(this);
     _initAnimationController();
     _animate();
+    _fetchAdData();
   }
 
   void _animate() async {
@@ -70,6 +74,266 @@ class _HomeScreenState extends State<HomeScreen>
     _logoAnimationController.dispose();
 
     super.dispose();
+  }
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool _isBannerAdshown = true;
+  Future<void> _fetchAdData() async {
+    final bannerAds =
+        await _firestore.collection('adminPanel').doc('bannerAds').get();
+    final dialogAds =
+        await _firestore.collection('adminPanel').doc('dialogAds').get();
+    final notificationAds =
+        await _firestore.collection('adminPanel').doc('notificationAds').get();
+
+    if (bannerAds.exists) {
+      final showBannerAds = bannerAds.get('showBannerAds');
+      final bannerAdName = bannerAds.get('bannerAdName');
+      final bannerAdLine = bannerAds.get('bannerAdLine');
+      final bannerAdURL = bannerAds.get('bannerAdURL');
+      final bannerImgURL = bannerAds.get('bannerImgURL');
+
+      if (showBannerAds) {
+        setState(() {
+          _showBannerAd = true;
+          _bannerAdName = bannerAdName;
+          _bannerAdLine = bannerAdLine;
+          _bannerAdURL = bannerAdURL;
+          _bannerImgURL = bannerImgURL;
+        });
+      }
+    }
+
+    if (dialogAds.exists) {
+      final showDialogAds = dialogAds.get('showDialogAds');
+      final dialogAdName = dialogAds.get('dialogAdName');
+      final dialogAdLine = dialogAds.get('dialogAdLine');
+      final dialogAdURL = dialogAds.get('dialogAdURL');
+      final dialogImgURL = dialogAds.get('dialogImgURL');
+
+      if (showDialogAds) {
+        _showDialogAd(
+            context, dialogAdName, dialogAdLine, dialogAdURL, dialogImgURL);
+      }
+    }
+  }
+
+  bool _showBannerAd = false;
+  String _bannerAdName = '';
+  String _bannerAdLine = '';
+  String _bannerAdURL = '';
+  String _bannerImgURL = '';
+
+  void _showDialogAd(BuildContext context, String dialogAdName,
+      String dialogAdLine, String dialogAdURL, String dialogImgURL) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          //insetPadding: EdgeInsets.all(20),
+          child: Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    dialogImgURL,
+                    fit: BoxFit.cover,
+                    // width: 200,
+                    // height: 120,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      } else {
+                        return Center(child: PLoader());
+                      }
+                    },
+                  ),
+                ),
+                // SizedBox(height: 16),
+                Text(
+                  dialogAdName,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 8),
+                // Dialog Description (Ad Line)
+                Text(
+                  dialogAdLine,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _launchURL(dialogAdURL);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue, // Button color
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(8), // Rounded corners
+                          ),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 12),
+                        ),
+                        child: Text('Visit',
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.white)),
+                      ),
+
+                      SizedBox(height: 16),
+                      // Close Button
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Button color
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(8), // Rounded corners
+                          ),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 12),
+                        ),
+                        child: Text('Close',
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.black)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _launchURL(String url) async {
+    await launch(url);
+  }
+
+  Widget showBannerAd(BuildContext context, String bannerAdName,
+      String bannerAdline, String bannerAdURL, String bannerImgURL) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      width: MediaQuery.of(context).size.width * 0.85, // Slightly larger width
+      padding: const EdgeInsets.all(10),
+      child: GestureDetector(
+        onTap: () {
+          _launchURL(bannerAdURL);
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Ad image with loading indicator
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                children: [
+                  // Fallback Image or Placeholder when the image can't be loaded
+                  Image.network(
+                    bannerImgURL,
+                    fit: BoxFit.cover,
+                    width: 100, // Fixed width for image
+                    height: 60, // Fixed height for image
+                    loadingBuilder: (BuildContext context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      } else {
+                        return PLoader();
+                      }
+                    },
+                    errorBuilder: (BuildContext context, Object error,
+                        StackTrace? stackTrace) {
+                      // Placeholder image in case of an error (could be a default image)
+                      return PLoader();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: 12),
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Banner Name
+                  Text(
+                    bannerAdName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  // Banner description/line with overflow handling
+                  Text(
+                    bannerAdline,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // Close button
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.grey[700]),
+                onPressed: () {
+                  setState(() {
+                    _isBannerAdshown = !_isBannerAdshown;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> checkAndUpdateTasks() async {
@@ -621,98 +885,119 @@ class _HomeScreenState extends State<HomeScreen>
     int daysLeft = DateTime(2025, 1, 1).difference(DateTime.now()).inDays;
 
     return WillPopScope(
-       onWillPop: () async {
-      // Show a dialog to confirm if the user wants to exit the app
-      return await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Confirm Exit'),
-          content: Text('Are you sure you want to exit the app?'),
-          actions: [
-            TextButton(
-              child: Text('No'),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: Text('Yes'),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        ),
-      );
-    },
+      onWillPop: () async {
+        // Show a dialog to confirm if the user wants to exit the app
+        return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Confirm Exit'),
+            content: Text('Are you sure you want to exit the app?'),
+            actions: [
+              TextButton(
+                child: Text('No'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: Text('Yes'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        );
+      },
       child: Scaffold(
-          body: Row(
+          body: Stack(
             children: [
-              NavigationRail(
-                leading: Padding(
-                  padding: const EdgeInsets.only(top: 14.0),
-                  child: AnimatedBuilder(
-                      animation: _logoAnimationController,
-                      builder: (context, child) {
-                        return Roulette(
-                          // delay: Duration(milliseconds: 3000),
-                          duration: Duration(milliseconds: 3000),
-                          infinite: true,
-                          child: Image.asset(
-                            'assets/images/app_icon.png',
-                            scale: 3.w,
-                          ),
-                        );
-                      }),
-                ),
-                labelType: labelType,
-                useIndicator: false,
-                indicatorShape: Border.all(width: 20),
-                indicatorColor: Colors.transparent,
-                minWidth: 15.w,
-                groupAlignment: 0,
-                backgroundColor:
-                    const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: (value) {
-                  saveNormalProgress();
-                  setState(() {
-                    _selectedIndex = value;
-                  });
-                },
-                destinations: [
-                  NavigationRailDestination(
-                    icon: _selectedIndex == 0
-                        ? Icon(IconlyLight.home, color: Colors.blue, size: 12.w)
-                        : Icon(IconlyBroken.home, size: 9.w),
-                    label: Text(
-                      'Home',
-                      style: GoogleFonts.plusJakartaSans(),
+              Row(
+                children: [
+                  NavigationRail(
+                    leading: Padding(
+                      padding: const EdgeInsets.only(top: 14.0),
+                      child: AnimatedBuilder(
+                          animation: _logoAnimationController,
+                          builder: (context, child) {
+                            return Roulette(
+                              // delay: Duration(milliseconds: 3000),
+                              duration: Duration(milliseconds: 3000),
+                              infinite: true,
+                              child: Image.asset(
+                                'assets/images/app_icon.png',
+                                scale: 3.w,
+                              ),
+                            );
+                          }),
                     ),
+                    labelType: labelType,
+                    useIndicator: false,
+                    indicatorShape: Border.all(width: 20),
+                    indicatorColor: Colors.transparent,
+                    minWidth: 15.w,
+                    groupAlignment: 0,
+                    backgroundColor: const Color.fromARGB(255, 127, 127, 127)
+                        .withOpacity(0.1),
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: (value) {
+                      saveNormalProgress();
+                      setState(() {
+                        _selectedIndex = value;
+                      });
+                    },
+                    destinations: [
+                      NavigationRailDestination(
+                        icon: _selectedIndex == 0
+                            ? Icon(IconlyLight.home,
+                                color: Colors.blue, size: 12.w)
+                            : Icon(IconlyBroken.home, size: 9.w),
+                        label: Text(
+                          'Home',
+                          style: GoogleFonts.plusJakartaSans(),
+                        ),
+                      ),
+                      NavigationRailDestination(
+                        icon: _selectedIndex == 1
+                            ? Icon(IconlyLight.graph,
+                                color: Colors.blue, size: 12.w)
+                            : Icon(IconlyBroken.graph, size: 9.w),
+                        label: Text(
+                          'Record',
+                          style: GoogleFonts.plusJakartaSans(),
+                        ),
+                      ),
+                      NavigationRailDestination(
+                        icon: _selectedIndex == 2
+                            ? Icon(IconlyLight.setting,
+                                color: Colors.blue, size: 12.w)
+                            : Icon(IconlyBroken.setting, size: 9.w),
+                        label: Text(
+                          'Settings',
+                          style: GoogleFonts.plusJakartaSans(),
+                        ),
+                      ),
+                    ],
                   ),
-                  NavigationRailDestination(
-                    icon: _selectedIndex == 1
-                        ? Icon(IconlyLight.graph, color: Colors.blue, size: 12.w)
-                        : Icon(IconlyBroken.graph, size: 9.w),
-                    label: Text(
-                      'Record',
-                      style: GoogleFonts.plusJakartaSans(),
-                    ),
-                  ),
-                  NavigationRailDestination(
-                    icon: _selectedIndex == 2
-                        ? Icon(IconlyLight.setting,
-                            color: Colors.blue, size: 12.w)
-                        : Icon(IconlyBroken.setting, size: 9.w),
-                    label: Text(
-                      'Settings',
-                      style: GoogleFonts.plusJakartaSans(),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(2.w),
+                      child: _buildContent(),
                     ),
                   ),
                 ],
               ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(2.w),
-                  child: _buildContent(),
+              if (_isBannerAdshown)
+                Positioned(
+                  bottom: 5,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: showBannerAd(
+                      context,
+                      _bannerAdName,
+                      _bannerAdLine,
+                      _bannerAdURL,
+                      _bannerImgURL,
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
           floatingActionButton: _selectedIndex != 0
@@ -784,7 +1069,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: FadeInDown(
@@ -926,6 +1211,14 @@ class _HomeScreenState extends State<HomeScreen>
                 color: Colors.grey,
               ),
             ),
+            TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => AdsHomePage()),
+                  );
+                },
+                child: Text("Ads Page")),
             ListView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
@@ -951,7 +1244,9 @@ class _HomeScreenState extends State<HomeScreen>
                 );
               },
             ),
-            SizedBox(height: 20.h,)
+            SizedBox(
+              height: 20.h,
+            )
           ],
         ),
       ),
