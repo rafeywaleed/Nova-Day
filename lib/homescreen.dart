@@ -19,6 +19,8 @@ import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'auth/firebase_fun.dart';
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -59,6 +61,17 @@ class _HomeScreenState extends State<HomeScreen>
     _initAnimationController();
     _animate();
     _fetchAdData();
+    _checkPremium();
+  }
+
+  final FirebaseService _firebaseService = FirebaseService();
+  bool _isPremium = false;
+  Future<void> _checkPremium() async {
+    final userData = await _firebaseService.fetchUserData();
+    print(userData['isPremium']);
+    setState(() {
+      _isPremium = userData['isPremium'];
+    });
   }
 
   void _animate() async {
@@ -747,6 +760,7 @@ class _HomeScreenState extends State<HomeScreen>
     _initAnimationController();
     _animate();
     _fetchAdData();
+    _checkPremium();
 
     setState(() {
       isLoading = false;
@@ -989,21 +1003,22 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ],
               ),
-              if (_showBannerAd)
-                Positioned(
-                  bottom: 5,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: showBannerAd(
-                      context,
-                      _bannerAdName,
-                      _bannerAdLine,
-                      _bannerAdURL,
-                      _bannerImgURL,
+              if (_isPremium == false)
+                if (_showBannerAd)
+                  Positioned(
+                    bottom: 5,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: showBannerAd(
+                        context,
+                        _bannerAdName,
+                        _bannerAdLine,
+                        _bannerAdURL,
+                        _bannerImgURL,
+                      ),
                     ),
                   ),
-                ),
             ],
           ),
           floatingActionButton: _selectedIndex != 0
