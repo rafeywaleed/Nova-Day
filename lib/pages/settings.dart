@@ -14,6 +14,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'add_tasks.dart';
 import 'set_notification.dart';
 
+import 'package:in_app_update/in_app_update.dart';
+
 class UserSettingsPage extends StatefulWidget {
   const UserSettingsPage({Key? key}) : super(key: key);
 
@@ -29,6 +31,92 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   void initState() {
     super.initState();
     _fetchJoinDate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    final updateInfo = await InAppUpdate.checkForUpdate();
+    if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+      _showUpdateDialog(updateInfo);
+    } else {
+      print('No update available');
+    }
+  }
+
+  Future<void> _showUpdateDialog(AppUpdateInfo updateInfo) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          title: Text(
+            'Update Available',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'A new version of the app is available. Please update to continue using the app.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Later'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _downloadUpdate(updateInfo);
+                    },
+                    child: Text('Update'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadUpdate(AppUpdateInfo updateInfo) async {
+    try {
+      await InAppUpdate.startFlexibleUpdate();
+      await InAppUpdate.completeFlexibleUpdate();
+      print('Update successful');
+    } catch (e) {
+      print('Update failed: $e');
+    }
   }
 
   Future<void> _fetchJoinDate() async {
@@ -96,17 +184,20 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AddTasks(input: 1)),
+                  MaterialPageRoute(
+                      builder: (context) => const AddTasks(input: 1)),
                 );
               },
             ),
-             _buildSection(
+            _buildSection(
               'Notifications',
               'You can change your notification settings here',
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NotificationSettingsPage(intro:1)),
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const NotificationSettingsPage(intro: 1)),
                 );
               },
             ),
@@ -142,18 +233,39 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               },
             ),
             const Spacer(),
-            ElevatedButton(
-              onPressed: () => logout(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-              ),
-              child: Text(
-                'Log Out',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () => logout(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                  ),
+                  child: Text(
+                    'Log Out',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+                ElevatedButton(
+                  onPressed: _checkForUpdate,
+                  style: ElevatedButton.styleFrom(
+                    elevation: 5,
+                    backgroundColor: Colors.white,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                  ),
+                  child: Text(
+                    'Update',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
