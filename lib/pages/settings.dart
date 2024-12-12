@@ -52,7 +52,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             borderRadius: BorderRadius.circular(20),
           ),
           backgroundColor: Colors.white,
-          title: Text(
+          title: const Text(
             'Update Available',
             style: TextStyle(
               fontSize: 20,
@@ -63,14 +63,14 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'A new version of the app is available. Please update to continue using the app.',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -78,7 +78,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text('Later'),
+                    child: const Text('Later'),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.grey,
@@ -91,7 +91,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                     onPressed: () async {
                       await _downloadUpdate(updateInfo);
                     },
-                    child: Text('Update'),
+                    child: const Text('Update'),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.blue,
@@ -227,7 +227,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const IntroScreen(
-                            input: 0,
+                            input: 1,
                           )),
                 );
               },

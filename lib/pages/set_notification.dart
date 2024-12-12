@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/homescreen.dart';
@@ -24,12 +27,41 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
     loadNotificationState();
     _initializeNotifications();
+    _fetchNotificationData();
+  }
+
+  Future<void> _fetchNotificationData() async {
+    final QuerySnapshot querySnapshot =
+        await _firestore.collection('adminPanel/notificationAds').get();
+
+    for (var doc in querySnapshot.docs) {
+      if (doc.get('showNotificationAds')) {
+        final bool showNotification = doc.get('showNotificationAds');
+        final String notificationAdName = doc.get('notificationAdName');
+        final String notificationAdLine = doc.get('notificationAdLine');
+        final String notificationAdURL = doc.get('notificationAdURL');
+        //final String notificationImgURL = doc.get('notificationImgURL');
+        final int notifyHour = doc.get('notifyHour');
+        final int notifyMin = doc.get('notifyMin');
+
+        if (showNotification == true) {
+          await _scheduleNotification(
+            5,
+            notificationAdName,
+            notificationAdLine,
+            TimeOfDay(hour: notifyHour, minute: notifyMin),
+            notificationAdURL,
+          );
+        }
+      }
+    }
   }
 
   Future<void> loadNotificationState() async {
@@ -61,7 +93,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   }
 
   Future<void> _scheduleNotification(
-      int id, String title, String body, TimeOfDay time) async {
+      int id, String title, String body, TimeOfDay time,
+      [String? url]) async {
     final tz.TZDateTime scheduledTime = _nextInstanceOfTime(time);
 
     const AndroidNotificationDetails androidDetails =
@@ -90,6 +123,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.wallClockTime,
       matchDateTimeComponents: DateTimeComponents.time,
+      payload: url,
     );
   }
 

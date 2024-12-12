@@ -102,6 +102,8 @@ class _HomeScreenState extends State<HomeScreen>
           _bannerAdURL = bannerAdURL;
           _bannerImgURL = bannerImgURL;
         });
+      } else {
+        _showBannerAd = false;
       }
     }
 
@@ -325,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen>
                 icon: Icon(Icons.close, color: Colors.grey[700]),
                 onPressed: () {
                   setState(() {
-                    _isBannerAdshown = !_isBannerAdshown;
+                    _showBannerAd = false;
                   });
                 },
               ),
@@ -742,6 +744,10 @@ class _HomeScreenState extends State<HomeScreen>
     fetchAdditionalTasks();
     loadDailyTasks();
     saveNormalProgress();
+    _initAnimationController();
+    _animate();
+    _fetchAdData();
+
     setState(() {
       isLoading = false;
     });
@@ -983,7 +989,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ],
               ),
-              if (_isBannerAdshown)
+              if (_showBannerAd)
                 Positioned(
                   bottom: 5,
                   left: 0,
@@ -1211,14 +1217,14 @@ class _HomeScreenState extends State<HomeScreen>
                 color: Colors.grey,
               ),
             ),
-            TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => AdsHomePage()),
-                  );
-                },
-                child: Text("Ads Page")),
+            // TextButton(
+            //     onPressed: () {
+            //       Navigator.pushReplacement(
+            //         context,
+            //         MaterialPageRoute(builder: (context) => AdsHomePage()),
+            //       );
+            //     },
+            //     child: Text("Ads Page")),
             ListView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
