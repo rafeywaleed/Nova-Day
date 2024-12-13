@@ -12,6 +12,8 @@ import 'package:hundred_days/pages/set_notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
+import 'notification_settings.dart';
+
 class AddTasks extends StatefulWidget {
   final int input;
   const AddTasks({super.key, required this.input});
@@ -69,12 +71,12 @@ class _AddTasksState extends State<AddTasks> {
             actions: [
               TextButton(
                 onPressed: () {
-                  //Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            NotificationSettingsPage(intro: widget.input)),
+                            NotificationSettings(intro: widget.input)),
                   );
                 },
                 child: const Text('OK'),

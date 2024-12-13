@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hundred_days/pages/ads_page.dart';
+import 'package:hundred_days/pages/notification_settings.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
@@ -1234,37 +1235,52 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             // TextButton(
             //     onPressed: () {
-            //       Navigator.pushReplacement(
+            //       Navigator.push(
             //         context,
-            //         MaterialPageRoute(builder: (context) => AdsHomePage()),
+            //         MaterialPageRoute(
+            //             builder: (context) => NotificationSettings()),
             //       );
             //     },
-            //     child: Text("Ads Page")),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: additionalTasks.length,
-              itemBuilder: (context, index) {
-                return TaskCard(
-                  task: additionalTasks[index],
-                  onDelete: () {
-                    String taskName = additionalTasks[index]['task'];
-                    setState(() {
-                      additionalTasks
-                          .removeWhere((task) => task['task'] == taskName);
-                    });
-                    deleteAdditionalTask(taskName);
-                  },
-                  onChanged: (value) {
-                    setState(() {
-                      additionalTasks[index]['completed'] = value!;
-                    });
-                    updateAdditionalTask(
-                        additionalTasks[index]['task'], value!);
-                  },
-                );
-              },
-            ),
+            //     child: Text("Notification Settings")),
+            if (additionalTasks.isEmpty) 
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Text(
+                    'No additional tasks available.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 4.w,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: additionalTasks.length,
+                itemBuilder: (context, index) {
+                  return TaskCard(
+                    task: additionalTasks[index],
+                    onDelete: () {
+                      String taskName = additionalTasks[index]['task'];
+                      setState(() {
+                        additionalTasks
+                            .removeWhere((task) => task['task'] == taskName);
+                      });
+                      deleteAdditionalTask(taskName);
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        additionalTasks[index]['completed'] = value!;
+                      });
+                      updateAdditionalTask(
+                          additionalTasks[index]['task'], value!);
+                    },
+                  );
+                },
+              ),
             SizedBox(
               height: 20.h,
             )

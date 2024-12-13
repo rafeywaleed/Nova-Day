@@ -12,6 +12,7 @@ import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'add_tasks.dart';
+import 'notification_settings.dart';
 import 'set_notification.dart';
 
 import 'package:in_app_update/in_app_update.dart';
@@ -197,7 +198,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          const NotificationSettingsPage(intro: 1)),
+                          const NotificationSettings(intro: 1)),
                 );
               },
             ),
