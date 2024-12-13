@@ -401,12 +401,13 @@ class _AddTasksState extends State<AddTasks> {
                     print("No changes to task list, not saving.");
                   }
 
-                  await showInfoBox();
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
+                  if (widget.input == 0)
+                    await showInfoBox();
+                  else
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
                 },
                 child: const Text('Finish'),
               ),

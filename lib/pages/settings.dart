@@ -212,7 +212,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          const NotificationSettings(intro: 0)),
+                          const NotificationSettings(intro: 1)),
                 );
               },
             ),
