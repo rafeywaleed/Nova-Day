@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
 import 'package:hundred_days/pages/notification_settings.dart';
 import 'package:hundred_days/pages/record_view.dart';
@@ -1191,13 +1192,14 @@ class _HomeScreenState extends State<HomeScreen>
                           Map<String, dynamic> task = defaultTasks[index];
                           return TaskCard(
                             task: task,
-                            onDelete: () {
-                              setState(() {
-                                defaultTasks.removeAt(index);
-                              });
-                              deleteTask(task['task']);
-                              saveNormalProgress();
-                            },
+                            // onDelete: () {
+                            //   // setState(() {
+                            //   //   defaultTasks.removeAt(index);
+                            //   // });
+                            //   // deleteTask(task['task']);
+                            //   // saveNormalProgress();
+                            // },
+                            isDailyTask: true,
                             onChanged: (value) {
                               setState(() {
                                 defaultTasks[index]['completed'] = value!;
@@ -1242,7 +1244,7 @@ class _HomeScreenState extends State<HomeScreen>
             //       );
             //     },
             //     child: Text("Notification Settings")),
-            if (additionalTasks.isEmpty) 
+            if (additionalTasks.isEmpty)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(30.0),
@@ -1271,6 +1273,7 @@ class _HomeScreenState extends State<HomeScreen>
                       });
                       deleteAdditionalTask(taskName);
                     },
+                    isDailyTask: false,
                     onChanged: (value) {
                       setState(() {
                         additionalTasks[index]['completed'] = value!;
@@ -1293,47 +1296,159 @@ class _HomeScreenState extends State<HomeScreen>
 
 class TaskCard extends StatelessWidget {
   final Map<String, dynamic> task;
-  final VoidCallback onDelete;
   final ValueChanged<bool?> onChanged;
+  final VoidCallback? onDelete; // Make onDelete optional
+  final bool isDismissible; // New parameter to control dismissibility
+  final bool isDailyTask; // New parameter to indicate if it's a daily task
 
   const TaskCard({
     required this.task,
-    required this.onDelete,
     required this.onChanged,
+    this.onDelete, // Optional onDelete callback
+    this.isDismissible = true, // Default to true
+    this.isDailyTask = false, // Default to false
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      key: Key(task['task'] + task['completed'].toString()), // Use a unique key
-      direction: DismissDirection.startToEnd,
-      onDismissed: (direction) => onDelete(),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Icon(Icons.delete, color: Colors.white),
-      ),
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: CheckboxListTile(
-          title: Text(
-            task['task'],
-            style: GoogleFonts.plusJakartaSans(
-              decoration: task['completed'] == true
-                  ? TextDecoration.lineThrough
-                  : TextDecoration.none,
-              color: task['completed'] == true ? Colors.grey : Colors.black,
+    return isDismissible
+        ? Dismissible(
+            key: Key(task['task'] +
+                task['completed'].toString()), // Use a unique key
+            direction: DismissDirection.startToEnd,
+            confirmDismiss: (direction) async {
+              // Show alert dialog if it's a daily task
+              if (isDailyTask) {
+                return await _showDeleteAlertDialog(context);
+              } else {
+                // Allow deletion for additional tasks
+                onDelete?.call();
+                return true;
+              }
+            },
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Icon(Icons.delete, color: Colors.white),
             ),
+            child: _buildTaskCard(),
+          )
+        : _buildTaskCard(); // Just return the card without dismissible
+  }
+
+  Widget _buildTaskCard() {
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: CheckboxListTile(
+        title: Text(
+          task['task'],
+          style: GoogleFonts.plusJakartaSans(
+            decoration: task['completed'] == true
+                ? TextDecoration.lineThrough
+                : TextDecoration.none,
+            color: task['completed'] == true ? Colors.grey : Colors.black,
           ),
-          value: task['completed'] ?? false,
-          onChanged: onChanged,
         ),
+        value: task['completed'] ?? false,
+        onChanged: onChanged,
       ),
     );
+  }
+
+  Future<bool> _showDeleteAlertDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.block, color: Colors.red, size: 30), // Warning icon
+              SizedBox(width: 10),
+              Text(
+                'Cannot Delete Task',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.sp,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          content: Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'Daily tasks cannot be deleted. You can edit tasks from the settings.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.sp, // Responsive font size
+                color: Colors.black54, // Lighter color for the content
+              ),
+              textAlign: TextAlign.start, // Center align for a balanced look
+            ),
+          ),
+          actions: <Widget>[
+            // Add some spacing between the buttons
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              ),
+              child: Text(
+                'Edit Tasks',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddTasks(input: 1),
+                  ),
+                );
+              },
+            ),
+            //SizedBox(width: 10),
+            // TextButton(
+            //   style: TextButton.styleFrom(
+            //     foregroundColor: Colors.blue,
+            //     backgroundColor: Colors.white, // Primary action button color
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //     padding: EdgeInsets.symmetric(
+            //         vertical: 10, horizontal: 20), // Subtle padding
+            //   ),
+            //   child: Text(
+            //     'OK',
+            //     style: GoogleFonts.plusJakartaSans(
+            //       fontSize: 14.sp, // Keep the text responsive
+            //       fontWeight:
+            //           FontWeight.w500, // Slightly lighter text for the button
+            //     ),
+            //   ),
+            //   onPressed: () {
+            //     Navigator.of(context).pop(); // Close the dialog
+            //   },
+            // ),
+          ],
+        );
+      },
+    );
+    return false;
   }
 }

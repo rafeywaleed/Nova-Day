@@ -36,9 +36,23 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
   Future<void> _checkForUpdate() async {
     final updateInfo = await InAppUpdate.checkForUpdate();
+
     if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+      // If an update is available, show the update dialog
       _showUpdateDialog(updateInfo);
     } else {
+      // If no update is available, show a snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No updates available at the moment.',
+            style: GoogleFonts.plusJakartaSans(fontSize: 14.sp),
+          ),
+          duration: Duration(seconds: 2),
+          backgroundColor:
+              Colors.blue, // Custom background color for the snackbar
+        ),
+      );
       print('No update available');
     }
   }
@@ -198,7 +212,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          const NotificationSettings(intro: 1)),
+                          const NotificationSettings(intro: 0)),
                 );
               },
             ),
@@ -326,8 +340,6 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       print("Shared preferences cleared");
 
       await FirebaseAuth.instance.signOut();
-
-      // Show a SnackBar or any other form of feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Logged out successfully (local data cleared)'),
