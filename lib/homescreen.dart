@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hundred_days/pages/ads_page.dart';
+import 'package:hundred_days/pages/notification_settings.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
@@ -18,6 +19,8 @@ import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'auth/firebase_fun.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -59,6 +62,17 @@ class _HomeScreenState extends State<HomeScreen>
     _initAnimationController();
     _animate();
     _fetchAdData();
+    _checkPremium();
+  }
+
+  final FirebaseService _firebaseService = FirebaseService();
+  bool _isPremium = false;
+  Future<void> _checkPremium() async {
+    final userData = await _firebaseService.fetchUserData();
+    print(userData['isPremium']);
+    setState(() {
+      _isPremium = userData['isPremium'];
+    });
   }
 
   void _animate() async {
@@ -747,6 +761,7 @@ class _HomeScreenState extends State<HomeScreen>
     _initAnimationController();
     _animate();
     _fetchAdData();
+    _checkPremium();
 
     setState(() {
       isLoading = false;
@@ -989,21 +1004,22 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ],
               ),
-              if (_showBannerAd)
-                Positioned(
-                  bottom: 5,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: showBannerAd(
-                      context,
-                      _bannerAdName,
-                      _bannerAdLine,
-                      _bannerAdURL,
-                      _bannerImgURL,
+              if (_isPremium == false)
+                if (_showBannerAd)
+                  Positioned(
+                    bottom: 5,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: showBannerAd(
+                        context,
+                        _bannerAdName,
+                        _bannerAdLine,
+                        _bannerAdURL,
+                        _bannerImgURL,
+                      ),
                     ),
                   ),
-                ),
             ],
           ),
           floatingActionButton: _selectedIndex != 0
@@ -1219,37 +1235,52 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             // TextButton(
             //     onPressed: () {
-            //       Navigator.pushReplacement(
+            //       Navigator.push(
             //         context,
-            //         MaterialPageRoute(builder: (context) => AdsHomePage()),
+            //         MaterialPageRoute(
+            //             builder: (context) => NotificationSettings()),
             //       );
             //     },
-            //     child: Text("Ads Page")),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: additionalTasks.length,
-              itemBuilder: (context, index) {
-                return TaskCard(
-                  task: additionalTasks[index],
-                  onDelete: () {
-                    String taskName = additionalTasks[index]['task'];
-                    setState(() {
-                      additionalTasks
-                          .removeWhere((task) => task['task'] == taskName);
-                    });
-                    deleteAdditionalTask(taskName);
-                  },
-                  onChanged: (value) {
-                    setState(() {
-                      additionalTasks[index]['completed'] = value!;
-                    });
-                    updateAdditionalTask(
-                        additionalTasks[index]['task'], value!);
-                  },
-                );
-              },
-            ),
+            //     child: Text("Notification Settings")),
+            if (additionalTasks.isEmpty) 
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Text(
+                    'No additional tasks available.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 4.w,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: additionalTasks.length,
+                itemBuilder: (context, index) {
+                  return TaskCard(
+                    task: additionalTasks[index],
+                    onDelete: () {
+                      String taskName = additionalTasks[index]['task'];
+                      setState(() {
+                        additionalTasks
+                            .removeWhere((task) => task['task'] == taskName);
+                      });
+                      deleteAdditionalTask(taskName);
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        additionalTasks[index]['completed'] = value!;
+                      });
+                      updateAdditionalTask(
+                          additionalTasks[index]['task'], value!);
+                    },
+                  );
+                },
+              ),
             SizedBox(
               height: 20.h,
             )

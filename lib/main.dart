@@ -18,7 +18,7 @@ import 'package:timezone/data/latest.dart' as tz;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  tz.initializeTimeZones(); 
+  tz.initializeTimeZones();
   await NotificationService.initialize();
   // await NotificationService.scheduleNotifications();
   // await NotificationService.schedulePeriodicNotification();

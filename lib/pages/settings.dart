@@ -12,6 +12,7 @@ import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'add_tasks.dart';
+import 'notification_settings.dart';
 import 'set_notification.dart';
 
 import 'package:in_app_update/in_app_update.dart';
@@ -180,7 +181,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             ),
             _buildSection(
               'Edit Tasks',
-              'Effortlessly modify your daily tasks.',
+              'Easily modify your daily tasks.',
               () {
                 Navigator.push(
                   context,
@@ -191,19 +192,19 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             ),
             _buildSection(
               'Notifications',
-              'You can change your notification settings here',
+              'Schedule your Reminders',
               () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          const NotificationSettingsPage(intro: 1)),
+                          const NotificationSettings(intro: 1)),
                 );
               },
             ),
             _buildSection(
               'Profile',
-              'Update your name and password as necessary.',
+              'Update your name and password',
               () {
                 Navigator.push(
                   context,
@@ -213,7 +214,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             ),
             _buildSection(
               'Contact',
-              'For requests, reports, and suggestions, click here to contact a.rafeywaleeda5@gmail.com.',
+              'For requests, reports, or suggestions, feel free to contact me via email.',
               () {
                 _launchEmail();
               },
@@ -221,7 +222,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
 
             _buildSection(
               'Guide',
-              'For user notes and details regarding task lists.',
+              'View notes and instructions related to task lists.',
               () {
                 Navigator.push(
                   context,
@@ -322,14 +323,14 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      print("Shared prefences cleared");
+      print("Shared preferences cleared");
 
       await FirebaseAuth.instance.signOut();
 
       // Show a SnackBar or any other form of feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Logged out successfully\n(local data cleared)'),
+          content: const Text('Logged out successfully (local data cleared)'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
