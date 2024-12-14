@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:hundred_days/cloud/admin_notifiy.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
@@ -27,11 +28,12 @@ class UserSettingsPage extends StatefulWidget {
 class _UserSettingsPageState extends State<UserSettingsPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String? joinDate;
-
+  
   @override
   void initState() {
     super.initState();
     _fetchJoinDate();
+    
   }
 
   Future<void> _checkForUpdate() async {
@@ -247,6 +249,8 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                 );
               },
             ),
+
+          
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

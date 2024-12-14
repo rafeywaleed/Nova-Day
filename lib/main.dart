@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/auth/welcome.dart';
+import 'package:hundred_days/cloud/firebase_api.dart';
 import 'package:hundred_days/homescreen.dart';
 import 'package:hundred_days/pages/notification.dart';
 import 'package:hundred_days/pages/notification_helper.dart';
@@ -17,13 +18,10 @@ import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+ // await FirebaseApi().initNotification();
   await Firebase.initializeApp();
   tz.initializeTimeZones();
   await NotificationService.initialize();
-  // await NotificationService.scheduleNotifications();
-  // await NotificationService.schedulePeriodicNotification();
-  // await LocalNotificationService.init();
-  // await WorkManagerService().init();
 
   runApp(const HundredDays());
   //runApp(NotificationSettingsPage());

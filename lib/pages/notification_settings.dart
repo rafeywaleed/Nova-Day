@@ -101,8 +101,9 @@ class _NotificationSettingsState extends State<NotificationSettings> {
 
   Future<void> _scheduleNotification(
       int id, String title, String body, TimeOfDay displayTime) async {
-    final TimeOfDay schedulingTime = _convertToGMT(displayTime);
-    final tz.TZDateTime scheduledTime = _nextInstanceOfTime(schedulingTime);
+    final tz.TZDateTime scheduledTime =
+        _convertDisplayToScheduleTime(displayTime);
+    print('Scheduling notification for: $scheduledTime');
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
@@ -133,13 +134,27 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     );
   }
 
-  TimeOfDay _convertToGMT(TimeOfDay localTime) {
-    final int totalMinutes = localTime.hour * 60 +
-        localTime.minute -
-        330; // Subtract 5 hours 30 minutes
-    final int gmtHour = (totalMinutes ~/ 60) % 24;
-    final int gmtMinute = totalMinutes % 60;
-    return TimeOfDay(hour: gmtHour, minute: gmtMinute);
+  tz.TZDateTime _convertDisplayToScheduleTime(TimeOfDay displayTime) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime displayDateTime = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      displayTime.hour,
+      displayTime.minute,
+    );
+
+    // Adjust to GMT+0
+    displayDateTime =
+        displayDateTime.subtract(const Duration(hours: 5, minutes: 30));
+
+    // Ensure correct scheduling if the adjusted time is in the past
+    if (displayDateTime.isBefore(now)) {
+      displayDateTime = displayDateTime.add(const Duration(days: 1));
+    }
+
+    return displayDateTime;
   }
 
   tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
@@ -179,82 +194,84 @@ class _NotificationSettingsState extends State<NotificationSettings> {
   }
 
   Future<void> _showWelcomeDialog(BuildContext context) async {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: EdgeInsets.all(16), 
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 350),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Heyya!!',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.sp, // Responsive font size
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 350),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Heyya!!',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.sp, // Responsive font size
+                            ),
+                            overflow:
+                                TextOverflow.ellipsis, // Ensure no overflow
                           ),
-                          overflow: TextOverflow.ellipsis, // Ensure no overflow
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Thank you for downloading the app! If you have any suggestions, bug reports, or feature requests, feel free to contact me through the Settings page.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14.sp, // Responsive font size
-                      color: Colors.black87,
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Thank you for downloading the app! If you have any suggestions, bug reports, or feature requests, feel free to contact me through the Settings page.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14.sp, // Responsive font size
+                        color: Colors.black87,
                       ),
-                      child: Text(
-                        'Proceed',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.sp, // Responsive font size
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                        // Proceed to the HomeScreen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
-                        );
-                      },
                     ),
-                  ),
-                ],
+                    SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Proceed',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14.sp, // Responsive font size
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          // Proceed to the HomeScreen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HomeScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

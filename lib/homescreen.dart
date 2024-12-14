@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hundred_days/cloud/admin_notifiy.dart';
 import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
 import 'package:hundred_days/pages/notification_settings.dart';
@@ -22,6 +23,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'auth/firebase_fun.dart';
+import 'cloud/firebase_api.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -64,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
     _animate();
     _fetchAdData();
     _checkPremium();
+    FirebaseApi().initNotification();
   }
 
   final FirebaseService _firebaseService = FirebaseService();
@@ -1069,6 +1072,7 @@ class _HomeScreenState extends State<HomeScreen>
         return ProgressTracker();
       case 2:
         return UserSettingsPage();
+
       default:
         return _buildHomeContent();
     }
