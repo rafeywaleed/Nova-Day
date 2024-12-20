@@ -40,54 +40,64 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void fetchTotalTaskDataFromFirebase() async {
     if (userEmail.isEmpty) return;
 
-    final taskRecords = await FirebaseFirestore.instance
-        .collection('taskRecord')
-        .doc(userEmail)
-        .collection('records')
-        .get();
+    try {
+      final taskRecords = await FirebaseFirestore.instance
+          .collection('taskRecord')
+          .doc(userEmail)
+          .collection('records')
+          .get();
 
-    Map<DateTime, int> tempDateMap = {};
-    int totalTasksAllTime = 0;
-    int completedTasksAllTime = 0;
+      Map<DateTime, int> tempDateMap = {};
+      int totalTasksAllTime = 0;
+      int completedTasksAllTime = 0;
 
-    DateTime now = DateTime.now();
-    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+      DateTime now = DateTime.now();
+      DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+      DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
 
-    int totalTasksThisWeek = 0;
-    int completedTasksThisWeek = 0;
+      int totalTasksThisWeek = 0;
+      int completedTasksThisWeek = 0;
 
-    for (var record in taskRecords.docs) {
-      final dateStr = record.id;
-      final taskCompletion = record.data()['overallCompletion'];
-      final tasks =
-          List<Map<String, dynamic>>.from(record.data()['tasks'] ?? []);
+      for (var record in taskRecords.docs) {
+        final dateStr = record.id;
+        final taskCompletion = record.data()['overallCompletion'];
+        final tasks =
+            List<Map<String, dynamic>>.from(record.data()['tasks'] ?? []);
 
-      DateTime recordDate = DateFormat('dd-MM-yyyy').parse(dateStr);
-      tempDateMap[recordDate] = int.parse(taskCompletion.split('/')[0]);
+        DateTime recordDate = DateFormat('dd-MM-yyyy').parse(dateStr);
+        tempDateMap[recordDate] = int.parse(taskCompletion.split('/')[0]);
 
-      int totalTasks = tasks.length;
-      int completedTasks =
-          tasks.where((task) => task['status'] == 'completed').length;
+        int totalTasks = tasks.length;
+        int completedTasks =
+            tasks.where((task) => task['status'] == 'completed').length;
 
-      totalTasksAllTime += totalTasks;
-      completedTasksAllTime += completedTasks;
+        totalTasksAllTime += totalTasks;
+        completedTasksAllTime += completedTasks;
 
-      if (recordDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
-          recordDate.isBefore(endOfWeek.add(Duration(days: 1)))) {
-        totalTasksThisWeek += totalTasks;
-        completedTasksThisWeek += completedTasks;
+        if (recordDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
+            recordDate.isBefore(endOfWeek.add(Duration(days: 1)))) {
+          totalTasksThisWeek += totalTasks;
+          completedTasksThisWeek += completedTasks;
+        }
       }
-    }
 
-    setState(() {
-      dateMap = tempDateMap;
-      isLoading = false;
-      this.totalTasksAllTime = totalTasksAllTime;
-      this.completedTasksAllTime = completedTasksAllTime;
-      this.totalTasksThisWeek = totalTasksThisWeek;
-      this.completedTasksThisWeek = completedTasksThisWeek;
-    });
+      setState(() {
+        dateMap = tempDateMap;
+        isLoading = false;
+        this.totalTasksAllTime = totalTasksAllTime;
+        this.completedTasksAllTime = completedTasksAllTime;
+        this.totalTasksThisWeek = totalTasksThisWeek;
+        this.completedTasksThisWeek = completedTasksThisWeek;
+      });
+    } catch (e) {
+      print("Error fetching total task data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching task data: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> loadUserEmail() async {
@@ -331,7 +341,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                           width: 30.w,
                                           height: 2.h,
                                           decoration: BoxDecoration(
-                                            color: const Color.fromARGB(255, 202, 202, 202),
+                                            color: const Color.fromARGB(
+                                                255, 202, 202, 202),
                                             borderRadius:
                                                 BorderRadius.circular(5),
                                           ),

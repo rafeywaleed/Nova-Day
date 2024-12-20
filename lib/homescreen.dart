@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hundred_days/cloud/admin_notifiy.dart';
 import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
 import 'package:hundred_days/pages/notification_settings.dart';
@@ -22,6 +23,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'auth/firebase_fun.dart';
+import 'cloud/firebase_api.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -64,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
     _animate();
     _fetchAdData();
     _checkPremium();
+    FirebaseApi().initNotification();
   }
 
   final FirebaseService _firebaseService = FirebaseService();
@@ -1069,6 +1072,7 @@ class _HomeScreenState extends State<HomeScreen>
         return ProgressTracker();
       case 2:
         return UserSettingsPage();
+
       default:
         return _buildHomeContent();
     }
@@ -1098,65 +1102,74 @@ class _HomeScreenState extends State<HomeScreen>
               child: FadeInDown(
                 delay: const Duration(milliseconds: 100),
                 duration: const Duration(milliseconds: 800),
-                child: Container(
-                  height: 15.h,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                        color: Colors.grey,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                    color: Colors.white,
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(5.w),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Flash(
-                              delay: Duration(milliseconds: 800),
-                              duration: Duration(milliseconds: 800),
-                              child: Text(
-                                '$daysLeft',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 8.w,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              'days left for new year',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 3.w,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        CircularPercentIndicator(
-                          radius: 10.w,
-                          lineWidth: 8.0,
-                          percent: taskCompletion,
-                          center: Text(
-                            "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 5.w,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          progressColor: Colors.green,
-                          backgroundColor: Colors.grey[300]!,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ProgressTracker()),
+                    );
+                  },
+                  child: Container(
+                    height: 15.h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                          color: Colors.grey,
+                          offset: const Offset(0, 5),
                         ),
                       ],
+                      color: Colors.white,
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(5.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flash(
+                                delay: Duration(milliseconds: 800),
+                                duration: Duration(milliseconds: 800),
+                                child: Text(
+                                  '$daysLeft',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 8.w,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'days left for new year',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 3.w,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                          CircularPercentIndicator(
+                            radius: 10.w,
+                            lineWidth: 8.0,
+                            percent: taskCompletion,
+                            center: Text(
+                              "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 5.w,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            progressColor: Colors.green,
+                            backgroundColor: Colors.grey[300]!,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -79,6 +79,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _changeName() async {
+
+    if (_nameController.text.isEmpty) {
+    _showSnackBar('Name cannot be empty', Colors.red);
+    return;
+  }
+
     setState(() => isLoading = true);
     try {
       print("Changing name to: ${_nameController.text}");
@@ -97,6 +103,16 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _changePassword() async {
+
+     if (_passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+    _showSnackBar('Password fields cannot be empty', Colors.red);
+    return;
+  }
+  if (_passwordController.text != _confirmPasswordController.text) {
+    _showSnackBar('Passwords do not match', Colors.red);
+    return;
+  }
+
     if (_passwordController.text == _confirmPasswordController.text) {
       setState(() => isLoading = true);
       try {
