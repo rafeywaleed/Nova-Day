@@ -28,12 +28,11 @@ class UserSettingsPage extends StatefulWidget {
 class _UserSettingsPageState extends State<UserSettingsPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String? joinDate;
-  
+
   @override
   void initState() {
     super.initState();
-    _fetchJoinDate();
-    
+    //_fetchJoinDate();
   }
 
   Future<void> _checkForUpdate() async {
@@ -136,21 +135,21 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     }
   }
 
-  Future<void> _fetchJoinDate() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      setState(() {
-        joinDate = (doc.data() as Map<String, dynamic>)['createdAt']
-                ?.toDate()
-                .toString() ??
-            'N/A';
-      });
-    }
-  }
+  // Future<void> _fetchJoinDate() async {
+  //   User? user = FirebaseAuth.instance.currentUser;
+  //   if (user != null) {
+  //     DocumentSnapshot doc = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(user.uid)
+  //         .get();
+  //     setState(() {
+  //       joinDate = (doc.data() as Map<String, dynamic>)['createdAt']
+  //               ?.toDate()
+  //               .toString() ??
+  //           'N/A';
+  //     });
+  //   }
+  // }
 
   void _launchEmail() async {
     final Uri emailLaunchUri = Uri(
@@ -181,112 +180,121 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      body: Padding(
-        padding: EdgeInsets.all(4.w), // Responsive padding
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 5.h), // Responsive height
-            Text(
-              'User Settings',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-                fontSize: 25.sp, // Responsive font size
+      body: SingleChildScrollView(
+        // Allows scrolling
+        child: Padding(
+          padding: EdgeInsets.all(4.w), // Responsive padding
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 5.h), // Responsive height
+              Text(
+                'User  Settings',
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25.sp, // Responsive font size
+                ),
               ),
-            ),
-            _buildSection(
-              'Edit Tasks',
-              'Easily modify your daily tasks.',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AddTasks(input: 1)),
-                );
-              },
-            ),
-            _buildSection(
-              'Notifications',
-              'Schedule your Reminders',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const NotificationSettings(intro: 1)),
-                );
-              },
-            ),
-            _buildSection(
-              'Profile',
-              'Update your name and password',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProfilePage()),
-                );
-              },
-            ),
-            _buildSection(
-              'Contact',
-              'For requests, reports, or suggestions, feel free to contact me via email.',
-              () {
-                _launchEmail();
-              },
-            ),
-
-            _buildSection(
-              'Guide',
-              'View notes and instructions related to task lists.',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const IntroScreen(
-                            input: 1,
-                          )),
-                );
-              },
-            ),
-
-          
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () => logout(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                  ),
-                  child: Text(
-                    'Log Out',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
+              // Ensure each section is wrapped properly
+              _buildSection(
+                'Edit Tasks',
+                'Easily modify your daily tasks.',
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AddTasks(input: 1)),
+                  );
+                },
+              ),
+              _buildSection(
+                'Notifications',
+                'Schedule your Reminders',
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const NotificationSettings(intro: 1)),
+                  );
+                },
+              ),
+              _buildSection(
+                'Profile',
+                'Update your name and password',
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ProfilePage()),
+                  );
+                },
+              ),
+              _buildSection(
+                'Contact',
+                'For requests, reports, or suggestions, feel free to contact me via email.',
+                () {
+                  _launchEmail();
+                },
+              ),
+              _buildSection(
+                'Guide',
+                'View notes and instructions related to task lists.',
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const IntroScreen(
+                              input: 1,
+                            )),
+                  );
+                },
+              ),
+              const SizedBox(height: 20), // Add spacing before buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    // Use Expanded to take available space
+                    child: ElevatedButton(
+                      onPressed: () => logout(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.w, vertical: 2.h),
+                      ),
+                      child: Text(
+                        'Log Out',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: _checkForUpdate,
-                  style: ElevatedButton.styleFrom(
-                    elevation: 5,
-                    backgroundColor: Colors.white,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                  ),
-                  child: Text(
-                    'Update',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.green,
+                  SizedBox(width: 10), // Add spacing between buttons
+                  Expanded(
+                    // Use Expanded to take available space
+                    child: ElevatedButton(
+                      onPressed: _checkForUpdate,
+                      style: ElevatedButton.styleFrom(
+                        elevation: 5,
+                        backgroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.w, vertical: 2.h),
+                      ),
+                      child: Text(
+                        'Update',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.green,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

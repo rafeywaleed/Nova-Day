@@ -84,19 +84,37 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     await prefs.setBool('notificationsEnabled', value);
 
     if (value) {
-      await _scheduleNotification(
-          0,
-          'First Task Reminder',
-          'Have you started your tasks for today?',
-          displayFirstNotificationTime);
-      await _scheduleNotification(
-          1,
-          'Second Task Reminder',
-          'Remember to keep working on your tasks!',
-          displaySecondNotificationTime);
+      try {
+        await _scheduleNotification(
+            0,
+            'First Task Reminder',
+            'Have you started your tasks for today?',
+            displayFirstNotificationTime);
+        await _scheduleNotification(
+            1,
+            'Second Task Reminder',
+            'Remember to keep working on your tasks!',
+            displaySecondNotificationTime);
+      } catch (e) {
+        _showSnackBar(
+            'Failed to schedule notifications: ${e.toString()}', Colors.red);
+      }
     } else {
       await _notificationsPlugin.cancelAll();
     }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
   }
 
   Future<void> _scheduleNotification(
