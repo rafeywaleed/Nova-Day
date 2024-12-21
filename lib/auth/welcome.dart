@@ -56,7 +56,7 @@ class _WelcomePageState extends State<WelcomePage> {
                             delay: const Duration(milliseconds: 700),
                             duration: const Duration(milliseconds: 800),
                             child: Text(
-                              'Hundred Days',
+                              'Nova Day',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 25.sp,
