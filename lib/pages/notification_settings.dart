@@ -40,7 +40,21 @@ class _NotificationSettingsState extends State<NotificationSettings> {
         InitializationSettings(android: androidInitializationSettings);
 
     await _notificationsPlugin.initialize(initializationSettings);
+
+    await _createNotificationChannel();
   }
+
+  Future<void> _createNotificationChannel() async {
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'task_reminders_channel', // id
+    'Task Reminders', // title
+    description: 'Daily task reminder notifications', // description
+    importance: Importance.high,
+  );
+
+  await _notificationsPlugin.resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
+}
 
   Future<void> loadNotificationState() async {
     final prefs = await SharedPreferences.getInstance();
@@ -98,7 +112,10 @@ class _NotificationSettingsState extends State<NotificationSettings> {
       } catch (e) {
         _showSnackBar(
             'Failed to schedule notifications: ${e.toString()}', Colors.red);
+              print(
+            'Failed to schedule notifications: ${e.toString()}');
       }
+      
     } else {
       await _notificationsPlugin.cancelAll();
     }

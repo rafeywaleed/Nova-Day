@@ -102,7 +102,7 @@ Future<void> _scheduleNotificationsOnStartup() async {
               SizedBox(height: 5.h), // Adjusted height for better spacing
               Flash(
                 child: Text(
-                  'Hundred Days',
+                  'Nova Day',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.blue,

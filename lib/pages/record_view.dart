@@ -130,7 +130,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
     }
 
     setState(() {
-      dateMap = tempDateMap;
+      dateMap = tempDateMap; // Keep all data without filtering
       isLoading = false;
     });
   }
@@ -156,6 +156,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void nextMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
+      fetchTotalTaskDataFromFirebase(); // Fetch data for the new month
     });
   }
 
@@ -172,6 +173,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void previousMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month - 1, 1);
+      fetchTotalTaskDataFromFirebase(); // Fetch data for the new month
     });
   }
 
@@ -193,39 +195,43 @@ class _ProgressTrackerState extends State<ProgressTracker> {
               children: [
                 SizedBox(height: 1.h),
                 // Month Navigation
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios),
-                      onPressed: previousMonth,
-                    ),
-                    Text(
-                      DateFormat.yMMMM().format(currentMonth),
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.sp, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.arrow_forward_ios),
-                      onPressed: nextMonth,
-                    ),
-                  ],
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     IconButton(
+                //       icon: Icon(Icons.arrow_back_ios),
+                //       onPressed: previousMonth,
+                //     ),
+                //     Text(
+                //       DateFormat.yMMMM().format(currentMonth),
+                //       style: GoogleFonts.plusJakartaSans(
+                //           fontSize: 14.sp, fontWeight: FontWeight.bold),
+                //     ),
+                //     IconButton(
+                //       icon: Icon(Icons.arrow_forward_ios),
+                //       onPressed: nextMonth,
+                //     ),
+                //   ],
+                // ),
                 // Heatmap Calendar
                 Container(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
-                      child: HeatMap(
+                      child: HeatMapCalendar(
+                        size: 9.w,
+                        colorTipSize: 2.w,
+                        monthFontSize: 15.sp,
+                        initDate: currentMonth,
                         datasets: dateMap,
-                        startDate: currentMonth,
-                        endDate: DateTime(
-                            currentMonth.year, currentMonth.month + 1, 0),
                         colorMode: ColorMode.color,
-                        showText: true,
-                        scrollable: false,
-                        size: 10.w,
+                        colorsets: {
+                          1: Colors.green[200]!,
+                          2: Colors.green[400]!,
+                          3: Colors.green[600]!,
+                          4: Colors.green[800]!,
+                        },
                         onClick: (date) {
                           setState(() {
                             selectedDate = date;
@@ -237,19 +243,12 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                             });
                           });
                         },
-                        colorsets: {
-                          1: Colors.green[200]!,
-                          2: Colors.green[400]!,
-                          3: Colors.green[600]!,
-                          4: Colors.green[800]!,
-                        },
                       ),
                     ),
                   ),
                 ),
 
                 if (selectedDate == null) ...[
-                  // Display Circular Progress Indicators when no date is selected
                   Container(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 2.h),
@@ -276,8 +275,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                       ),
                     ),
                   ),
-                  // Bar Graph
-                  // Bar Graph
+                  // Bar ```dart
+                  // Graph
                   Container(
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
@@ -466,16 +465,14 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       progressColor: progressColor,
       backgroundColor: Colors.grey[300]!,
       center: Text(
-        "${(percent * 100).toStringAsFixed(1)}%",
-        style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.sp, fontWeight: FontWeight.bold),
+        "${(percent * 100).toStringAsFixed(0)}%",
+        style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
       ),
-      footer: Padding(
-        padding: EdgeInsets.symmetric(vertical: 1.h),
+      header: Padding(
+        padding: EdgeInsets.only(bottom: 1.h),
         child: Text(
           header,
-          style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.sp, fontWeight: FontWeight.bold),
+          style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
         ),
       ),
     );
