@@ -102,7 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
         'name': name,
         'email': email,
         'joinedDate': DateTime.now().toString(),
-        'isPremium' : false,
+        'isPremium': false,
       });
 
       // Store user details in SharedPreferences
@@ -176,331 +176,325 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Container(
-                height: 100.h,
-                decoration: BoxDecoration(color: Colors.white),
-                padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 5.h),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 600),
-                      duration: const Duration(milliseconds: 700),
-                      child: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(color: Colors.white),
+              padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 5.h),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 600),
+                    duration: const Duration(milliseconds: 700),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(
+                        IconlyBroken.arrow_left,
+                        size: 3.6.h, // dynamic icon size
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FadeInDown(
+                          delay: const Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 600),
+                          child: Text(
+                            'Create an Account',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 25.sp, // dynamic font size
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 1.h),
+                        FadeInDown(
+                          delay: const Duration(milliseconds: 400),
+                          duration: const Duration(milliseconds: 500),
+                          child: Text(
+                            'Welcome to our community!',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 25.sp, // dynamic font size
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 5.h),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 400),
+                    child: Text(
+                      'Name',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16.sp, // dynamic font size
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 0.8.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5.w, vertical: .3.h),
+                      decoration: BoxDecoration(
+                        color: isFocusedName ? Colors.white : Color(0xFFF1F0F5),
+                        border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Your Name',
+                          hintStyle: GoogleFonts.plusJakartaSans(),
+                        ),
+                        focusNode: focusNodeName,
+                        style: GoogleFonts.plusJakartaSans(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 400),
+                    child: Text(
+                      'Email',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16.sp, // dynamic font size
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 0.8.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5.w, vertical: .3.h),
+                      decoration: BoxDecoration(
+                        color:
+                            isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
+                        border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please Enter your Email';
+                          } else {
+                            return null;
+                          }
                         },
-                        icon: Icon(
-                          IconlyBroken.arrow_left,
-                          size: 3.6.h,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FadeInDown(
-                            delay: const Duration(milliseconds: 500),
-                            duration: const Duration(milliseconds: 600),
-                            child: Text(
-                              'Create an Account',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 25.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 1.h),
-                          FadeInDown(
-                            delay: const Duration(milliseconds: 400),
-                            duration: const Duration(milliseconds: 500),
-                            child: Text(
-                              'Welcome to our community!',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 25.sp,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 5.h),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 300),
-                      duration: const Duration(milliseconds: 400),
-                      child: Text(
-                        'Name',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 5.w, vertical: .3.h),
-                        decoration: BoxDecoration(
-                          color:
-                              isFocusedName ? Colors.white : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Your Name',
-                            hintStyle: GoogleFonts.plusJakartaSans(),
-                          ),
-                          focusNode: focusNodeName,
-                          style: GoogleFonts.plusJakartaSans(),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 300),
-                      duration: const Duration(milliseconds: 400),
-                      child: Text(
-                        'Email',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 5.w, vertical: .3.h),
-                        decoration: BoxDecoration(
-                          color:
-                              isFocusedEmail ? Colors.white : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextFormField(
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'Please Enter your Email';
-                            } else {
-                              return null;
-                            }
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              s_email = value!;
-                            });
-                          },
+                        onSaved: (value) {
+                          setState(() {
+                            s_email = value!;
+                          });
+                        },
 
-                          controller: _emailController,
+                        controller: _emailController,
 
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Your Email',
-                            hintStyle:
-                                GoogleFonts.plusJakartaSans(), // Hint style
-                          ),
-                          focusNode: focusNodeEmail,
-                          style: GoogleFonts.plusJakartaSans(),
-                          // Text style
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Your Email',
+                          hintStyle:
+                              GoogleFonts.plusJakartaSans(), // Hint style
                         ),
+                        focusNode: focusNodeEmail,
+                        style: GoogleFonts.plusJakartaSans(),
+                        // Text style
                       ),
                     ),
-                    SizedBox(height: 2.h),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 100),
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        'Set Password',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  ),
+                  SizedBox(height: 2.h),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 100),
+                    duration: const Duration(milliseconds: 200),
+                    child: Text(
+                      'Set Password',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16.sp, // dynamic font size
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 100),
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 5.w, vertical: .3.h),
-                        decoration: BoxDecoration(
-                          color: isFocusedPassword
-                              ? Colors.white
-                              : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextFormField(
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'Please enter a password';
-                            } else {
-                              return null;
-                            }
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              s_password = value!;
-                            });
-                          },
-                          controller: _passwordController,
-                          obscureText: !showPassword,
-                          decoration: InputDecoration(
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                showPassword
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  showPassword = !showPassword;
-                                });
-                              },
+                  ),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 100),
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 0.8.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5.w, vertical: .3.h),
+                      decoration: BoxDecoration(
+                        color: isFocusedPassword
+                            ? Colors.white
+                            : Color(0xFFF1F0F5),
+                        border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter a password';
+                          } else {
+                            return null;
+                          }
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            s_password = value!;
+                          });
+                        },
+                        controller: _passwordController,
+                        obscureText: !showPassword,
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              showPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
-                            border: InputBorder.none,
-                            hintText: 'Password',
-                            hintStyle:
-                                GoogleFonts.plusJakartaSans(), // Hint style
+                            onPressed: () {
+                              setState(() {
+                                showPassword = !showPassword;
+                              });
+                            },
                           ),
-                          focusNode: focusNodePassword,
-                          style: GoogleFonts.plusJakartaSans(), // Text style
+                          border: InputBorder.none,
+                          hintText: 'Password',
+                          hintStyle:
+                              GoogleFonts.plusJakartaSans(), // Hint style
                         ),
+                        focusNode: focusNodePassword,
+                        style: GoogleFonts.plusJakartaSans(), // Text style
                       ),
                     ),
-                    SizedBox(height: 2.h),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 300),
-                      child: Text(
-                        'Confirm Password',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  ),
+                  SizedBox(height: 2.h),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
+                    child: Text(
+                      'Confirm Password',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16.sp, // dynamic font size
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    FadeInDown(
-                      delay: const Duration(milliseconds: 100),
-                      duration: const Duration(milliseconds: 200),
-                      child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 5.w, vertical: .3.h),
-                        decoration: BoxDecoration(
-                          color: isFocusedConfirmPassword
-                              ? Colors.white
-                              : Color(0xFFF1F0F5),
-                          border:
-                              Border.all(width: 1, color: Color(0xFFD2D2D4)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextFormField(
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'Please Enter your Email';
-                            } else {
-                              return null;
-                            }
-                          },
-                          onSaved: (value) {
-                            setState(() {
-                              s_Cpassword = value!;
-                            });
-                          },
-                          controller: _confirmPasswordController,
-                          obscureText: !showConfirmPassword,
-                          decoration: InputDecoration(
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                showConfirmPassword
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  showConfirmPassword = !showConfirmPassword;
-                                });
-                              },
+                  ),
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 100),
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 0.8.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5.w, vertical: .3.h),
+                      decoration: BoxDecoration(
+                        color: isFocusedConfirmPassword
+                            ? Colors.white
+                            : Color(0xFFF1F0F5),
+                        border: Border.all(width: 1, color: Color(0xFFD2D2D4)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please Enter your Email';
+                          } else {
+                            return null;
+                          }
+                        },
+                        onSaved: (value) {
+                          setState(() {
+                            s_Cpassword = value!;
+                          });
+                        },
+                        controller: _confirmPasswordController,
+                        obscureText: !showConfirmPassword,
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              showConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
-                            border: InputBorder.none,
-                            hintText: 'Confirm Password',
-                            hintStyle:
-                                GoogleFonts.plusJakartaSans(), // Hint style
+                            onPressed: () {
+                              setState(() {
+                                showConfirmPassword = !showConfirmPassword;
+                              });
+                            },
                           ),
-                          focusNode: focusNodeConfirmPassword,
-                          style: GoogleFonts.plusJakartaSans(), // Text style
+                          border: InputBorder.none,
+                          hintText: 'Confirm Password',
+                          hintStyle: GoogleFonts.plusJakartaSans(),
                         ),
+                        focusNode: focusNodeConfirmPassword,
+                        style: GoogleFonts.plusJakartaSans(),
                       ),
                     ),
-                    const Expanded(
-                      child: SizedBox(height: 10),
-                    ),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 300),
-                      duration: const Duration(milliseconds: 400),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: _signUpWithEmailAndPassword,
-                              child: FadeInUp(
-                                delay: const Duration(milliseconds: 0),
-                                duration: const Duration(milliseconds: 0),
-                                child: Text(
-                                  'Sign Up',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: Colors.white,
-                                  ),
+                  ),
+                  SizedBox(
+                    height: 3.h,
+                  ),
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 400),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _signUpWithEmailAndPassword,
+                            child: FadeInUp(
+                              delay: const Duration(milliseconds: 0),
+                              duration: const Duration(milliseconds: 0),
+                              child: Text(
+                                'Sign Up',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
                                 ),
                               ),
-                              style: ElevatedButton.styleFrom(
-                                elevation: 0,
-                                textStyle: GoogleFonts.plusJakartaSans(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                backgroundColor: Colors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                              ),
                             ),
-                          )
-                        ],
-                      ),
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              textStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: 18.sp, // dynamic font size
+                                fontWeight: FontWeight.w500,
+                              ),
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(
+                    height: 5.h, // dynamic height
+                  ),
+                ],
               ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
