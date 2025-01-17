@@ -100,22 +100,6 @@ class _ProgressTrackerState extends State<ProgressTracker> {
     }
   }
 
-  Map<DateTime, int> _filterDateMapForCurrentMonth(Map<DateTime, int> dateMap) {
-    DateTime startOfMonth = DateTime(currentMonth.year, currentMonth.month, 1);
-    DateTime endOfMonth =
-        DateTime(currentMonth.year, currentMonth.month + 1, 0);
-
-    Map<DateTime, int> filteredDateMap = {};
-    dateMap.forEach((date, value) {
-      // Include only dates within the current month
-      if (date.isAfter(startOfMonth.subtract(Duration(days: 1))) &&
-          date.isBefore(endOfMonth.add(Duration(days: 1)))) {
-        filteredDateMap[date] = value;
-      }
-    });
-    return filteredDateMap;
-  }
-
   Future<void> loadUserEmail() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -146,7 +130,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
     }
 
     setState(() {
-      dateMap = tempDateMap;
+      dateMap = tempDateMap; // Keep all data without filtering
       isLoading = false;
     });
   }
@@ -211,24 +195,24 @@ class _ProgressTrackerState extends State<ProgressTracker> {
               children: [
                 SizedBox(height: 1.h),
                 // Month Navigation
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios),
-                      onPressed: previousMonth,
-                    ),
-                    Text(
-                      DateFormat.yMMMM().format(currentMonth),
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.sp, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.arrow_forward_ios),
-                      onPressed: nextMonth,
-                    ),
-                  ],
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     IconButton(
+                //       icon: Icon(Icons.arrow_back_ios),
+                //       onPressed: previousMonth,
+                //     ),
+                //     Text(
+                //       DateFormat.yMMMM().format(currentMonth),
+                //       style: GoogleFonts.plusJakartaSans(
+                //           fontSize: 14.sp, fontWeight: FontWeight.bold),
+                //     ),
+                //     IconButton(
+                //       icon: Icon(Icons.arrow_forward_ios),
+                //       onPressed: nextMonth,
+                //     ),
+                //   ],
+                // ),
                 // Heatmap Calendar
                 Container(
                   child: SingleChildScrollView(
@@ -236,11 +220,12 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
                       child: HeatMapCalendar(
-                        initDate:
-                            currentMonth, // Initialize to the selected month
-                        datasets: _filterDateMapForCurrentMonth(
-                            dateMap), // Filtered dataset
-                        colorMode: ColorMode.color, // Color mode
+                        size: 9.w,
+                        colorTipSize: 2.w,
+                        monthFontSize: 15.sp,
+                        initDate: currentMonth,
+                        datasets: dateMap,
+                        colorMode: ColorMode.color,
                         colorsets: {
                           1: Colors.green[200]!,
                           2: Colors.green[400]!,
@@ -264,7 +249,6 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                 ),
 
                 if (selectedDate == null) ...[
-                  // Display Circular Progress Indicators when no date is selected
                   Container(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 2.h),
@@ -291,7 +275,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                       ),
                     ),
                   ),
-                  // Bar Graph
+                  // Bar ```dart
+                  // Graph
                   Container(
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
@@ -330,7 +315,6 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                   List<List<Map<String, dynamic>>> tasksList =
                                       snapshot.data
                                           as List<List<Map<String, dynamic>>>;
-
                                   List<DateTime> sortedDates = dateMap.keys
                                       .toList()
                                     ..sort((a, b) => b.compareTo(a));
