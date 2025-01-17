@@ -100,6 +100,22 @@ class _ProgressTrackerState extends State<ProgressTracker> {
     }
   }
 
+  Map<DateTime, int> _filterDateMapForCurrentMonth(Map<DateTime, int> dateMap) {
+    DateTime startOfMonth = DateTime(currentMonth.year, currentMonth.month, 1);
+    DateTime endOfMonth =
+        DateTime(currentMonth.year, currentMonth.month + 1, 0);
+
+    Map<DateTime, int> filteredDateMap = {};
+    dateMap.forEach((date, value) {
+      // Include only dates within the current month
+      if (date.isAfter(startOfMonth.subtract(Duration(days: 1))) &&
+          date.isBefore(endOfMonth.add(Duration(days: 1)))) {
+        filteredDateMap[date] = value;
+      }
+    });
+    return filteredDateMap;
+  }
+
   Future<void> loadUserEmail() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -156,6 +172,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void nextMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
+      fetchTotalTaskDataFromFirebase(); // Fetch data for the new month
     });
   }
 
@@ -172,6 +189,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void previousMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month - 1, 1);
+      fetchTotalTaskDataFromFirebase(); // Fetch data for the new month
     });
   }
 
@@ -217,15 +235,18 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                     scrollDirection: Axis.horizontal,
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
-                      child: HeatMap(
-                        datasets: dateMap,
-                        startDate: currentMonth,
-                        endDate: DateTime(
-                            currentMonth.year, currentMonth.month + 1, 0),
-                        colorMode: ColorMode.color,
-                        showText: true,
-                        scrollable: false,
-                        size: 10.w,
+                      child: HeatMapCalendar(
+                        initDate:
+                            currentMonth, // Initialize to the selected month
+                        datasets: _filterDateMapForCurrentMonth(
+                            dateMap), // Filtered dataset
+                        colorMode: ColorMode.color, // Color mode
+                        colorsets: {
+                          1: Colors.green[200]!,
+                          2: Colors.green[400]!,
+                          3: Colors.green[600]!,
+                          4: Colors.green[800]!,
+                        },
                         onClick: (date) {
                           setState(() {
                             selectedDate = date;
@@ -236,12 +257,6 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                               });
                             });
                           });
-                        },
-                        colorsets: {
-                          1: Colors.green[200]!,
-                          2: Colors.green[400]!,
-                          3: Colors.green[600]!,
-                          4: Colors.green[800]!,
                         },
                       ),
                     ),
@@ -276,7 +291,6 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                       ),
                     ),
                   ),
-                  // Bar Graph
                   // Bar Graph
                   Container(
                     child: Padding(
@@ -316,6 +330,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                   List<List<Map<String, dynamic>>> tasksList =
                                       snapshot.data
                                           as List<List<Map<String, dynamic>>>;
+
                                   List<DateTime> sortedDates = dateMap.keys
                                       .toList()
                                     ..sort((a, b) => b.compareTo(a));
@@ -466,16 +481,14 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       progressColor: progressColor,
       backgroundColor: Colors.grey[300]!,
       center: Text(
-        "${(percent * 100).toStringAsFixed(1)}%",
-        style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.sp, fontWeight: FontWeight.bold),
+        "${(percent * 100).toStringAsFixed(0)}%",
+        style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
       ),
-      footer: Padding(
-        padding: EdgeInsets.symmetric(vertical: 1.h),
+      header: Padding(
+        padding: EdgeInsets.only(bottom: 1.h),
         child: Text(
           header,
-          style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.sp, fontWeight: FontWeight.bold),
+          style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
         ),
       ),
     );
