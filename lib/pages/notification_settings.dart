@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hundred_days/pages/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -17,13 +16,14 @@ class NotificationSettings extends StatefulWidget {
   State<NotificationSettings> createState() => _NotificationSettingsState();
 }
 
-TimeOfDay displayFirstNotificationTime = const TimeOfDay(hour: 6, minute: 30);
-TimeOfDay displaySecondNotificationTime = const TimeOfDay(hour: 12, minute: 30);
-
 class _NotificationSettingsState extends State<NotificationSettings> {
   bool notificationsEnabled = true;
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  List<TimeOfDay> notificationTimes = [
+    const TimeOfDay(hour: 6, minute: 30),
+    const TimeOfDay(hour: 12, minute: 30)
+  ];
 
   @override
   void initState() {
@@ -45,48 +45,47 @@ class _NotificationSettingsState extends State<NotificationSettings> {
   }
 
   Future<void> _createNotificationChannel() async {
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'task_reminders_channel', // id
-    'Task Reminders', // title
-    description: 'Daily task reminder notifications', // description
-    importance: Importance.high,
-  );
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'task_reminders_channel', // id
+      'Task Reminders', // title
+      description: 'Daily task reminder notifications', // description
+      importance: Importance.high,
+    );
 
-  await _notificationsPlugin.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
-}
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
 
   Future<void> loadNotificationState() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
-      displayFirstNotificationTime =
-          _getStoredTime(prefs, 'firstNotificationTime') ??
-              const TimeOfDay(hour: 6, minute: 30);
-      displaySecondNotificationTime =
-          _getStoredTime(prefs, 'secondNotificationTime') ??
-              const TimeOfDay(hour: 12, minute: 30);
+      notificationTimes = _getStoredTimes(prefs, 'notificationTimes') ??
+          [
+            const TimeOfDay(hour: 6, minute: 30),
+            const TimeOfDay(hour: 12, minute: 30)
+          ];
     });
 
     if (notificationsEnabled) {
-      await _scheduleNotification(
-          0,
-          'First Task Reminder',
-          'Have you started your tasks for today?',
-          displayFirstNotificationTime);
-      await _scheduleNotification(
-          1,
-          'Second Task Reminder',
-          'Remember to keep working on your tasks!',
-          displaySecondNotificationTime);
+      for (int i = 0; i < notificationTimes.length; i++) {
+        await _scheduleNotification(i, 'Task Reminder ${i + 1}',
+            'Have you started your tasks for today?', notificationTimes[i]);
+      }
     }
   }
 
-  TimeOfDay? _getStoredTime(SharedPreferences prefs, String key) {
+  List<TimeOfDay>? _getStoredTimes(SharedPreferences prefs, String key) {
     if (!prefs.containsKey(key)) return null;
-    final storedTime = DateTime.tryParse(prefs.getString(key)!);
-    if (storedTime == null) return null;
-    return TimeOfDay(hour: storedTime.hour, minute: storedTime.minute);
+    final storedTimes = prefs.getStringList(key);
+    if (storedTimes == null) return null;
+    return storedTimes
+        .map((time) => TimeOfDay(
+            hour: int.parse(time.split(':')[0]),
+            minute: int.parse(time.split(':')[1])))
+        .toList();
   }
 
   Future<void> toggleNotifications(bool value) async {
@@ -99,23 +98,15 @@ class _NotificationSettingsState extends State<NotificationSettings> {
 
     if (value) {
       try {
-        await _scheduleNotification(
-            0,
-            'First Task Reminder',
-            'Have you started your tasks for today?',
-            displayFirstNotificationTime);
-        await _scheduleNotification(
-            1,
-            'Second Task Reminder',
-            'Remember to keep working on your tasks!',
-            displaySecondNotificationTime);
+        for (int i = 0; i < notificationTimes.length; i++) {
+          await _scheduleNotification(i, 'Task Reminder ${i + 1}',
+              'Have you started your tasks for today?', notificationTimes[i]);
+        }
       } catch (e) {
         _showSnackBar(
             'Failed to schedule notifications: ${e.toString()}', Colors.red);
-              print(
-            'Failed to schedule notifications: ${e.toString()}');
+        print('Failed to schedule notifications: ${e.toString()}');
       }
-      
     } else {
       await _notificationsPlugin.cancelAll();
     }
@@ -192,20 +183,8 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     return displayDateTime;
   }
 
-  tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledTime = tz.TZDateTime(
-        tz.local, now.year, now.month, now.day, time.hour, time.minute);
-    if (scheduledTime.isBefore(now)) {
-      scheduledTime = scheduledTime.add(const Duration(days: 1));
-    }
-    return scheduledTime;
-  }
-
-  Future<void> selectTime(BuildContext context, bool isFirstTime) async {
-    final TimeOfDay initialTime = isFirstTime
-        ? displayFirstNotificationTime
-        : displaySecondNotificationTime;
+  Future<void> selectTime(BuildContext context, int index) async {
+    final TimeOfDay initialTime = notificationTimes[index];
 
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -213,17 +192,13 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     );
     if (picked != null && picked != initialTime) {
       setState(() {
-        if (isFirstTime) {
-          displayFirstNotificationTime = picked;
-        } else {
-          displaySecondNotificationTime = picked;
-        }
+        notificationTimes[index] = picked;
       });
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        isFirstTime ? 'firstNotificationTime' : 'secondNotificationTime',
-        DateTime(0, 0, 0, picked.hour, picked.minute).toIso8601String(),
+      await prefs.setStringList(
+        'notificationTimes',
+        notificationTimes.map((time) => '${time.hour}:${time.minute}').toList(),
       );
     }
   }
@@ -320,107 +295,123 @@ class _NotificationSettingsState extends State<NotificationSettings> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Set your daily task reminders:',
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('First Reminder Time:',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 16)),
-                    TextButton(
-                      onPressed: () => selectTime(context, true),
-                      child: Text(
-                        displayFirstNotificationTime.format(context),
-                        style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16, color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Second Reminder Time:',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 16)),
-                    TextButton(
-                      onPressed: () => selectTime(context, false),
-                      child: Text(
-                        displaySecondNotificationTime.format(context),
-                        style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16, color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        'Reminder notifications will be sent every day at your selected times.',
-                        style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12, color: Colors.grey),
-                      ),
-                    ),
-                    Switch(
-                      value: notificationsEnabled,
-                      onChanged: toggleNotifications,
-                      activeColor: Colors.blue,
-                      inactiveThumbColor: Colors.grey,
-                      inactiveTrackColor: Colors.grey[300],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      minimumSize: const Size(100, 40),
-                    ),
-                    onPressed: () async {
-                      toggleNotifications(notificationsEnabled);
-                      if (widget.intro == 1) {
-                        Navigator.pop(context);
-                      } else if (widget.intro == 0) {
-                        _showWelcomeDialog(context);
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) => HomeScreen()),
-                        // );
-                      }
-                    },
-                    child: const Text('Save Settings'),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Set your daily task reminders:',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Text(
-                'TimeZone is with respect to GMT+5:30',
-                style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  ...notificationTimes.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final time = entry.value;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Reminder Time ${index + 1}:',
+                            style:
+                                GoogleFonts.plusJakartaSans(fontSize: 12.sp)),
+                        TextButton(
+                          onPressed: () => selectTime(context, index),
+                          child: Text(
+                            time.format(context),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.sp, color: Colors.blue),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(Colors.white),
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.blue)))),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Add Reminder   ",
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.sp,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Icon(Icons.add, size: 12.sp, color: Colors.blue),
+                      ],
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        notificationTimes
+                            .add(const TimeOfDay(hour: 6, minute: 30));
+                      });
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Reminder notifications will be sent every day at your selected times.',
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                      Switch(
+                        value: notificationsEnabled,
+                        onChanged: toggleNotifications,
+                        activeColor: Colors.blue,
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.grey[300],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                ],
               ),
-            ),
-          ],
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  children: [
+                    Center(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          minimumSize: const Size(100, 40),
+                        ),
+                        onPressed: () async {
+                          toggleNotifications(notificationsEnabled);
+                          if (widget.intro == 1) {
+                            Navigator.pop(context);
+                          } else if (widget.intro == 0) {
+                            _showWelcomeDialog(context);
+                          }
+                        },
+                        child: const Text('Save Settings'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'TimeZone is with respect to GMT+5:30',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
