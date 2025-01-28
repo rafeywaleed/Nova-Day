@@ -116,6 +116,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        showCloseIcon: true,
         content: Text(message),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,

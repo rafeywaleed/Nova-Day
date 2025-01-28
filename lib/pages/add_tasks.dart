@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/pages/notification.dart';
 import 'package:hundred_days/pages/set_notification.dart';
+import 'package:iconly/iconly.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
@@ -221,6 +222,19 @@ class _AddTasksState extends State<AddTasks> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            Divider(
+              color: Colors.grey,
+            ),
+            Text(
+              'These are daily tasks (e.g., gym, reading, studying) that reset every day.',
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.sp, color: Colors.grey),
+            ),
+            Divider(
+              color: Colors.grey,
+            ),
+
+            const SizedBox(height: 16),
             // Padding(
             //   padding: const EdgeInsets.all(8.0),
             //   child: Row(
@@ -363,6 +377,7 @@ class _AddTasksState extends State<AddTasks> {
               ],
             ),
             const SizedBox(height: 16),
+
             Expanded(
               child: ListView.builder(
                 itemCount: currentDailyTasks.length,
@@ -380,9 +395,9 @@ class _AddTasksState extends State<AddTasks> {
                       },
                       background: Container(
                         color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Icon(IconlyLight.delete, color: Colors.white),
                       ),
                       child: Card(
                         elevation: 5,
