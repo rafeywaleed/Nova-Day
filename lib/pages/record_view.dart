@@ -1,14 +1,22 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:davinci/davinci.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:hundred_days/utils/loader.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
+import '../home_widgets/widget_to_image.dart';
 
 class ProgressTracker extends StatefulWidget {
   const ProgressTracker({super.key});
@@ -30,14 +38,17 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   int completedTasksAllTime = 0;
   int totalTasksThisWeek = 0;
   int completedTasksThisWeek = 0;
+  GlobalKey heatMapKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     loadUserEmail();
+    updateHeatMapWidget(dateMap);
   }
 
   void fetchTotalTaskDataFromFirebase() async {
+    print("entered in the funtion");
     if (userEmail.isEmpty) return;
 
     try {
@@ -98,9 +109,56 @@ class _ProgressTrackerState extends State<ProgressTracker> {
         ),
       );
     }
+    updateHeatMapWidget(dateMap);
+  }
+
+  //saving image for home screen widgets
+
+  Future<void> updateHeatMapWidget(Map<DateTime, int> datasets) async {
+    print("Entered Update");
+
+    // Capture the HeatMap widget as an image using Davinci
+    final logicalSize = const Size(400, 400);
+    final bytes = await DavinciCapture.offStage(
+      HeatMapCalendar(
+        size: 40, // Size of each box
+        colorTipSize: 10, // Size of the legend
+        monthFontSize: 12, // Font size for month labels
+        datasets: datasets, // Pass your datasets here
+        colorsets: {
+          1: Colors.green[200]!,
+          2: Colors.green[400]!,
+          3: Colors.green[600]!,
+          4: Colors.green[800]!,
+        },
+      ),
+      context: context,
+      returnImageUint8List: true,
+      wait: const Duration(seconds: 1),
+      openFilePreview: true,
+    );
+
+    // Get the application support directory
+    final directory = await getApplicationSupportDirectory();
+    File tempFile =
+        File("${directory.path}/${DateTime.now().toIso8601String()}.png");
+
+    await tempFile.writeAsBytes(bytes);
+
+    // Save the image file path to HomeWidget
+    await HomeWidget.saveWidgetData('heatmap_image_path', tempFile.path);
+    print('Saved image path Home WIdget: ${tempFile.path}');
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('heatmap_image_path', tempFile.path);
+    print('Path saved to SharedPreferences: ${tempFile.path}');
+
+    // Update the widget
+    await HomeWidget.updateWidget(name: 'HeatMapWidgetProvider');
   }
 
   Future<void> loadUserEmail() async {
+    print("ENtered Load Useremil");
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
@@ -165,6 +223,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       isLoading = true;
     });
     fetchTaskDataFromFirebase();
+    updateHeatMapWidget(dateMap);
     setState(() {
       isLoading = false;
     });
@@ -173,7 +232,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void previousMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month - 1, 1);
-      fetchTotalTaskDataFromFirebase(); 
+      fetchTotalTaskDataFromFirebase();
     });
   }
 
@@ -214,7 +273,9 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                 //   ],
                 // ),
                 // Heatmap Calendar
-                Container(
+
+                RepaintBoundary(
+                  key: heatMapKey,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Padding(

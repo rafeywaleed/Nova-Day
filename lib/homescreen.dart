@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:hundred_days/cloud/admin_notifiy.dart';
 import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
@@ -24,6 +25,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'auth/firebase_fun.dart';
 import 'cloud/firebase_api.dart';
+import 'home_widgets/widget_to_image.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -54,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    updateTaskSummaryWidget(taskSummaryKey);
     loadUserEmail();
     loadDailyTasks();
     fetchAdditionalTasks();
@@ -95,6 +98,14 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  GlobalKey taskSummaryKey = GlobalKey();
+
+  Future<void> updateTaskSummaryWidget(GlobalKey key) async {
+    Uint8List image = await widgetToImage(key);
+    await HomeWidget.saveWidgetData<String>(
+        'task_summary_image', base64Encode(image));
+    await HomeWidget.updateWidget(name: 'TaskSummaryWidgetProvider');
+  }
 
   bool _isBannerAdshown = true;
   Future<void> _fetchAdData() async {
@@ -758,6 +769,7 @@ class _HomeScreenState extends State<HomeScreen>
     loadDailyTasks();
     printSt();
     resetTaskAnyway();
+    updateTaskSummaryWidget(taskSummaryKey);
     checkAndUpdateTasks();
     fetchAdditionalTasks();
     loadDailyTasks();
@@ -1184,47 +1196,43 @@ class _HomeScreenState extends State<HomeScreen>
                 color: Colors.grey,
               ),
             ),
-            Container(
-              height: 40.h,
-              child: defaultTasks.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No tasks for today.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 4.w,
-                          color: Colors.grey,
+            RepaintBoundary(
+              key: taskSummaryKey,
+              child: Container(
+                height: 40.h,
+                child: defaultTasks.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No tasks for today.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 4.w,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : SafeArea(
+                        bottom: true,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: defaultTasks.length,
+                          itemBuilder: (context, index) {
+                            Map<String, dynamic> task = defaultTasks[index];
+                            return TaskCard(
+                              task: task,
+                              isDailyTask: true,
+                              onChanged: (value) {
+                                setState(() {
+                                  defaultTasks[index]['completed'] = value!;
+                                  saveTasksToSharedPreferences(defaultTasks);
+                                  saveProgress();
+                                  saveNormalProgress();
+                                });
+                              },
+                            );
+                          },
                         ),
                       ),
-                    )
-                  : SafeArea(
-                      bottom: true,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: defaultTasks.length,
-                        itemBuilder: (context, index) {
-                          Map<String, dynamic> task = defaultTasks[index];
-                          return TaskCard(
-                            task: task,
-                            // onDelete: () {
-                            //   // setState(() {
-                            //   //   defaultTasks.removeAt(index);
-                            //   // });
-                            //   // deleteTask(task['task']);
-                            //   // saveNormalProgress();
-                            // },
-                            isDailyTask: true,
-                            onChanged: (value) {
-                              setState(() {
-                                defaultTasks[index]['completed'] = value!;
-                                saveTasksToSharedPreferences(defaultTasks);
-                                saveProgress();
-                                saveNormalProgress();
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ),
+              ),
             ),
             SizedBox(height: 2.h),
             // TextButton(
