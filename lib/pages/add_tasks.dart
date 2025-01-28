@@ -217,7 +217,7 @@ class _AddTasksState extends State<AddTasks> {
             Text(
               'Hello $userName',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 24,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -253,11 +253,29 @@ class _AddTasksState extends State<AddTasks> {
                 Text(
                   "Daily Tasks:",
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 20,
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                IconButton(
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            16), // No rounded corners, square button
+                        side: BorderSide(
+                          color: Colors.blue.shade200,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    padding: MaterialStateProperty.all(
+                      EdgeInsets.all(
+                          5), // Uniform padding to make it square (you can adjust the value)
+                    ),
+                    elevation: MaterialStateProperty.all(5), // subtle shadow
+                  ),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -319,8 +337,7 @@ class _AddTasksState extends State<AddTasks> {
                                           setState(() {
                                             currentDailyTasks
                                                 .add(_controller.text);
-                                            isTaskListModified =
-                                                true; // Mark as modified
+                                            isTaskListModified = true;
                                           });
                                           _controller.clear();
                                           Navigator.of(context).pop();
@@ -337,7 +354,11 @@ class _AddTasksState extends State<AddTasks> {
                       },
                     );
                   },
-                  icon: const Icon(Icons.add),
+                  child: Icon(
+                    Icons.add,
+                    size: 20.sp,
+                    color: Colors.blue,
+                  ),
                 ),
               ],
             ),
@@ -409,7 +430,16 @@ class _AddTasksState extends State<AddTasks> {
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
                 },
-                child: const Text('Finish'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Finish  ',
+                      style: TextStyle(fontSize: 15.sp),
+                    ),
+                    Icon(Icons.add_task, color: Colors.white, size: 20.sp),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),

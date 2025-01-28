@@ -15,6 +15,7 @@ import 'package:hundred_days/pages/splash_screen.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:hundred_days/utils/loader.dart';
 import 'package:iconly/iconly.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
@@ -51,9 +52,95 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Future<void> _checkForUpdate() async {
+    final updateInfo = await InAppUpdate.checkForUpdate();
+
+    if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+      _showUpdateDialog(updateInfo);
+    }
+  }
+
+  Future<void> _showUpdateDialog(AppUpdateInfo updateInfo) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            'Update Available',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'A new version of the app is available. Please update to continue using the app.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Later'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _downloadUpdate(updateInfo);
+                    },
+                    child: const Text('Update'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadUpdate(AppUpdateInfo updateInfo) async {
+    try {
+      await InAppUpdate.startFlexibleUpdate();
+      await InAppUpdate.completeFlexibleUpdate();
+      print('Update successful');
+    } catch (e) {
+      print('Update failed: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkForUpdate();
     loadUserEmail();
     loadDailyTasks();
     fetchAdditionalTasks();
@@ -931,136 +1018,137 @@ class _HomeScreenState extends State<HomeScreen>
         );
       },
       child: Scaffold(
-          body: Stack(
-            children: [
-              Row(
-                children: [
-                  NavigationRail(
-                    leading: Padding(
-                      padding: const EdgeInsets.only(top: 14.0),
-                      child: AnimatedBuilder(
-                          animation: _logoAnimationController,
-                          builder: (context, child) {
-                            return Roulette(
-                              // delay: Duration(milliseconds: 3000),
-                              duration: Duration(milliseconds: 3000),
-                              infinite: true,
-                              child: Image.asset(
-                                'assets/images/app_icon.png',
-                                scale: 3.w,
-                              ),
-                            );
-                          }),
-                    ),
-                    labelType: labelType,
-                    useIndicator: false,
-                    indicatorShape: Border.all(width: 20),
-                    indicatorColor: Colors.transparent,
-                    minWidth: 15.w,
-                    groupAlignment: 0,
-                    backgroundColor: const Color.fromARGB(255, 127, 127, 127)
-                        .withOpacity(0.1),
-                    selectedIndex: _selectedIndex,
-                    onDestinationSelected: (value) {
-                      saveNormalProgress();
-                      setState(() {
-                        _selectedIndex = value;
-                      });
-                    },
-                    destinations: [
-                      NavigationRailDestination(
-                        icon: _selectedIndex == 0
-                            ? Icon(IconlyLight.home,
-                                color: Colors.blue, size: 12.w)
-                            : Icon(IconlyBroken.home, size: 9.w),
-                        label: Text(
-                          'Home',
-                          style: GoogleFonts.plusJakartaSans(),
-                        ),
-                      ),
-                      NavigationRailDestination(
-                        icon: _selectedIndex == 1
-                            ? Icon(IconlyLight.graph,
-                                color: Colors.blue, size: 12.w)
-                            : Icon(IconlyBroken.graph, size: 9.w),
-                        label: Text(
-                          'Record',
-                          style: GoogleFonts.plusJakartaSans(),
-                        ),
-                      ),
-                      NavigationRailDestination(
-                        icon: _selectedIndex == 2
-                            ? Icon(IconlyLight.setting,
-                                color: Colors.blue, size: 12.w)
-                            : Icon(IconlyBroken.setting, size: 9.w),
-                        label: Text(
-                          'Settings',
-                          style: GoogleFonts.plusJakartaSans(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.all(2.w),
-                      child: _buildContent(),
-                    ),
-                  ),
-                ],
-              ),
-              if (_isPremium == false)
-                if (_showBannerAd)
-                  Positioned(
-                    bottom: 5,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: showBannerAd(
-                        context,
-                        _bannerAdName,
-                        _bannerAdLine,
-                        _bannerAdURL,
-                        _bannerImgURL,
-                      ),
-                    ),
-                  ),
-            ],
-          ),
-          floatingActionButton: _selectedIndex != 0
-              ? null
-              : SafeArea(
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      final _controller = TextEditingController();
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return DialogBox(
-                            Controller: _controller,
-                            onSave: () {
-                              if (_controller.text.isNotEmpty) {
-                                setState(() {
-                                  additionalTasks.add({
-                                    'task': _controller.text,
-                                    'completed': false
-                                  });
-                                });
-                                saveAdditionalTasksToSharedPreferences(
-                                    additionalTasks);
-                                saveAdditionalTasksToFirebase(additionalTasks);
-                                Navigator.of(context).pop();
-                              }
-                            },
-                            onCancel: () {
-                              Navigator.of(context).pop();
-                            },
+        body: Stack(
+          children: [
+            Row(
+              children: [
+                NavigationRail(
+                  leading: Padding(
+                    padding: const EdgeInsets.only(top: 14.0),
+                    child: AnimatedBuilder(
+                        animation: _logoAnimationController,
+                        builder: (context, child) {
+                          return Roulette(
+                            // delay: Duration(milliseconds: 3000),
+                            duration: Duration(milliseconds: 3000),
+                            infinite: true,
+                            child: Image.asset(
+                              'assets/images/app_icon.png',
+                              scale: 3.w,
+                            ),
                           );
-                        },
-                      );
-                    },
-                    child: Icon(Icons.add),
+                        }),
                   ),
-                )),
+                  labelType: labelType,
+                  useIndicator: false,
+                  indicatorShape: Border.all(width: 20),
+                  indicatorColor: Colors.transparent,
+                  minWidth: 15.w,
+                  groupAlignment: 0,
+                  backgroundColor:
+                      const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (value) {
+                    saveNormalProgress();
+                    setState(() {
+                      _selectedIndex = value;
+                    });
+                  },
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: _selectedIndex == 0
+                          ? Icon(IconlyLight.home,
+                              color: Colors.blue, size: 12.w)
+                          : Icon(IconlyBroken.home, size: 9.w),
+                      label: Text(
+                        'Home',
+                        style: GoogleFonts.plusJakartaSans(),
+                      ),
+                    ),
+                    NavigationRailDestination(
+                      icon: _selectedIndex == 1
+                          ? Icon(IconlyLight.graph,
+                              color: Colors.blue, size: 12.w)
+                          : Icon(IconlyBroken.graph, size: 9.w),
+                      label: Text(
+                        'Record',
+                        style: GoogleFonts.plusJakartaSans(),
+                      ),
+                    ),
+                    NavigationRailDestination(
+                      icon: _selectedIndex == 2
+                          ? Icon(IconlyLight.setting,
+                              color: Colors.blue, size: 12.w)
+                          : Icon(IconlyBroken.setting, size: 9.w),
+                      label: Text(
+                        'Settings',
+                        style: GoogleFonts.plusJakartaSans(),
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(2.w),
+                    child: _buildContent(),
+                  ),
+                ),
+              ],
+            ),
+            if (_isPremium == false)
+              if (_showBannerAd)
+                Positioned(
+                  bottom: 5,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: showBannerAd(
+                      context,
+                      _bannerAdName,
+                      _bannerAdLine,
+                      _bannerAdURL,
+                      _bannerImgURL,
+                    ),
+                  ),
+                ),
+          ],
+        ),
+        // floatingActionButton: _selectedIndex != 0
+        //     ? null
+        //     : SafeArea(
+        //         child: FloatingActionButton(
+        //           onPressed: () {
+        //             final _controller = TextEditingController();
+        //             showDialog(
+        //               context: context,
+        //               builder: (context) {
+        //                 return DialogBox(
+        //                   Controller: _controller,
+        //                   onSave: () {
+        //                     if (_controller.text.isNotEmpty) {
+        //                       setState(() {
+        //                         additionalTasks.add({
+        //                           'task': _controller.text,
+        //                           'completed': false
+        //                         });
+        //                       });
+        //                       saveAdditionalTasksToSharedPreferences(
+        //                           additionalTasks);
+        //                       saveAdditionalTasksToFirebase(additionalTasks);
+        //                       Navigator.of(context).pop();
+        //                     }
+        //                   },
+        //                   onCancel: () {
+        //                     Navigator.of(context).pop();
+        //                   },
+        //                 );
+        //               },
+        //             );
+        //           },
+        //           child: Icon(Icons.add),
+        //         ),
+        //       ),
+      ),
     );
   }
 
@@ -1110,65 +1198,71 @@ class _HomeScreenState extends State<HomeScreen>
                           builder: (context) => const ProgressTracker()),
                     );
                   },
-                  child: Container(
-                    height: 15.h,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                          color: Colors.grey,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                      color: Colors.white,
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(5.w),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flash(
-                                delay: Duration(milliseconds: 800),
-                                duration: Duration(milliseconds: 800),
-                                child: Text(
-                                  '$daysLeft',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 8.w,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                'days left for new year',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 3.w,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                          CircularPercentIndicator(
-                            radius: 10.w,
-                            lineWidth: 8.0,
-                            percent: taskCompletion,
-                            center: Text(
-                              "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 5.w,
-                                color: Colors.blue,
-                              ),
-                            ),
-                            progressColor: Colors.green,
-                            backgroundColor: Colors.grey[300]!,
+                  child: Center(
+                    child: Container(
+                      height: 15.h,
+                      width: 75.w,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 10,
+                            spreadRadius: 1,
+                            color: Colors.grey,
+                            offset: const Offset(0, 5),
                           ),
                         ],
+                        color: Colors.white,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(3.w), // Reduced padding
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flash(
+                                  delay: Duration(milliseconds: 800),
+                                  duration: Duration(milliseconds: 800),
+                                  child: Text(
+                                    '$daysLeft',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 8.w,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  'days left for new year',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 3.w,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Use Flexible here to prevent overflow in larger screens
+                            Flexible(
+                              child: CircularPercentIndicator(
+                                radius: 10.w,
+                                lineWidth: 8.0,
+                                percent: taskCompletion,
+                                center: Text(
+                                  "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 5.w,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                progressColor: Colors.green,
+                                backgroundColor: Colors.grey[300]!,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1226,6 +1320,99 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
             ),
+            // Center(
+            //   child: ElevatedButton(
+            //     style: ButtonStyle(
+            //       backgroundColor: MaterialStateProperty.all(Colors.white),
+            //       shape: MaterialStateProperty.all(
+            //         RoundedRectangleBorder(
+            //           borderRadius:
+            //               BorderRadius.circular(16), // more rounded corners
+            //           side: BorderSide(
+            //               color: Colors.grey.shade200,
+            //               width: 1), // subtle border
+            //         ),
+            //       ),
+            //       elevation: MaterialStateProperty.all(5), // subtle shadow
+            //     ),
+            //     child: Icon(
+            //       Icons.add,
+            //       size: 20.sp, // Increased icon size for better visibility
+            //       color: Colors.blue,
+            //     ),
+            //     onPressed: () {
+            //       // Show the dialog informing user to add tasks
+            //       showDialog(
+            //         context: context,
+            //         builder: (context) {
+            //           return AlertDialog(
+            //             backgroundColor: Colors.white,
+            //             shape: RoundedRectangleBorder(
+            //               borderRadius: BorderRadius.circular(12),
+            //             ),
+            //             title: Row(
+            //               children: [
+            //                 Icon(Icons.add_task, color: Colors.blue, size: 30),
+            //                 SizedBox(width: 10),
+            //                 Text(
+            //                   'Daily Tasks',
+            //                   style: GoogleFonts.plusJakartaSans(
+            //                     fontWeight: FontWeight.w600,
+            //                     fontSize: 16.sp,
+            //                     color: Colors.black87,
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //             content: Padding(
+            //               padding: EdgeInsets.symmetric(vertical: 8),
+            //               child: Text(
+            //                 'You need to add a daily task from the "Edit Tasks" page in settings. These tasks should be completed every day.',
+            //                 style: GoogleFonts.plusJakartaSans(
+            //                   fontSize: 12.sp,
+            //                   color: Colors.black54,
+            //                 ),
+            //                 textAlign: TextAlign.start,
+            //               ),
+            //             ),
+            //             actions: <Widget>[
+            //               TextButton(
+            //                 style: TextButton.styleFrom(
+            //                   foregroundColor: Colors.blue,
+            //                   backgroundColor: Colors.white,
+            //                   shape: RoundedRectangleBorder(
+            //                     borderRadius: BorderRadius.circular(8),
+            //                   ),
+            //                   padding: EdgeInsets.symmetric(
+            //                       vertical: 10, horizontal: 20),
+            //                 ),
+            //                 child: Text(
+            //                   'Go to Edit Tasks',
+            //                   style: GoogleFonts.plusJakartaSans(
+            //                     fontSize: 14.sp,
+            //                     fontWeight: FontWeight.w500,
+            //                   ),
+            //                 ),
+            //                 onPressed: () {
+            //                   Navigator.of(context).pop(); // Close the dialog
+            //                   Navigator.push(
+            //                     context,
+            //                     MaterialPageRoute(
+            //                       builder: (context) => AddTasks(
+            //                           input:
+            //                               1), // Assuming AddTasks is the page where the user can edit tasks
+            //                     ),
+            //                   );
+            //                 },
+            //               ),
+            //             ],
+            //           );
+            //         },
+            //       );
+            //     },
+            //   ),
+            // ),
+
             SizedBox(height: 2.h),
             // TextButton(
             //     onPressed: () {
@@ -1298,8 +1485,62 @@ class _HomeScreenState extends State<HomeScreen>
                 },
               ),
             SizedBox(
-              height: 20.h,
-            )
+              height: 1.h,
+            ),
+            Center(
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.white),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                          color: Colors.grey.shade200,
+                          width: 1), // subtle border
+                    ),
+                  ),
+                  // uniform padding
+                  elevation: MaterialStateProperty.all(5), // subtle shadow
+                ),
+                child: Icon(
+                  Icons.add,
+                  size: 20.sp, // Increased icon size for better visibility
+                  color: Colors.blue,
+                ),
+                onPressed: () {
+                  final _controller = TextEditingController();
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return DialogBox(
+                        Controller: _controller,
+                        onSave: () {
+                          if (_controller.text.isNotEmpty) {
+                            setState(() {
+                              additionalTasks.add({
+                                'task': _controller.text,
+                                'completed': false
+                              });
+                            });
+                            saveAdditionalTasksToSharedPreferences(
+                                additionalTasks);
+                            saveAdditionalTasksToFirebase(additionalTasks);
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        onCancel: () {
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+
+            SizedBox(
+              height: 10.h,
+            ),
           ],
         ),
       ),
@@ -1342,9 +1583,9 @@ class TaskCard extends StatelessWidget {
             },
             background: Container(
               color: Colors.red,
-              alignment: Alignment.centerRight,
+              alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Icon(Icons.delete, color: Colors.white),
+              child: Icon(IconlyLight.delete, color: Colors.white),
             ),
             child: _buildTaskCard(),
           )
