@@ -173,7 +173,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   void previousMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month - 1, 1);
-      fetchTotalTaskDataFromFirebase(); // Fetch data for the new month
+      fetchTotalTaskDataFromFirebase(); 
     });
   }
 
