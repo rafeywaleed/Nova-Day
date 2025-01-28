@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:iconly/iconly.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -121,6 +122,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
+        duration: Duration(seconds: 1),
       ),
     );
   }
@@ -295,125 +297,198 @@ class _NotificationSettingsState extends State<NotificationSettings> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Set your daily task reminders:',
-                    style: GoogleFonts.plusJakartaSans(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  ...notificationTimes.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final time = entry.value;
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Reminder Time ${index + 1}:',
-                            style:
-                                GoogleFonts.plusJakartaSans(fontSize: 12.sp)),
-                        TextButton(
-                          onPressed: () => selectTime(context, index),
-                          child: Text(
-                            time.format(context),
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.sp, color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(Colors.white),
-                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.blue)))),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Add Reminder   ",
-                          style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.sp,
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Icon(Icons.add, size: 12.sp, color: Colors.blue),
-                      ],
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        notificationTimes
-                            .add(const TimeOfDay(hour: 6, minute: 30));
-                      });
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Reminder notifications will be sent every day at your selected times.',
-                          style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12, color: Colors.grey),
-                        ),
-                      ),
-                      Switch(
-                        value: notificationsEnabled,
-                        onChanged: toggleNotifications,
-                        activeColor: Colors.blue,
-                        inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: Colors.grey[300],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
+        child: Column(
+          children: [
+            // Main content wrapped in Expanded to push the bottom elements to the bottom
+            Expanded(
+              child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Center(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Reminder notifications will be sent every day at your selected times.',
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.sp, color: Colors.black),
                           ),
-                          minimumSize: const Size(100, 40),
                         ),
-                        onPressed: () async {
-                          toggleNotifications(notificationsEnabled);
-                          if (widget.intro == 1) {
-                            Navigator.pop(context);
-                          } else if (widget.intro == 0) {
-                            _showWelcomeDialog(context);
-                          }
-                        },
-                        child: const Text('Save Settings'),
-                      ),
+                        Switch(
+                          value: notificationsEnabled,
+                          onChanged: toggleNotifications,
+                          activeColor: Colors.blue,
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey[300],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'TimeZone is with respect to GMT+5:30',
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12, color: Colors.grey),
+                    Divider(
+                      color: const Color.fromARGB(255, 217, 217, 217),
+                    ),
+                    SizedBox(height: 10.sp),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Set your daily task reminders:',
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        ...notificationTimes.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final time = entry.value;
+                          return Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Reminder Time ${index + 1}:',
+                                    style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12.sp)),
+                                Row(
+                                  children: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          selectTime(context, index),
+                                      child: Text(
+                                        time.format(context),
+                                        style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12.sp,
+                                            color: Colors.blue),
+                                      ),
+                                    ),
+                                    Text(
+                                      "|",
+                                      style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.sp, color: Colors.grey),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(IconlyLight.delete,
+                                          size: 15.sp, color: Colors.red),
+                                      onPressed: () => _deleteReminder(index),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        Center(
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all(Colors.white),
+                                shape: MaterialStateProperty.all(
+                                    RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side:
+                                            BorderSide(color: Colors.white)))),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Add Reminder   ",
+                                  style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.sp,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Icon(Icons.add,
+                                    size: 12.sp, color: Colors.blue),
+                              ],
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                notificationTimes
+                                    .add(const TimeOfDay(hour: 6, minute: 30));
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10.sp,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // Bottom section containing TimeZone text and the save button
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Divider(
+                    color: const Color.fromARGB(255, 217, 217, 217),
+                  ),
+                  Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        minimumSize: const Size(100, 40),
+                      ),
+                      onPressed: () async {
+                        toggleNotifications(notificationsEnabled);
+                        if (widget.intro == 1) {
+                          Navigator.pop(context);
+                        } else if (widget.intro == 0) {
+                          _showWelcomeDialog(context);
+                        }
+                      },
+                      child: const Text('Save Settings'),
+                    ),
+                  ),
+                  Divider(
+                    color: const Color.fromARGB(255, 217, 217, 217),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'TimeZone is with respect to GMT+5:30',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+// This method will handle deleting the reminder
+  void _deleteReminder(int index) async {
+    setState(() {
+      notificationTimes.removeAt(index); // Remove the time from the list
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'notificationTimes',
+      notificationTimes.map((time) => '${time.hour}:${time.minute}').toList(),
+    );
+
+    // Cancel the notification for the deleted reminder
+    await _notificationsPlugin.cancel(index);
+
+    // Show feedback to the user
+    _showSnackBar('Reminder deleted successfully!', Colors.green);
+  }
+}
+
+Widget _buildDismissedItem(
+    TimeOfDay time, Animation<double> animation, context) {
+  return SizeTransition(
+    sizeFactor: animation,
+    child: ListTile(
+      title: Text(time.format(context)),
+      trailing: Icon(Icons.delete, size: 10.sp, color: Colors.blue),
+    ),
+  );
 }
