@@ -54,43 +54,34 @@ class _NotesListPageState extends State<NotesListPage> {
     final createdDate = DateTime.parse(note['createdDate']);
     final formattedDate = DateFormat('MMM dd, yyyy').format(createdDate);
 
-    return Dismissible(
-      key: Key(note['id']),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.only(right: 5.w),
-        child: Icon(Icons.delete, color: Colors.white, size: 24.sp),
-      ),
-      onDismissed: (direction) => _deleteNote(note['id']),
-      child: GestureDetector(
-        onTap: () => _openNote(note),
-        child: Container(
-          margin: EdgeInsets.all(1.5.w),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              )
+    return GestureDetector(
+      onTap: () => _openNote(note),
+      onLongPress: () =>
+          _showNoteOptions(context, note['id']), // Long-press menu
+      child: Container(
+        margin: EdgeInsets.all(1.5.w),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            )
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(4.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildNoteTitle(note, theme, textColor),
+              SizedBox(height: 1.h),
+              _buildNoteBody(note, theme, textColor),
+              SizedBox(height: 1.h),
+              _buildNoteFooter(note, theme, textColor, formattedDate),
             ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(4.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildNoteTitle(note, theme, textColor),
-                SizedBox(height: 1.h),
-                _buildNoteBody(note, theme, textColor),
-                SizedBox(height: 1.h),
-                _buildNoteFooter(note, theme, textColor, formattedDate),
-              ],
-            ),
           ),
         ),
       ),
@@ -158,6 +149,65 @@ class _NotesListPageState extends State<NotesListPage> {
           .delete();
       _fetchNotes();
     }
+  }
+
+  void _showNoteOptions(BuildContext context, String noteId) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Delete Note', style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  _confirmDeleteNote(noteId); // Show confirmation dialog
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.edit, color: Colors.blue),
+                title: Text('Edit Note', style: TextStyle(color: Colors.blue)),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  // Add logic to edit the note
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteNote(String noteId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Note'),
+          content: Text('Are you sure you want to delete this note?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteNote(noteId);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _openNote(Map<String, dynamic>? note) {
