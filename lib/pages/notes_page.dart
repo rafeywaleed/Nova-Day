@@ -132,8 +132,6 @@ class _NotesListPageState extends State<NotesListPage> {
             fontSize: 9.sp,
           ),
         ),
-        if (note['pinned'] == true)
-          Icon(Icons.push_pin, color: textColor.withOpacity(0.7), size: 12.sp),
       ],
     );
   }
@@ -154,28 +152,95 @@ class _NotesListPageState extends State<NotesListPage> {
   void _showNoteOptions(BuildContext context, String noteId) {
     showModalBottomSheet(
       context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20), // Rounded corners for the bottom sheet
+        ),
+      ),
       builder: (BuildContext context) {
         return Container(
           padding: EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Header for the bottom sheet
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Note Options',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Divider(), // Divider to separate the header from options
+              // Delete Option
               ListTile(
                 leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete Note', style: TextStyle(color: Colors.red)),
+                title: Text(
+                  'Delete Note',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14.sp,
+                    color: Colors.red,
+                  ),
+                ),
+                subtitle: Text(
+                  'Permanently remove this note',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.sp,
+                    color: Colors.grey,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(context); // Close the bottom sheet
                   _confirmDeleteNote(noteId); // Show confirmation dialog
                 },
               ),
+              // Edit Option
               ListTile(
                 leading: Icon(Icons.edit, color: Colors.blue),
-                title: Text('Edit Note', style: TextStyle(color: Colors.blue)),
+                title: Text(
+                  'Edit Note',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14.sp,
+                    color: Colors.blue,
+                  ),
+                ),
+                subtitle: Text(
+                  'Modify the content of this note',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.sp,
+                    color: Colors.grey,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(context); // Close the bottom sheet
                   // Add logic to edit the note
                 },
               ),
+              // Pin/Unpin Option (Example)
+              // ListTile(
+              //   leading: Icon(Icons.push_pin, color: Colors.orange),
+              //   title: Text(
+              //     'Pin Note',
+              //     style: GoogleFonts.plusJakartaSans(
+              //       fontSize: 14.sp,
+              //       color: Colors.orange,
+              //     ),
+              //   ),
+              //   subtitle: Text(
+              //     'Keep this note at the top',
+              //     style: GoogleFonts.plusJakartaSans(
+              //       fontSize: 10.sp,
+              //       color: Colors.grey,
+              //     ),
+              //   ),
+              //   onTap: () {
+              //     Navigator.pop(context); // Close the bottom sheet
+              //     // Add logic to pin/unpin the note
+              //   },
+              // ),
             ],
           ),
         );
