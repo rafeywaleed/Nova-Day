@@ -1079,21 +1079,21 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     NavigationRailDestination(
                       icon: _selectedIndex == 2
-                          ? Icon(IconlyLight.setting,
-                              color: Colors.blue, size: 12.w)
-                          : Icon(IconlyBroken.setting, size: 9.w),
-                      label: Text(
-                        'Settings',
-                        style: GoogleFonts.plusJakartaSans(),
-                      ),
-                    ),
-                    NavigationRailDestination(
-                      icon: _selectedIndex == 3
                           ? Icon(IconlyLight.paper,
                               color: Colors.blue, size: 12.w)
                           : Icon(IconlyBroken.paper, size: 9.w),
                       label: Text(
                         'Notes',
+                        style: GoogleFonts.plusJakartaSans(),
+                      ),
+                    ),
+                    NavigationRailDestination(
+                      icon: _selectedIndex == 3
+                          ? Icon(IconlyLight.setting,
+                              color: Colors.blue, size: 12.w)
+                          : Icon(IconlyBroken.setting, size: 9.w),
+                      label: Text(
+                        'Settings',
                         style: GoogleFonts.plusJakartaSans(),
                       ),
                     ),
@@ -1171,9 +1171,10 @@ class _HomeScreenState extends State<HomeScreen>
       case 1:
         return ProgressTracker();
       case 2:
-        return UserSettingsPage();
-      case 3:
         return NotesListPage();
+      case 3:
+        return UserSettingsPage();
+
       default:
         return _buildHomeContent();
     }
