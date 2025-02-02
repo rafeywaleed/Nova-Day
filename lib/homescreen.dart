@@ -6,8 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hundred_days/cloud/admin_notifiy.dart';
+import 'package:hundred_days/pages/add_notes.dart';
 import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
+import 'package:hundred_days/pages/notes_page.dart';
 import 'package:hundred_days/pages/notification_settings.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
@@ -1062,7 +1064,7 @@ class _HomeScreenState extends State<HomeScreen>
                           : Icon(IconlyBroken.home, size: 9.w),
                       label: Text(
                         'Home',
-                        style: GoogleFonts.plusJakartaSans(),
+                        style: GoogleFonts.sourceCodePro(),
                       ),
                     ),
                     NavigationRailDestination(
@@ -1082,6 +1084,16 @@ class _HomeScreenState extends State<HomeScreen>
                           : Icon(IconlyBroken.setting, size: 9.w),
                       label: Text(
                         'Settings',
+                        style: GoogleFonts.plusJakartaSans(),
+                      ),
+                    ),
+                    NavigationRailDestination(
+                      icon: _selectedIndex == 3
+                          ? Icon(IconlyLight.paper,
+                              color: Colors.blue, size: 12.w)
+                          : Icon(IconlyBroken.paper, size: 9.w),
+                      label: Text(
+                        'Notes',
                         style: GoogleFonts.plusJakartaSans(),
                       ),
                     ),
@@ -1160,7 +1172,8 @@ class _HomeScreenState extends State<HomeScreen>
         return ProgressTracker();
       case 2:
         return UserSettingsPage();
-
+      case 3:
+        return NotesListPage();
       default:
         return _buildHomeContent();
     }
@@ -1414,19 +1427,16 @@ class _HomeScreenState extends State<HomeScreen>
             // ),
 
             SizedBox(height: 2.h),
-            // TextButton(
-            //     onPressed: () {
-            //       printDefaultTasksWithStatus();
-            //       printSt();
-            //       checkAndUpdateTasks();
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //           builder: (context) => SplashScreen(),
-            //         ),
-            //       );
-            //     },
-            //     child: Text('button')),
+            TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddNotePage(),
+                    ),
+                  );
+                },
+                child: Text('button')),
             Text(
               "Additional Tasks:",
               style: GoogleFonts.plusJakartaSans(
