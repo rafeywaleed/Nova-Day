@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 final List<Map<String, dynamic>> themes = [
   // Default theme
-
   {
     'titleFont': 'Poppins',
     'bodyFont': 'Open Sans',
@@ -12,7 +11,7 @@ final List<Map<String, dynamic>> themes = [
   },
   // Classic Themes
   {
-    'titleFont': 'Plus Jakarta Sans',
+    'titleFont': 'Oswald',
     'bodyFont': 'Lora',
     'textColor': Color.fromRGBO(80, 49, 47, 1),
     'backgroundColor': Color.fromRGBO(219, 204, 181, 1),
@@ -23,7 +22,6 @@ final List<Map<String, dynamic>> themes = [
     'textColor': Color.fromRGBO(240, 214, 187, 1),
     'backgroundColor': Color.fromRGBO(53, 53, 53, 1),
   },
-
   {
     'titleFont': 'Poppins',
     'bodyFont': 'Open Sans',
@@ -31,14 +29,20 @@ final List<Map<String, dynamic>> themes = [
     'backgroundColor': Color.fromRGBO(247, 197, 204, 1),
   },
   {
-    'titleFont': 'Oswald',
-    'bodyFont': 'Lora',
+    'titleFont': 'Abril Fatface',
+    'bodyFont': 'Poppins',
+    'textColor': Color.fromRGBO(37, 31, 84, 1),
+    'backgroundColor': Color.fromRGBO(209, 200, 255, 1),
+  },
+  {
+    'titleFont': 'Lora',
+    'bodyFont': 'Lato',
     'textColor': Color.fromRGBO(38, 25, 17, 1),
     'backgroundColor': Color.fromRGBO(249, 246, 239, 1),
   },
   {
-    'titleFont': 'Lustria',
-    'bodyFont': 'Lato',
+    'titleFont': 'Lora',
+    'bodyFont': 'Open Sans',
     'textColor': Color.fromRGBO(245, 240, 236, 1),
     'backgroundColor': Color.fromRGBO(0, 0, 0, 1),
   },
@@ -80,12 +84,6 @@ final List<Map<String, dynamic>> themes = [
     'textColor': Color.fromRGBO(33, 29, 30, 1),
     'backgroundColor': Color.fromRGBO(233, 230, 225, 1),
   },
-  {
-    'titleFont': 'Spectral',
-    'bodyFont': 'Lora',
-    'textColor': Color.fromRGBO(249, 248, 246, 1),
-    'backgroundColor': Color.fromRGBO(7, 54, 48, 1),
-  },
 
   {
     'titleFont': 'Halant',
@@ -93,12 +91,7 @@ final List<Map<String, dynamic>> themes = [
     'textColor': Color.fromRGBO(209, 202, 194, 1),
     'backgroundColor': Color.fromRGBO(29, 29, 29, 1),
   },
-  {
-    'titleFont': 'Abril Fatface',
-    'bodyFont': 'Poppins',
-    'textColor': Color.fromRGBO(37, 31, 84, 1),
-    'backgroundColor': Color.fromRGBO(209, 200, 255, 1),
-  },
+
   // Modern Themes
   {
     'titleFont': 'Roboto',
@@ -128,12 +121,6 @@ final List<Map<String, dynamic>> themes = [
     'titleFont': 'Nunito',
     'bodyFont': 'Open Sans',
     'textColor': Color.fromRGBO(236, 232, 231, 1),
-    'backgroundColor': Color.fromRGBO(46, 54, 65, 1),
-  },
-  {
-    'titleFont': 'Oswald',
-    'bodyFont': 'Merriweather',
-    'textColor': Color.fromRGBO(221, 225, 236, 1),
     'backgroundColor': Color.fromRGBO(46, 54, 65, 1),
   },
   {
