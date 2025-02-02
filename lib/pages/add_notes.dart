@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -105,7 +106,11 @@ class _AddNotePageState extends State<AddNotePage> {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return dateTime.toIso8601String(); // ISO 8601 format
+    // Format the date as dd MMM yyyy
+    String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
+    // Format the time as HH:mm
+    String formattedTime = DateFormat('HH:mm').format(dateTime);
+    return '$formattedDate $formattedTime'; // Combine date and time
   }
 
   String generateUniqueId() {
@@ -222,11 +227,11 @@ class _AddNotePageState extends State<AddNotePage> {
         iconTheme: IconThemeData(color: textColor),
         actions: [
           IconButton(
-            icon: Icon(Icons.color_lens, color: textColor),
+            icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
             onPressed: _showThemeModal,
           ),
           IconButton(
-            icon: Icon(Icons.save, color: textColor),
+            icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
             onPressed: _saveNote,
           ),
         ],

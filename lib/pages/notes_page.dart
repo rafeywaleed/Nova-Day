@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
@@ -252,24 +253,26 @@ class _NotesListPageState extends State<NotesListPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Note'),
-          content: Text('Are you sure you want to delete this note?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Delete'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _deleteNote(noteId);
-              },
-            ),
-          ],
+        return FlipInX(
+          child: AlertDialog(
+            title: Text('Delete Note'),
+            content: Text('Are you sure you want to delete this note?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('Delete'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _deleteNote(noteId);
+                },
+              ),
+            ],
+          ),
         );
       },
     );
@@ -323,14 +326,18 @@ class _NotesListPageState extends State<NotesListPage> {
                   childAspectRatio: 0.75,
                 ),
                 itemCount: _notes.length,
-                itemBuilder: (context, index) =>
-                    _buildNoteCard(_notes[index], context),
+                itemBuilder: (context, index) => FadeInUp(
+                  delay: Duration(milliseconds: 100 * index),
+                  child: _buildNoteCard(_notes[index], context),
+                ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openNote(null),
-        backgroundColor: Colors.teal,
-        child: Icon(Icons.add, size: 20.sp),
+      floatingActionButton: Bounce(
+        child: FloatingActionButton(
+          onPressed: () => _openNote(null),
+          backgroundColor: Colors.teal,
+          child: Icon(Icons.add, size: 20.sp),
+        ),
       ),
     );
   }
