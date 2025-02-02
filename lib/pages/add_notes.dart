@@ -8,6 +8,10 @@ import 'dart:convert';
 import 'package:hundred_days/utils/notes_theme_list.dart';
 
 class AddNotePage extends StatefulWidget {
+  final Map<String, dynamic>? note;
+
+  AddNotePage({this.note});
+
   @override
   _AddNotePageState createState() => _AddNotePageState();
 }
@@ -23,6 +27,11 @@ class _AddNotePageState extends State<AddNotePage> {
   @override
   void initState() {
     super.initState();
+    if (widget.note != null) {
+      _titleController.text = widget.note!['title'];
+      _bodyController.text = widget.note!['body'];
+      _selectedThemeIndex = widget.note!['themeIndex'];
+    }
     _titleController.addListener(_updateAppBarTitle);
   }
 
@@ -46,28 +55,35 @@ class _AddNotePageState extends State<AddNotePage> {
       return;
     }
 
+    final uniqueId =
+        widget.note != null ? widget.note!['id'] : generateUniqueId();
+
     final note = {
       'title': _titleController.text,
       'body': _bodyController.text,
-      'createdDate': _formatDateTime(_createdDate),
+      'createdDate': widget.note != null
+          ? widget.note!['createdDate']
+          : _formatDateTime(_createdDate),
       'lastModifiedDate': _formatDateTime(DateTime.now()),
       'themeIndex': _selectedThemeIndex,
     };
 
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_titleController.text, jsonEncode(note));
+    await prefs.setString(uniqueId, jsonEncode(note));
+    print("Note saved to SharedPreferences with ID: $uniqueId");
 
     // Save to Firebase
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
           .collection('notes')
-          .doc(user.email)
-          .collection(_titleController.text)
-          .doc('details')
+          .doc(uniqueId)
           .set(note);
     }
+    print("saved to Firebase with ID: $uniqueId");
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Note saved successfully!')),
@@ -76,8 +92,30 @@ class _AddNotePageState extends State<AddNotePage> {
     Navigator.pop(context);
   }
 
+  Future<void> deleteNote(String noteId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(noteId)
+          .delete();
+    }
+  }
+
   String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}-${dateTime.month}-${dateTime.year}';
+    return dateTime.toIso8601String(); // ISO 8601 format
+  }
+
+  String generateUniqueId() {
+    final now = DateTime.now();
+    final day = now.day.toString().padLeft(2, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final year = now.year.toString();
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    return '$day$month$year$hour$minute';
   }
 
   void _showThemeModal() {
