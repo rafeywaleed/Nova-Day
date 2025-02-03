@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:animate_do/animate_do.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +23,7 @@ class _NotesListPageState extends State<NotesListPage> {
   List<Map<String, dynamic>> _notes = [];
   final String _notesKey = 'cached_notes';
   String _sortOrder = 'Descending'; // Default sort order
+  bool _isOnline = false;
 
   @override
   void initState() {
@@ -27,6 +31,102 @@ class _NotesListPageState extends State<NotesListPage> {
     _fetchNotes();
     _loadCachedNotes();
     _syncNotes();
+    _myCheck();
+    _isOnline = false;
+    _checkInternetConnectivity();
+    // Delay the initial connectivity check until after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialConnectivity();
+    });
+  }
+
+  // Updated _myCheck method
+  Future<void> _myCheck() async {
+    List<ConnectivityResult> connectivityResults =
+        await Connectivity().checkConnectivity();
+    bool isConnected = connectivityResults.any(
+      (result) => result != ConnectivityResult.none,
+    );
+
+    if (!isConnected) {
+      log("Device is offline");
+      print("Device is offline");
+    } else {
+      log("Device is online");
+      print("Device is online");
+    }
+  }
+
+// Updated _checkInitialConnectivity method
+  Future<void> _checkInitialConnectivity() async {
+    List<ConnectivityResult> connectivityResults =
+        await Connectivity().checkConnectivity();
+    bool isOnline = connectivityResults.any(
+      (result) => result != ConnectivityResult.none,
+    );
+
+    if (mounted) {
+      setState(() => _isOnline = isOnline);
+      if (!_isOnline) {
+        _showSnackBar(
+            'No internet connection, fetching notes from local device',
+            Colors.red);
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text(
+        //         'No internet connection, fetching notes from local device'),
+        //     duration: Duration(seconds: 4),
+        //   ),
+        // );
+      }
+    }
+  }
+
+// Updated connectivity listener
+  void _checkInternetConnectivity() {
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      bool isOnline = results.any(
+        (result) => result != ConnectivityResult.none,
+      );
+
+      if (mounted) {
+        setState(() => _isOnline = isOnline);
+      }
+
+      isOnline
+          ? _showSnackBar('Back online', Colors.green)
+          : _showSnackBar(
+              'No internet connection, fetching notes from local device ',
+              Colors.red);
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text(isOnline
+      //         ? 'Back online'
+      //         : 'No internet connection, fetching notes from local device '),
+      //     duration: Duration(seconds: isOnline ? 2 : 4),
+      //   ),
+      // );
+
+      if (isOnline) _syncNotes();
+    });
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        showCloseIcon: true,
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _loadCachedNotes() async {
@@ -361,12 +461,26 @@ class _NotesListPageState extends State<NotesListPage> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () => _fetchNotes(),
+      onRefresh: () async {
+        await _fetchNotes();
+        _checkInternetConnectivity();
+        _checkInitialConnectivity();
+      },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('My Notes',
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18.sp, fontWeight: FontWeight.w600)),
+          title: Row(
+            children: [
+              Text('My Notes',
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18.sp, fontWeight: FontWeight.w600)),
+              SizedBox(width: 8),
+              Icon(
+                _isOnline ? Icons.cloud : Icons.cloud_off,
+                size: 18.sp,
+                color: _isOnline ? Colors.green : Colors.red,
+              ),
+            ],
+          ),
           actions: [
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -376,7 +490,7 @@ class _NotesListPageState extends State<NotesListPage> {
                 });
               },
               itemBuilder: (BuildContext context) {
-                return {'Ascending  ', 'Descending'}.map((String choice) {
+                return {'Ascending', 'Descending'}.map((String choice) {
                   return PopupMenuItem<String>(
                     value: choice,
                     child: Text(choice),
