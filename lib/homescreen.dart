@@ -1062,40 +1062,60 @@ class _HomeScreenState extends State<HomeScreen>
                           ? Icon(IconlyLight.home,
                               color: Colors.blue, size: 12.w)
                           : Icon(IconlyBroken.home, size: 9.w),
-                      label: Text(
-                        'Home',
-                        style: GoogleFonts.sourceCodePro(),
-                      ),
+                      label: _selectedIndex == 0
+                          ? Text(
+                              'Home',
+                              style: GoogleFonts.sourceCodePro(),
+                            )
+                          : Text(" "),
                     ),
                     NavigationRailDestination(
                       icon: _selectedIndex == 1
-                          ? Icon(IconlyLight.graph,
+                          ? Icon(Icons.add_task_rounded,
                               color: Colors.blue, size: 12.w)
-                          : Icon(IconlyBroken.graph, size: 9.w),
-                      label: Text(
-                        'Record',
-                        style: GoogleFonts.plusJakartaSans(),
-                      ),
+                          : Icon(Icons.task_alt_rounded, size: 9.w),
+                      label: _selectedIndex == 1
+                          ? Text(
+                              'Daily\nTasks',
+                              style: GoogleFonts.plusJakartaSans(),
+                            )
+                          : Text(" "),
                     ),
                     NavigationRailDestination(
                       icon: _selectedIndex == 2
                           ? Icon(IconlyLight.paper,
                               color: Colors.blue, size: 12.w)
                           : Icon(IconlyBroken.paper, size: 9.w),
-                      label: Text(
-                        'Notes',
-                        style: GoogleFonts.plusJakartaSans(),
-                      ),
+                      label: _selectedIndex == 2
+                          ? Text(
+                              'Notes',
+                              style: GoogleFonts.plusJakartaSans(),
+                            )
+                          : Text(" "),
                     ),
                     NavigationRailDestination(
                       icon: _selectedIndex == 3
+                          ? Icon(IconlyLight.graph,
+                              color: Colors.blue, size: 12.w)
+                          : Icon(IconlyBroken.graph, size: 9.w),
+                      label: _selectedIndex == 3
+                          ? Text(
+                              'Record',
+                              style: GoogleFonts.plusJakartaSans(),
+                            )
+                          : Text(' '),
+                    ),
+                    NavigationRailDestination(
+                      icon: _selectedIndex == 4
                           ? Icon(IconlyLight.setting,
                               color: Colors.blue, size: 12.w)
                           : Icon(IconlyBroken.setting, size: 9.w),
-                      label: Text(
-                        'Settings',
-                        style: GoogleFonts.plusJakartaSans(),
-                      ),
+                      label: _selectedIndex == 4
+                          ? Text(
+                              'Settings',
+                              style: GoogleFonts.plusJakartaSans(),
+                            )
+                          : Text(" "),
                     ),
                   ],
                 ),
@@ -1169,10 +1189,12 @@ class _HomeScreenState extends State<HomeScreen>
       case 0:
         return _buildHomeContent();
       case 1:
-        return ProgressTracker();
+        return AddTasks(input: 1);
       case 2:
         return NotesListPage();
       case 3:
+        return ProgressTracker();
+      case 4:
         return UserSettingsPage();
 
       default:
@@ -1427,17 +1449,17 @@ class _HomeScreenState extends State<HomeScreen>
             //   ),
             // ),
 
-            SizedBox(height: 2.h),
-            TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddNotePage(),
-                    ),
-                  );
-                },
-                child: Text('button')),
+            SizedBox(height: 1.h),
+            // TextButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (context) => AddNotePage(),
+            //         ),
+            //       );
+            //     },
+            //     child: Text('button')),
             Text(
               "Additional Tasks:",
               style: GoogleFonts.plusJakartaSans(

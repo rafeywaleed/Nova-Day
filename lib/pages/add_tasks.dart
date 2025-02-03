@@ -65,7 +65,7 @@ class _AddTasksState extends State<AddTasks> {
                   color: Colors.black),
             ),
             content: Text(
-              'You can modify the task and change notification settings anytime\n\nSettings->Edit Tasks\nSettings->Notification',
+              'You can modify the task and change notification settings anytime',
               style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.sp, color: Colors.grey),
             ),

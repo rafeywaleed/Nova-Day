@@ -197,17 +197,17 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                 ),
               ),
               // Ensure each section is wrapped properly
-              _buildSection(
-                'Edit Tasks',
-                'Easily modify your daily tasks.',
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddTasks(input: 1)),
-                  );
-                },
-              ),
+              // _buildSection(
+              //   'Edit Tasks',
+              //   'Easily modify your daily tasks.',
+              //   () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //           builder: (context) => const AddTasks(input: 1)),
+              //     );
+              //   },
+              // ),
               _buildSection(
                 'Notifications',
                 'Schedule your Reminders',
@@ -246,7 +246,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => const IntroScreen(
-                              input: 1,
+                              input: 0,
                             )),
                   );
                 },
