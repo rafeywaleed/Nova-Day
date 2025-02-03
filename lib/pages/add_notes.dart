@@ -64,9 +64,8 @@ class _AddNotePageState extends State<AddNotePage> {
       'body': _bodyController.text,
       'createdDate': widget.note != null
           ? widget.note!['createdDate']
-          : _formatDateTime(_createdDate), // Save in ISO 8601 format
-      'lastModifiedDate':
-          _formatDateTime(DateTime.now()), // Save in ISO 8601 format
+          : _formatDateTime(_createdDate),
+      'lastModifiedDate': _formatDateTime(DateTime.now()),
       'themeIndex': _selectedThemeIndex,
     };
 
@@ -75,7 +74,7 @@ class _AddNotePageState extends State<AddNotePage> {
     await prefs.setString(uniqueId, jsonEncode(note));
     print("Note saved to SharedPreferences with ID: $uniqueId");
 
-    // Save to Firebase
+    // Save to Firestore
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await FirebaseFirestore.instance
@@ -85,7 +84,7 @@ class _AddNotePageState extends State<AddNotePage> {
           .doc(uniqueId)
           .set(note);
     }
-    print("saved to Firebase with ID: $uniqueId");
+    print("Note saved to Firestore with ID: $uniqueId");
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Note saved successfully!')),

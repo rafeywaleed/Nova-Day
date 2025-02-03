@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +21,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await FirebaseApi().initNotification();
   await Firebase.initializeApp();
-
+  FirebaseFirestore.instance.settings = Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
   tz.initializeTimeZones();
   await NotificationService.initialize();
 

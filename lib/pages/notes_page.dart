@@ -19,13 +19,14 @@ class NotesListPage extends StatefulWidget {
 class _NotesListPageState extends State<NotesListPage> {
   List<Map<String, dynamic>> _notes = [];
   final String _notesKey = 'cached_notes';
-  String _sortOrder = 'Ascending'; // Default sort order
+  String _sortOrder = 'Descending'; // Default sort order
 
   @override
   void initState() {
     super.initState();
     _fetchNotes();
     _loadCachedNotes();
+    _syncNotes();
   }
 
   Future<void> _loadCachedNotes() async {
@@ -68,16 +69,68 @@ class _NotesListPageState extends State<NotesListPage> {
   }
 
   Future<void> _fetchNotes() async {
-    final notes = await fetchNotes();
-    setState(() => _notes = notes);
-    _sortNotes(); // Sort notes after fetching
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // Fetch notes from Firestore
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .get();
+
+      final notes = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+
+      // Save notes to SharedPreferences
+      await _saveNotesToCache(notes);
+
+      setState(() => _notes = notes);
+      _sortNotes();
+    } catch (e) {
+      // If Firestore fails (e.g., offline), load cached notes
+      print("Error fetching notes from Firestore: $e");
+      await _loadCachedNotes();
+    }
+  }
+
+  Future<void> _syncNotes() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // Fetch notes from Firestore
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .get();
+
+      final notes = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+
+      // Save notes to SharedPreferences
+      await _saveNotesToCache(notes);
+
+      setState(() => _notes = notes);
+      _sortNotes();
+    } catch (e) {
+      print("Error syncing notes: $e");
+    }
   }
 
   void _sortNotes() {
     _notes.sort((a, b) {
       DateTime dateA = DateTime.parse(a['createdDate']);
       DateTime dateB = DateTime.parse(b['createdDate']);
-      return _sortOrder == 'Descending'
+      return _sortOrder == 'Ascending'
           ? dateA.compareTo(dateB)
           : dateB.compareTo(dateA);
     });
@@ -323,7 +376,7 @@ class _NotesListPageState extends State<NotesListPage> {
                 });
               },
               itemBuilder: (BuildContext context) {
-                return {'Descending', 'Ascending'}.map((String choice) {
+                return {'Ascending  ', 'Descending'}.map((String choice) {
                   return PopupMenuItem<String>(
                     value: choice,
                     child: Text(choice),
