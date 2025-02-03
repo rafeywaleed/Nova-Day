@@ -239,44 +239,84 @@ class _NotesListPageState extends State<NotesListPage> {
     return themes[themeIndex % themes.length];
   }
 
+  bool _showDeleteButton = false;
+
   Widget _buildNoteCard(Map<String, dynamic> note, BuildContext context) {
     final theme = _getTheme(note['themeIndex']);
     final textColor = theme['textColor'];
     final backgroundColor = theme['backgroundColor'];
 
-    // Use DateTime.parse to parse the createdDate string
     DateTime createdDate = DateTime.parse(note['createdDate']);
     final formattedDate = DateFormat('MMM dd, yyyy').format(createdDate);
 
     return GestureDetector(
       onTap: () => _openNote(note),
-      onLongPress: () => _showNoteOptions(context, note['id']),
-      child: Container(
-        margin: EdgeInsets.all(1.5.w),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            )
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(4.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildNoteTitle(note, theme, textColor),
-              SizedBox(height: 1.h),
-              _buildNoteBody(note, theme, textColor),
-              SizedBox(height: 1.h),
-              _buildNoteFooter(note, theme, textColor, formattedDate),
-            ],
+      onLongPress: () {
+        setState(() {
+          _showDeleteButton = true;
+        });
+      },
+      child: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.all(1.5.w),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(4.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildNoteTitle(note, theme, textColor),
+                  SizedBox(height: 1.h),
+                  _buildNoteBody(note, theme, textColor),
+                  SizedBox(height: 1.h),
+                  _buildNoteFooter(note, theme, textColor, formattedDate),
+                ],
+              ),
+            ),
           ),
-        ),
+          // Delete button overlay (visible only on long press)
+          Visibility(
+            visible: _showDeleteButton,
+            child: Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _showDeleteButton = false;
+                  });
+                  _confirmDeleteNote(note['id']);
+                },
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.9),
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(15),
+                      bottomLeft: Radius.circular(15),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                    size: 16.sp,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

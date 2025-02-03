@@ -102,8 +102,8 @@ final List<Map<String, dynamic>> themes = [
   {
     'titleFont': 'Quicksand',
     'bodyFont': 'Open Sans',
-    'textColor': Color.fromRGBO(15, 12, 19, 1),
-    'backgroundColor': Color.fromRGBO(230, 225, 222, 1),
+    'textColor': Color.fromRGBO(230, 225, 222, 1),
+    'backgroundColor': Color.fromRGBO(0, 110, 99, 1),
   },
   {
     'titleFont': 'Oswald',
