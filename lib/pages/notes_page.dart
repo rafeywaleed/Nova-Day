@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,11 +18,30 @@ class NotesListPage extends StatefulWidget {
 
 class _NotesListPageState extends State<NotesListPage> {
   List<Map<String, dynamic>> _notes = [];
+  final String _notesKey = 'cached_notes';
 
   @override
   void initState() {
     super.initState();
     _fetchNotes();
+    _loadCachedNotes();
+  }
+
+  Future<void> _loadCachedNotes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedNotes = prefs.getString(_notesKey);
+    if (cachedNotes != null) {
+      setState(() {
+        _notes = (jsonDecode(cachedNotes) as List)
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      });
+    }
+  }
+
+  Future<void> _saveNotesToCache(List<Map<String, dynamic>> notes) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_notesKey, jsonEncode(notes));
   }
 
   Future<List<Map<String, dynamic>>> fetchNotes() async {
@@ -32,11 +54,16 @@ class _NotesListPageState extends State<NotesListPage> {
         .collection('notes')
         .get();
 
-    return querySnapshot.docs.map((doc) {
+    final notes = querySnapshot.docs.map((doc) {
       final data = doc.data();
       data['id'] = doc.id;
       return data;
     }).toList();
+
+    // Save the fetched notes to cache
+    await _saveNotesToCache(notes);
+
+    return notes;
   }
 
   Future<void> _fetchNotes() async {
@@ -57,8 +84,7 @@ class _NotesListPageState extends State<NotesListPage> {
 
     return GestureDetector(
       onTap: () => _openNote(note),
-      onLongPress: () =>
-          _showNoteOptions(context, note['id']), // Long-press menu
+      onLongPress: () => _showNoteOptions(context, note['id']),
       child: Container(
         margin: EdgeInsets.all(1.5.w),
         decoration: BoxDecoration(

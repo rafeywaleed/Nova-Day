@@ -64,8 +64,9 @@ class _AddNotePageState extends State<AddNotePage> {
       'body': _bodyController.text,
       'createdDate': widget.note != null
           ? widget.note!['createdDate']
-          : _formatDateTime(_createdDate),
-      'lastModifiedDate': _formatDateTime(DateTime.now()),
+          : _formatDateTime(_createdDate), // Save in ISO 8601 format
+      'lastModifiedDate':
+          _formatDateTime(DateTime.now()), // Save in ISO 8601 format
       'themeIndex': _selectedThemeIndex,
     };
 
@@ -105,10 +106,16 @@ class _AddNotePageState extends State<AddNotePage> {
     }
   }
 
+  // Save date and time in ISO 8601 format
   String _formatDateTime(DateTime dateTime) {
-    // Format the date as dd MMM yyyy
+    return dateTime.toIso8601String(); // ISO 8601 format
+  }
+
+  // Display date and time in dd MM yyyy hh:mm format
+  String _formatDateTimeForDisplay(DateTime dateTime) {
+    // Format the date as dd mm yyyy
     String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
-    // Format the time as HH:mm
+    // Format the time as hh:mm
     String formattedTime = DateFormat('HH:mm').format(dateTime);
     return '$formattedDate $formattedTime'; // Combine date and time
   }
@@ -243,14 +250,14 @@ class _AddNotePageState extends State<AddNotePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Created: ${_formatDateTime(_createdDate)}',
+              'Created: ${_formatDateTimeForDisplay(_createdDate)}', // Display in dd MM yyyy hh:mm format
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 8.sp,
                 color: textColor.withOpacity(0.6),
               ),
             ),
             Text(
-              'Last Modified: ${_formatDateTime(_lastModifiedDate)}',
+              'Last Modified: ${_formatDateTimeForDisplay(_lastModifiedDate)}', // Display in dd MM yyyy hh:mm format
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 8.sp,
                 color: textColor.withOpacity(0.6),
