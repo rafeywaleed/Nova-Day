@@ -127,7 +127,9 @@ class _AddNotePageState extends State<AddNotePage> {
     final year = now.year.toString();
     final hour = now.hour.toString().padLeft(2, '0');
     final minute = now.minute.toString().padLeft(2, '0');
-    return '$day$month$year$hour$minute';
+    final second = now.second.toString().padLeft(2, '0'); // Include seconds
+
+    return '$day$month$year$hour$minute$second'; // Unique ID with seconds
   }
 
   void _showThemeModal() {

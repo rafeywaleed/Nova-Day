@@ -19,6 +19,7 @@ class NotesListPage extends StatefulWidget {
 class _NotesListPageState extends State<NotesListPage> {
   List<Map<String, dynamic>> _notes = [];
   final String _notesKey = 'cached_notes';
+  String _sortOrder = 'Ascending'; // Default sort order
 
   @override
   void initState() {
@@ -69,6 +70,17 @@ class _NotesListPageState extends State<NotesListPage> {
   Future<void> _fetchNotes() async {
     final notes = await fetchNotes();
     setState(() => _notes = notes);
+    _sortNotes(); // Sort notes after fetching
+  }
+
+  void _sortNotes() {
+    _notes.sort((a, b) {
+      DateTime dateA = DateTime.parse(a['createdDate']);
+      DateTime dateB = DateTime.parse(b['createdDate']);
+      return _sortOrder == 'Descending'
+          ? dateA.compareTo(dateB)
+          : dateB.compareTo(dateA);
+    });
   }
 
   Map<String, dynamic> _getTheme(int themeIndex) {
@@ -79,7 +91,9 @@ class _NotesListPageState extends State<NotesListPage> {
     final theme = _getTheme(note['themeIndex']);
     final textColor = theme['textColor'];
     final backgroundColor = theme['backgroundColor'];
-    final createdDate = DateTime.parse(note['createdDate']);
+
+    // Use DateTime.parse to parse the createdDate string
+    DateTime createdDate = DateTime.parse(note['createdDate']);
     final formattedDate = DateFormat('MMM dd, yyyy').format(createdDate);
 
     return GestureDetector(
@@ -246,28 +260,6 @@ class _NotesListPageState extends State<NotesListPage> {
                   // Add logic to edit the note
                 },
               ),
-              // Pin/Unpin Option (Example)
-              // ListTile(
-              //   leading: Icon(Icons.push_pin, color: Colors.orange),
-              //   title: Text(
-              //     'Pin Note',
-              //     style: GoogleFonts.plusJakartaSans(
-              //       fontSize: 14.sp,
-              //       color: Colors.orange,
-              //     ),
-              //   ),
-              //   subtitle: Text(
-              //     'Keep this note at the top',
-              //     style: GoogleFonts.plusJakartaSans(
-              //       fontSize: 10.sp,
-              //       color: Colors.grey,
-              //     ),
-              //   ),
-              //   onTap: () {
-              //     Navigator.pop(context); // Close the bottom sheet
-              //     // Add logic to pin/unpin the note
-              //   },
-              // ),
             ],
           ),
         );
@@ -322,6 +314,25 @@ class _NotesListPageState extends State<NotesListPage> {
           title: Text('My Notes',
               style: GoogleFonts.plusJakartaSans(
                   fontSize: 18.sp, fontWeight: FontWeight.w600)),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                setState(() {
+                  _sortOrder = value;
+                  _sortNotes(); // Sort notes when the order is changed
+                });
+              },
+              itemBuilder: (BuildContext context) {
+                return {'Descending', 'Ascending'}.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              },
+              icon: Icon(Icons.sort, color: Colors.black),
+            ),
+          ],
           elevation: 0,
         ),
         body: _notes.isEmpty
