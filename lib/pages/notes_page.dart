@@ -289,54 +289,57 @@ class _NotesListPageState extends State<NotesListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('My Notes',
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 18.sp, fontWeight: FontWeight.w600)),
-        elevation: 0,
-      ),
-      body: _notes.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.note_add, size: 20.w, color: Colors.grey),
-                  SizedBox(height: 2.h),
-                  Text(
-                    'No Notes Found',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16.sp, color: Colors.grey),
-                  ),
-                  Text(
-                    'Tap + to create your first note',
-                    style: GoogleFonts.poppins(
-                        fontSize: 12.sp, color: Colors.grey),
-                  ),
-                ],
-              ),
-            )
-          : Padding(
-              padding: EdgeInsets.all(2.w),
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 2.w,
-                  crossAxisSpacing: 2.w,
-                  childAspectRatio: 0.75,
+    return RefreshIndicator(
+      onRefresh: () => _fetchNotes(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('My Notes',
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18.sp, fontWeight: FontWeight.w600)),
+          elevation: 0,
+        ),
+        body: _notes.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.note_add, size: 20.w, color: Colors.grey),
+                    SizedBox(height: 2.h),
+                    Text(
+                      'No Notes Found',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16.sp, color: Colors.grey),
+                    ),
+                    Text(
+                      'Tap + to create your first note',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12.sp, color: Colors.grey),
+                    ),
+                  ],
                 ),
-                itemCount: _notes.length,
-                itemBuilder: (context, index) => FadeInUp(
-                  delay: Duration(milliseconds: 100 * index),
-                  child: _buildNoteCard(_notes[index], context),
+              )
+            : Padding(
+                padding: EdgeInsets.all(2.w),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 2.w,
+                    crossAxisSpacing: 2.w,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: _notes.length,
+                  itemBuilder: (context, index) => FadeInUp(
+                    delay: Duration(milliseconds: 100 * index),
+                    child: _buildNoteCard(_notes[index], context),
+                  ),
                 ),
               ),
-            ),
-      floatingActionButton: Bounce(
-        child: FloatingActionButton(
-          onPressed: () => _openNote(null),
-          backgroundColor: Colors.teal,
-          child: Icon(Icons.add, size: 20.sp),
+        floatingActionButton: Bounce(
+          child: FloatingActionButton(
+            onPressed: () => _openNote(null),
+            backgroundColor: Colors.teal,
+            child: Icon(Icons.add, size: 20.sp),
+          ),
         ),
       ),
     );
