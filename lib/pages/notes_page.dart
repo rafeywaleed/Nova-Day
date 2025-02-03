@@ -22,22 +22,37 @@ class NotesListPage extends StatefulWidget {
 class _NotesListPageState extends State<NotesListPage> {
   List<Map<String, dynamic>> _notes = [];
   final String _notesKey = 'cached_notes';
+  final String _sortOrderKey = 'sort_order'; // Key for sort order preference
   String _sortOrder = 'Descending'; // Default sort order
   bool _isOnline = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchNotes();
-    _loadCachedNotes();
-    _syncNotes();
-    _myCheck();
-    _isOnline = false;
-    _checkInternetConnectivity();
-    // Delay the initial connectivity check until after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkInitialConnectivity();
+    _loadSortOrderPreference().then((_) {
+      _fetchNotes();
+      _loadCachedNotes();
+      _syncNotes();
+      _myCheck();
+      _isOnline = false;
+      _checkInternetConnectivity();
+      // Delay the initial connectivity check until after the first frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkInitialConnectivity();
+      });
     });
+  }
+
+  Future<void> _loadSortOrderPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _sortOrder = prefs.getString(_sortOrderKey) ?? 'Descending';
+    });
+  }
+
+  Future<void> _saveSortOrderPreference(String sortOrder) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sortOrderKey, sortOrder);
   }
 
   // Updated _myCheck method
@@ -57,7 +72,7 @@ class _NotesListPageState extends State<NotesListPage> {
     }
   }
 
-// Updated _checkInitialConnectivity method
+  // Updated _checkInitialConnectivity method
   Future<void> _checkInitialConnectivity() async {
     List<ConnectivityResult> connectivityResults =
         await Connectivity().checkConnectivity();
@@ -71,18 +86,11 @@ class _NotesListPageState extends State<NotesListPage> {
         _showSnackBar(
             'No internet connection, fetching notes from local device. Process may be slow',
             const Color.fromARGB(255, 83, 83, 83));
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text(
-        //         'No internet connection, fetching notes from local device'),
-        //     duration: Duration(seconds: 4),
-        //   ),
-        // );
       }
     }
   }
 
-// Updated connectivity listener
+  // Updated connectivity listener
   void _checkInternetConnectivity() {
     Connectivity()
         .onConnectivityChanged
@@ -100,15 +108,6 @@ class _NotesListPageState extends State<NotesListPage> {
           : _showSnackBar(
               'No internet connection, fetching notes from local device. Process may be slow',
               Colors.red);
-
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text(isOnline
-      //         ? 'Back online'
-      //         : 'No internet connection, fetching notes from local device '),
-      //     duration: Duration(seconds: isOnline ? 2 : 4),
-      //   ),
-      // );
 
       if (isOnline) _syncNotes();
     });
@@ -358,17 +357,17 @@ class _NotesListPageState extends State<NotesListPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Header for the bottom sheet
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  'Note Options',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Divider(), // Divider to separate the header from options
+              // Padding(
+              //   padding: EdgeInsets.symmetric(vertical: 8),
+              //   child: Text(
+              //     'Note Options',
+              //     style: GoogleFonts.plusJakartaSans(
+              //       fontSize: 16.sp,
+              //       fontWeight: FontWeight.w600,
+              //     ),
+              //   ),
+              // ),
+              // Divider(), // Divider to separate the header from options
               // Delete Option
               ListTile(
                 leading: Icon(Icons.delete, color: Colors.red),
@@ -392,27 +391,27 @@ class _NotesListPageState extends State<NotesListPage> {
                 },
               ),
               // Edit Option
-              ListTile(
-                leading: Icon(Icons.edit, color: Colors.blue),
-                title: Text(
-                  'Edit Note',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.sp,
-                    color: Colors.blue,
-                  ),
-                ),
-                subtitle: Text(
-                  'Modify the content of this note',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.sp,
-                    color: Colors.grey,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  // Add logic to edit the note
-                },
-              ),
+              // ListTile(
+              //   leading: Icon(Icons.edit, color: Colors.blue),
+              //   title: Text(
+              //     'Edit Note',
+              //     style: GoogleFonts.plusJakartaSans(
+              //       fontSize: 14.sp,
+              //       color: Colors.blue,
+              //     ),
+              //   ),
+              //   subtitle: Text(
+              //     'Modify the content of this note',
+              //     style: GoogleFonts.plusJakartaSans(
+              //       fontSize: 10.sp,
+              //       color: Colors.grey,
+              //     ),
+              //   ),
+              //   onTap: () {
+              //     Navigator.pop(context); // Close the bottom sheet
+              //     // Add logic to edit the note
+              //   },
+              // ),
             ],
           ),
         );
@@ -424,26 +423,24 @@ class _NotesListPageState extends State<NotesListPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return FlipInX(
-          child: AlertDialog(
-            title: Text('Delete Note'),
-            content: Text('Are you sure you want to delete this note?'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('Delete'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _deleteNote(noteId);
-                },
-              ),
-            ],
-          ),
+        return AlertDialog(
+          title: Text('Delete Note'),
+          content: Text('Are you sure you want to delete this note?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteNote(noteId);
+              },
+            ),
+          ],
         );
       },
     );
@@ -457,6 +454,23 @@ class _NotesListPageState extends State<NotesListPage> {
       ),
     ).then((_) => _fetchNotes());
   }
+
+  // void _showSlow() {
+  //   if (!_isOnline)
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         showCloseIcon: true,
+  //         content: Text(
+  //             'No internet connection, fetching notes from local device. Process may be slow'),
+  //         backgroundColor: Colors.grey,
+  //         behavior: SnackBarBehavior.floating,
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(10.0),
+  //         ),
+  //         duration: Duration(seconds: 8),
+  //       ),
+  //     );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -486,6 +500,7 @@ class _NotesListPageState extends State<NotesListPage> {
               onSelected: (value) {
                 setState(() {
                   _sortOrder = value;
+                  _saveSortOrderPreference(value); // Save the sort order
                   _sortNotes(); // Sort notes when the order is changed
                 });
               },
@@ -524,21 +539,29 @@ class _NotesListPageState extends State<NotesListPage> {
               )
             : Padding(
                 padding: EdgeInsets.all(2.w),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 2.w,
-                    crossAxisSpacing: 2.w,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemCount: _notes.length,
-                  itemBuilder: (context, index) => FadeInUp(
-                    delay: Duration(milliseconds: 100 * index),
-                    child: _buildNoteCard(_notes[index], context),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 2.w,
+                          crossAxisSpacing: 2.w,
+                          childAspectRatio: 0.75,
+                        ),
+                        itemCount: _notes.length,
+                        itemBuilder: (context, index) => FadeInUp(
+                          delay: Duration(milliseconds: 100 * index),
+                          child: _buildNoteCard(_notes[index], context),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
         floatingActionButton: Bounce(
+          duration: Duration(milliseconds: 1000),
           child: FloatingActionButton(
             onPressed: () => _openNote(null),
             backgroundColor: Colors.teal,
