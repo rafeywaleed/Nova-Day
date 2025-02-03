@@ -69,8 +69,8 @@ class _NotesListPageState extends State<NotesListPage> {
       setState(() => _isOnline = isOnline);
       if (!_isOnline) {
         _showSnackBar(
-            'No internet connection, fetching notes from local device',
-            Colors.red);
+            'No internet connection, fetching notes from local device. Process may be slow',
+            const Color.fromARGB(255, 83, 83, 83));
         // ScaffoldMessenger.of(context).showSnackBar(
         //   SnackBar(
         //     content: Text(
@@ -98,7 +98,7 @@ class _NotesListPageState extends State<NotesListPage> {
       isOnline
           ? _showSnackBar('Back online', Colors.green)
           : _showSnackBar(
-              'No internet connection, fetching notes from local device ',
+              'No internet connection, fetching notes from local device. Process may be slow',
               Colors.red);
 
       // ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +124,7 @@ class _NotesListPageState extends State<NotesListPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        duration: Duration(seconds: 3),
+        duration: Duration(seconds: 4),
       ),
     );
   }

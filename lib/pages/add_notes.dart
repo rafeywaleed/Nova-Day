@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,8 +25,8 @@ class _AddNotePageState extends State<AddNotePage> {
   final _bodyController = TextEditingController();
   DateTime _createdDate = DateTime.now();
   DateTime _lastModifiedDate = DateTime.now();
+
   int _selectedThemeIndex = 0;
-  bool _isNoteSaved = false;
 
   @override
   void initState() {
@@ -34,7 +35,6 @@ class _AddNotePageState extends State<AddNotePage> {
       _titleController.text = widget.note!['title'];
       _bodyController.text = widget.note!['body'];
       _selectedThemeIndex = widget.note!['themeIndex'];
-      _isNoteSaved = true;
     }
     _titleController.addListener(_updateAppBarTitle);
     _checkInternetConnectivity();
@@ -48,16 +48,18 @@ class _AddNotePageState extends State<AddNotePage> {
     super.dispose();
   }
 
-  _checkInternetConnectivity() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No Internet Connection'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  _checkInternetConnectivity() {
+    final Connectivity _connectivity = Connectivity();
+    Connectivity().checkConnectivity().then((value) {
+      if (value == ConnectivityResult.none) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No Internet Connection'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
   }
 
   void _updateAppBarTitle() {
@@ -74,13 +76,15 @@ class _AddNotePageState extends State<AddNotePage> {
 
     final uniqueId =
         widget.note != null ? widget.note!['id'] : generateUniqueId();
+
     final note = {
       'title': _titleController.text,
       'body': _bodyController.text,
       'createdDate': widget.note != null
           ? widget.note!['createdDate']
-          : _formatDateTime(_createdDate),
-      'lastModifiedDate': _formatDateTime(DateTime.now()),
+          : _formatDateTime(_createdDate), // Save in ISO 8601 format
+      'lastModifiedDate':
+          _formatDateTime(DateTime.now()), // Save in ISO 8601 format
       'themeIndex': _selectedThemeIndex,
     };
 
@@ -89,79 +93,67 @@ class _AddNotePageState extends State<AddNotePage> {
     await prefs.setString(uniqueId, jsonEncode(note));
     log("Note saved to SharedPreferences with ID: $uniqueId");
 
-    // Save to Firebase if online
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult != ConnectivityResult.none) {
-      log("Before Firebase");
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        try {
-          await FirebaseFirestore.instance
-              .collection('userNotes')
-              .doc(user.uid)
-              .collection('notes')
-              .doc(uniqueId)
-              .set(note);
-          log("saved to Firebase with ID: $uniqueId");
-          _isNoteSaved = true;
-        } catch (e) {
-          log("Error saving to Firebase: $e");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save note to Firebase.')),
-          );
-        }
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Note saved locally. Will sync when online.')),
-      );
-      _isNoteSaved = true;
+    log("Before SnackBar");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Note saved successfully!')),
+    );
+    log("After SnackBar");
+
+    // Save to Firebase
+    log("Before FIrebase");
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(uniqueId)
+          .set(note);
     }
+    log("saved to Firebase with ID: $uniqueId");
 
-    if (_isNoteSaved) {
-      log("Before SnackBar");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Note saved successfully!')),
-      );
-      log("After SnackBar");
+    // log("Before Navigator");
+    // Navigator.pop(context);
+    // log("After Navigator");
+  }
 
-      log("Before Navigator");
-      Navigator.pop(context);
-      log("After Navigator");
+  Future<void> deleteNote(String noteId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(noteId)
+          .delete();
     }
   }
 
-  Future<bool> _onWillPop() async {
-    if (!_isNoteSaved &&
-        (_titleController.text.isNotEmpty || _bodyController.text.isNotEmpty)) {
-      final shouldPop = await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Unsaved Changes'),
-          content:
-              Text('You have unsaved changes. Are you sure you want to leave?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('No'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Yes'),
-            ),
-          ],
-        ),
-      );
-      return shouldPop ?? false;
-    }
-    return true;
+  // Save date and time in ISO 8601 format
+  String _formatDateTime(DateTime dateTime) {
+    return dateTime.toIso8601String(); // ISO 8601 format
   }
 
-  String _formatDateTime(DateTime dateTime) => dateTime.toIso8601String();
-  String _formatDateTimeForDisplay(DateTime dateTime) =>
-      DateFormat('dd MMM yyyy HH:mm').format(dateTime);
-  String generateUniqueId() =>
-      DateFormat('ddMMyyyyHHmmss').format(DateTime.now());
+  // Display date and time in dd MM yyyy hh:mm format
+  String _formatDateTimeForDisplay(DateTime dateTime) {
+    // Format the date as dd mm yyyy
+    String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
+    // Format the time as hh:mm
+    String formattedTime = DateFormat('HH:mm').format(dateTime);
+    return '$formattedDate $formattedTime'; // Combine date and time
+  }
+
+  String generateUniqueId() {
+    final now = DateTime.now();
+    final day = now.day.toString().padLeft(2, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final year = now.year.toString();
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    final second = now.second.toString().padLeft(2, '0'); // Include seconds
+
+    return '$day$month$year$hour$minute$second'; // Unique ID with seconds
+  }
 
   void _showThemeModal() {
     showModalBottomSheet(
@@ -252,91 +244,88 @@ class _AddNotePageState extends State<AddNotePage> {
     final textColor = theme['textColor'];
     final backgroundColor = theme['backgroundColor'];
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            _titleController.text.isEmpty ? 'Add Note' : _titleController.text,
-            style: GoogleFonts.getFont(
-              theme['titleFont'],
-              fontSize: 20.sp,
-              color: textColor,
-              fontWeight: FontWeight.bold,
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _titleController.text.isEmpty ? 'Add Note' : _titleController.text,
+          style: GoogleFonts.getFont(
+            theme['titleFont'],
+            fontSize: 20.sp,
+            color: textColor,
+            fontWeight: FontWeight.bold,
           ),
-          backgroundColor: backgroundColor,
-          iconTheme: IconThemeData(color: textColor),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
-              onPressed: _showThemeModal,
-            ),
-            IconButton(
-              icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
-              onPressed: _saveNote,
-            ),
-          ],
         ),
         backgroundColor: backgroundColor,
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Created: ${_formatDateTimeForDisplay(_createdDate)}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 8.sp,
-                  color: textColor.withOpacity(0.6),
-                ),
-              ),
-              Text(
-                'Last Modified: ${_formatDateTimeForDisplay(_lastModifiedDate)}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 8.sp,
-                  color: textColor.withOpacity(0.6),
-                ),
-              ),
-              SizedBox(height: 2.h),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  labelStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.sp,
-                    color: textColor,
-                  ),
-                  border: InputBorder.none,
-                ),
-                style: GoogleFonts.getFont(
-                  theme['titleFont'],
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-                maxLines: 1,
-              ),
-              SizedBox(height: 1.h),
-              TextField(
-                controller: _bodyController,
-                decoration: InputDecoration(
-                  labelText: 'Body',
-                  labelStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.sp,
-                    color: textColor,
-                  ),
-                  border: InputBorder.none,
-                ),
-                style: GoogleFonts.getFont(
-                  theme['bodyFont'],
-                  fontSize: 14.sp,
-                  color: textColor,
-                ),
-                maxLines: null,
-              ),
-            ],
+        iconTheme: IconThemeData(color: textColor),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
+            onPressed: _showThemeModal,
           ),
+          IconButton(
+            icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
+            onPressed: _saveNote,
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Created: ${_formatDateTimeForDisplay(_createdDate)}', // Display in dd MM yyyy hh:mm format
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 8.sp,
+                color: textColor.withOpacity(0.6),
+              ),
+            ),
+            Text(
+              'Last Modified: ${_formatDateTimeForDisplay(_lastModifiedDate)}', // Display in dd MM yyyy hh:mm format
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 8.sp,
+                color: textColor.withOpacity(0.6),
+              ),
+            ),
+            SizedBox(height: 2.h),
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                labelText: 'Title',
+                labelStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.sp,
+                  color: textColor,
+                ),
+                border: InputBorder.none,
+              ),
+              style: GoogleFonts.getFont(
+                theme['titleFont'],
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+              maxLines: 1,
+            ),
+            SizedBox(height: 1.h),
+            TextField(
+              controller: _bodyController,
+              decoration: InputDecoration(
+                labelText: 'Body',
+                labelStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.sp,
+                  color: textColor,
+                ),
+                border: InputBorder.none,
+              ),
+              style: GoogleFonts.getFont(
+                theme['bodyFont'],
+                fontSize: 14.sp,
+                color: textColor,
+              ),
+              maxLines: null,
+            ),
+          ],
         ),
       ),
     );
