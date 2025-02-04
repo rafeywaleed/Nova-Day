@@ -230,9 +230,9 @@ class _AddTasksState extends State<AddTasks> {
               style: GoogleFonts.plusJakartaSans(
                   fontSize: 10.sp, color: Colors.grey),
             ),
-            Divider(
-              color: Colors.grey,
-            ),
+            // Divider(
+            //   color: Colors.grey,
+            // ),
 
             const SizedBox(height: 16),
             // Padding(
@@ -461,7 +461,7 @@ class _AddTasksState extends State<AddTasks> {
             Text(
               'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
               style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.sp, color: Colors.grey),
+                  fontSize: 8.sp, color: Colors.grey),
             ),
           ],
         ),

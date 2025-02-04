@@ -11,7 +11,7 @@ final List<Map<String, dynamic>> themes = [
   },
   // Classic Themes
   {
-    'titleFont': 'Oswald',
+    'titleFont': 'Plus Jakarta Sans',
     'bodyFont': 'Lora',
     'textColor': Color.fromRGBO(80, 49, 47, 1),
     'backgroundColor': Color.fromRGBO(219, 204, 181, 1),
@@ -67,7 +67,7 @@ final List<Map<String, dynamic>> themes = [
     'backgroundColor': Color.fromRGBO(219, 204, 181, 1),
   },
   {
-    'titleFont': 'Yeseva One',
+    'titleFont': 'Playfair Display',
     'bodyFont': 'Lora',
     'textColor': Color.fromRGBO(219, 169, 136, 1),
     'backgroundColor': Color.fromRGBO(22, 44, 58, 1),
@@ -106,7 +106,7 @@ final List<Map<String, dynamic>> themes = [
     'backgroundColor': Color.fromRGBO(0, 110, 99, 1),
   },
   {
-    'titleFont': 'Oswald',
+    'titleFont': 'Plus Jakarta Sans',
     'bodyFont': 'Merriweather',
     'textColor': Color.fromRGBO(249, 249, 249, 1),
     'backgroundColor': Color.fromRGBO(51, 47, 48, 1),

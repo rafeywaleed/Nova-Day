@@ -592,7 +592,7 @@ class _NotesListPageState extends State<NotesListPage> {
                         ),
                         itemCount: _notes.length,
                         itemBuilder: (context, index) => FadeInUp(
-                          delay: Duration(milliseconds: 100 * index),
+                          delay: Duration(milliseconds: 300 * index),
                           child: _buildNoteCard(_notes[index], context),
                         ),
                       ),

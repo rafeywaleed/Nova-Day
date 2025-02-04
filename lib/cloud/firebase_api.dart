@@ -58,12 +58,13 @@ class FirebaseApi {
 
     // Subscribe to topic
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    await subscribeToTopic('allUsers');
+    print("Subscribed to allUsers");
+
     final docSnapshot =
         await _firestore.collection('adminPanel').doc('currentTopic').get();
     final n =
         await _firestore.collection('adminPanel').doc('currentTopic').get();
-
-    await subscribeToTopic('allUsers');
 
     //By default, subscribe to the topic 'all' if no topic is found in the admin panel
     if (n == -1)
