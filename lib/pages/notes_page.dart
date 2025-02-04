@@ -63,13 +63,13 @@ class _NotesListPageState extends State<NotesListPage> {
       (result) => result != ConnectivityResult.none,
     );
 
-    if (!isConnected) {
-      log("Device is offline");
-      print("Device is offline");
-    } else {
-      log("Device is online");
-      print("Device is online");
-    }
+    // if (!isConnected) {
+    //   // log("Device is offline");
+    //   // print("Device is offline");
+    // } else {
+    //   // log("Device is online");
+    //   // print("Device is online");
+    // }
   }
 
   // Updated _checkInitialConnectivity method

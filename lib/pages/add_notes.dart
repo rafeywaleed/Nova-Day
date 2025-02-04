@@ -69,7 +69,7 @@ class _AddNotePageState extends State<AddNotePage> {
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_noteId!, jsonEncode(note));
-    log("Auto-saved note (updated) with ID: $_noteId");
+    // log("Auto-saved note (updated) with ID: $_noteId");
 
     // Save to Firebase (if user is logged in)
     final user = FirebaseAuth.instance.currentUser;
@@ -80,7 +80,7 @@ class _AddNotePageState extends State<AddNotePage> {
           .collection('notes')
           .doc(_noteId)
           .set(note);
-      log("Auto-saved note (updated) to Firebase with ID: $_noteId");
+      // log("Auto-saved note (updated) to Firebase with ID: $_noteId");
     }
   }
 
@@ -140,7 +140,7 @@ class _AddNotePageState extends State<AddNotePage> {
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_noteId!, jsonEncode(note));
-    log("Saved note (updated) with ID: $_noteId");
+    // log("Saved note (updated) with ID: $_noteId");
 
     // Save to Firebase (if user is logged in)
     final user = FirebaseAuth.instance.currentUser;
@@ -151,7 +151,7 @@ class _AddNotePageState extends State<AddNotePage> {
           .collection('notes')
           .doc(_noteId)
           .set(note);
-      log("Saved note (updated) to Firebase with ID: $_noteId");
+      // log("Saved note (updated) to Firebase with ID: $_noteId");
     }
   }
 
