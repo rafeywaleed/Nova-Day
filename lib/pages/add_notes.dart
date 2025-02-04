@@ -240,6 +240,7 @@ class _AddNotePageState extends State<AddNotePage> {
                         setState(() {
                           _selectedThemeIndex = index;
                         });
+                        _autoSaveNote();
                         Navigator.pop(context);
                       },
                       child: Container(
