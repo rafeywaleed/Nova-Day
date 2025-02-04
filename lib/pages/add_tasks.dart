@@ -196,14 +196,15 @@ class _AddTasksState extends State<AddTasks> {
       appBar: widget.input == 0
           ? AppBar()
           : AppBar(
-              leading: widget.input == 1
-                  ? IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    )
-                  : null,
+              automaticallyImplyLeading: false,
+              // leading: widget.input == 1
+              //     ? IconButton(
+              //         icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              //         onPressed: () {
+              //           Navigator.pop(context);
+              //         },
+              //       )
+              //     : null,
               title: const Text(
                 'Add Daily Task',
                 style: TextStyle(fontWeight: FontWeight.bold),

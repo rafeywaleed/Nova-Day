@@ -103,11 +103,11 @@ class _NotesListPageState extends State<NotesListPage> {
         setState(() => _isOnline = isOnline);
       }
 
-      // isOnline
-      //     ? _showSnackBar('Back online', Colors.green)
-      //     : _showSnackBar(
-      //         'No internet connection, fetching notes from local device. Process may be slow',
-      //         Colors.red);
+      isOnline
+          ? null
+          : _showSnackBar(
+              'No internet connection, fetching notes from local device. Process may be slow',
+              Color.fromARGB(255, 83, 83, 83));
 
       if (isOnline) _syncNotes();
     });
@@ -229,7 +229,7 @@ class _NotesListPageState extends State<NotesListPage> {
     _notes.sort((a, b) {
       DateTime dateA = DateTime.parse(a['createdDate']);
       DateTime dateB = DateTime.parse(b['createdDate']);
-      return _sortOrder == 'Ascending'
+      return _sortOrder == 'Descending'
           ? dateA.compareTo(dateB)
           : dateB.compareTo(dateA);
     });
@@ -528,6 +528,7 @@ class _NotesListPageState extends State<NotesListPage> {
         },
         child: Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             title: Row(
               children: [
                 Text('My Notes',
@@ -551,7 +552,7 @@ class _NotesListPageState extends State<NotesListPage> {
                   });
                 },
                 itemBuilder: (BuildContext context) {
-                  return {'Ascending', 'Descending'}.map((String choice) {
+                  return {'Descending', 'Ascending'}.map((String choice) {
                     return PopupMenuItem<String>(
                       value: choice,
                       child: Text(choice),
