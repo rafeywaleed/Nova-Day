@@ -31,18 +31,63 @@ class _AddNotePageState extends State<AddNotePage> {
   @override
   void initState() {
     super.initState();
+
     if (widget.note != null) {
       _titleController.text = widget.note!['title'];
       _bodyController.text = widget.note!['body'];
       _selectedThemeIndex = widget.note!['themeIndex'];
+      _createdDate = DateTime.parse(
+          widget.note!['createdDate']); // Keep original creation date
     }
-    _titleController.addListener(_updateAppBarTitle);
+
+    _titleController.addListener(_autoSaveNote);
+    _bodyController.addListener(_autoSaveNote);
     _checkInternetConnectivity();
+  }
+
+  void _autoSaveNote() async {
+    if (_titleController.text.trim().isEmpty &&
+        _bodyController.text.trim().isEmpty) {
+      return; // Don't save empty notes
+    }
+
+    if (_noteId == null) {
+      _noteId = widget.note != null ? widget.note!['id'] : generateUniqueId();
+    }
+
+    final note = {
+      'id': _noteId,
+      'title': _titleController.text,
+      'body': _bodyController.text,
+      'createdDate': widget.note != null
+          ? widget.note!['createdDate']
+          : _formatDateTime(_createdDate),
+      'lastModifiedDate': _formatDateTime(DateTime.now()),
+      'themeIndex': _selectedThemeIndex,
+    };
+
+    // Save to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_noteId!, jsonEncode(note));
+    log("Auto-saved note (updated) with ID: $_noteId");
+
+    // Save to Firebase (if user is logged in)
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(_noteId)
+          .set(note);
+      log("Auto-saved note (updated) to Firebase with ID: $_noteId");
+    }
   }
 
   @override
   void dispose() {
-    _titleController.removeListener(_updateAppBarTitle);
+    _titleController.removeListener(_autoSaveNote);
+    _bodyController.removeListener(_autoSaveNote);
     _titleController.dispose();
     _bodyController.dispose();
     super.dispose();
@@ -66,55 +111,48 @@ class _AddNotePageState extends State<AddNotePage> {
     setState(() {});
   }
 
+  String? _noteId; // Store the ID once
+
   Future<void> _saveNote() async {
-    if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill in both title and body.')),
-      );
-      return;
+    if (_titleController.text.trim().isEmpty &&
+        _bodyController.text.trim().isEmpty) {
+      return; // Don't save empty notes
     }
 
-    final uniqueId =
-        widget.note != null ? widget.note!['id'] : generateUniqueId();
+    if (_noteId == null) {
+      _noteId = widget.note != null
+          ? widget.note!['id']
+          : generateUniqueId(); // Only generate once
+    }
 
     final note = {
+      'id': _noteId,
       'title': _titleController.text,
       'body': _bodyController.text,
       'createdDate': widget.note != null
           ? widget.note!['createdDate']
-          : _formatDateTime(_createdDate), // Save in ISO 8601 format
+          : _formatDateTime(_createdDate),
       'lastModifiedDate':
-          _formatDateTime(DateTime.now()), // Save in ISO 8601 format
+          _formatDateTime(DateTime.now()), // Update last modified date
       'themeIndex': _selectedThemeIndex,
     };
 
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(uniqueId, jsonEncode(note));
-    log("Note saved to SharedPreferences with ID: $uniqueId");
+    await prefs.setString(_noteId!, jsonEncode(note));
+    log("Saved note (updated) with ID: $_noteId");
 
-    log("Before SnackBar");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Note saved successfully!')),
-    );
-    log("After SnackBar");
-
-    // Save to Firebase
-    log("Before FIrebase");
+    // Save to Firebase (if user is logged in)
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await FirebaseFirestore.instance
           .collection('userNotes')
           .doc(user.uid)
           .collection('notes')
-          .doc(uniqueId)
+          .doc(_noteId)
           .set(note);
+      log("Saved note (updated) to Firebase with ID: $_noteId");
     }
-    log("saved to Firebase with ID: $uniqueId");
-
-    // log("Before Navigator");
-    // Navigator.pop(context);
-    // log("After Navigator");
   }
 
   Future<void> deleteNote(String noteId) async {
@@ -262,10 +300,10 @@ class _AddNotePageState extends State<AddNotePage> {
             icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
             onPressed: _showThemeModal,
           ),
-          IconButton(
-            icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
-            onPressed: _saveNote,
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
+          //   onPressed: _saveNote,
+          // ),
         ],
       ),
       backgroundColor: backgroundColor,
