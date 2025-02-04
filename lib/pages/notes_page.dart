@@ -103,11 +103,11 @@ class _NotesListPageState extends State<NotesListPage> {
         setState(() => _isOnline = isOnline);
       }
 
-      isOnline
-          ? _showSnackBar('Back online', Colors.green)
-          : _showSnackBar(
-              'No internet connection, fetching notes from local device. Process may be slow',
-              Colors.red);
+      // isOnline
+      //     ? _showSnackBar('Back online', Colors.green)
+      //     : _showSnackBar(
+      //         'No internet connection, fetching notes from local device. Process may be slow',
+      //         Colors.red);
 
       if (isOnline) _syncNotes();
     });
@@ -514,98 +514,106 @@ class _NotesListPageState extends State<NotesListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await _fetchNotes();
-        _checkInternetConnectivity();
-        _checkInitialConnectivity();
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showDeleteButton = false;
+        });
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            children: [
-              Text('My Notes',
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18.sp, fontWeight: FontWeight.w600)),
-              SizedBox(width: 8),
-              Icon(
-                _isOnline ? Icons.cloud : Icons.cloud_off,
-                size: 18.sp,
-                color: _isOnline ? Colors.green : Colors.red,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await _fetchNotes();
+          _checkInternetConnectivity();
+          _checkInitialConnectivity();
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: Row(
+              children: [
+                Text('My Notes',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18.sp, fontWeight: FontWeight.w600)),
+                SizedBox(width: 8),
+                Icon(
+                  _isOnline ? Icons.cloud : Icons.cloud_off,
+                  size: 18.sp,
+                  color: _isOnline ? Colors.green : Colors.red,
+                ),
+              ],
+            ),
+            actions: [
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  setState(() {
+                    _sortOrder = value;
+                    _saveSortOrderPreference(value); // Save the sort order
+                    _sortNotes(); // Sort notes when the order is changed
+                  });
+                },
+                itemBuilder: (BuildContext context) {
+                  return {'Ascending', 'Descending'}.map((String choice) {
+                    return PopupMenuItem<String>(
+                      value: choice,
+                      child: Text(choice),
+                    );
+                  }).toList();
+                },
+                icon: Icon(Icons.sort, color: Colors.black),
               ),
             ],
+            elevation: 0,
           ),
-          actions: [
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                setState(() {
-                  _sortOrder = value;
-                  _saveSortOrderPreference(value); // Save the sort order
-                  _sortNotes(); // Sort notes when the order is changed
-                });
-              },
-              itemBuilder: (BuildContext context) {
-                return {'Ascending', 'Descending'}.map((String choice) {
-                  return PopupMenuItem<String>(
-                    value: choice,
-                    child: Text(choice),
-                  );
-                }).toList();
-              },
-              icon: Icon(Icons.sort, color: Colors.black),
-            ),
-          ],
-          elevation: 0,
-        ),
-        body: _notes.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.note_add, size: 20.w, color: Colors.grey),
-                    SizedBox(height: 2.h),
-                    Text(
-                      'No Notes Found',
-                      style: GoogleFonts.poppins(
-                          fontSize: 16.sp, color: Colors.grey),
-                    ),
-                    Text(
-                      'Tap + to create your first note',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12.sp, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              )
-            : Padding(
-                padding: EdgeInsets.all(2.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 2.w,
-                          crossAxisSpacing: 2.w,
-                          childAspectRatio: 0.75,
-                        ),
-                        itemCount: _notes.length,
-                        itemBuilder: (context, index) => FadeInUp(
-                          delay: Duration(milliseconds: 300 * index),
-                          child: _buildNoteCard(_notes[index], context),
+          body: _notes.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.note_add, size: 20.w, color: Colors.grey),
+                      SizedBox(height: 2.h),
+                      Text(
+                        'No Notes Found',
+                        style: GoogleFonts.poppins(
+                            fontSize: 16.sp, color: Colors.grey),
+                      ),
+                      Text(
+                        'Tap + to create your first note',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12.sp, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : Padding(
+                  padding: EdgeInsets.all(2.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 2.w,
+                            crossAxisSpacing: 2.w,
+                            childAspectRatio: 0.75,
+                          ),
+                          itemCount: _notes.length,
+                          itemBuilder: (context, index) => FadeInUp(
+                            delay: Duration(milliseconds: 300 * index),
+                            child: _buildNoteCard(_notes[index], context),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-        floatingActionButton: Bounce(
-          duration: Duration(milliseconds: 1000),
-          child: FloatingActionButton(
-            onPressed: () => _openNote(null),
-            backgroundColor: Colors.teal,
-            child: Icon(Icons.add, size: 20.sp),
+          floatingActionButton: Bounce(
+            duration: Duration(milliseconds: 1000),
+            child: FloatingActionButton(
+              onPressed: () => _openNote(null),
+              backgroundColor: Colors.teal,
+              child: Icon(Icons.add, size: 20.sp),
+            ),
           ),
         ),
       ),

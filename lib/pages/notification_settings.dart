@@ -421,9 +421,9 @@ class _NotificationSettingsState extends State<NotificationSettings> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Divider(
-                    color: const Color.fromARGB(255, 217, 217, 217),
-                  ),
+                  // Divider(
+                  //   color: const Color.fromARGB(255, 217, 217, 217),
+                  // ),
                   Center(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -445,9 +445,9 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                       child: const Text('Save Settings'),
                     ),
                   ),
-                  Divider(
-                    color: const Color.fromARGB(255, 217, 217, 217),
-                  ),
+                  // Divider(
+                  //   color: const Color.fromARGB(255, 217, 217, 217),
+                  // ),
                   const SizedBox(height: 16),
                   Text(
                     'TimeZone is with respect to GMT+5:30',

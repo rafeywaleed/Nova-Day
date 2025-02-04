@@ -1,8 +1,10 @@
 import 'dart:developer';
 
+import 'package:animate_do/animate_do.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:iconly/iconly.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,11 +47,17 @@ class _AddNotePageState extends State<AddNotePage> {
     _checkInternetConnectivity();
   }
 
+  bool _isSaving = false; // Tracks if note is being saved
+
   void _autoSaveNote() async {
     if (_titleController.text.trim().isEmpty &&
         _bodyController.text.trim().isEmpty) {
       return; // Don't save empty notes
     }
+
+    setState(() {
+      _isSaving = true; // Show autosave indicator
+    });
 
     if (_noteId == null) {
       _noteId = widget.note != null ? widget.note!['id'] : generateUniqueId();
@@ -69,7 +77,6 @@ class _AddNotePageState extends State<AddNotePage> {
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_noteId!, jsonEncode(note));
-    // log("Auto-saved note (updated) with ID: $_noteId");
 
     // Save to Firebase (if user is logged in)
     final user = FirebaseAuth.instance.currentUser;
@@ -80,8 +87,14 @@ class _AddNotePageState extends State<AddNotePage> {
           .collection('notes')
           .doc(_noteId)
           .set(note);
-      // log("Auto-saved note (updated) to Firebase with ID: $_noteId");
     }
+
+    // Hide autosave indicator after a short delay
+    Future.delayed(Duration(milliseconds: 1000), () {
+      setState(() {
+        _isSaving = false;
+      });
+    });
   }
 
   @override
@@ -296,9 +309,23 @@ class _AddNotePageState extends State<AddNotePage> {
         backgroundColor: backgroundColor,
         iconTheme: IconThemeData(color: textColor),
         actions: [
-          IconButton(
-            icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
-            onPressed: _showThemeModal,
+          if (_isSaving)
+            Padding(
+              padding: EdgeInsets.only(right: 10),
+              child: FadeIn(
+                duration: Duration(milliseconds: 500),
+                child: Icon(Icons.cloud_upload_outlined,
+                    color: textColor.withOpacity(0.7)),
+              ),
+            ),
+          Pulse(
+            child: Swing(
+              duration: Duration(milliseconds: 1000),
+              child: IconButton(
+                icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
+                onPressed: _showThemeModal,
+              ),
+            ),
           ),
           // IconButton(
           //   icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
