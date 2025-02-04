@@ -246,7 +246,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => const IntroScreen(
-                              input: 0,
+                              input: 1,
                             )),
                   );
                 },
