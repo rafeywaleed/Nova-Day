@@ -59,13 +59,13 @@ class _ProfilePageState extends State<ProfilePage> {
         await prefs.setString('userEmail', userEmail);
         await prefs.setString('joinDate', joinDate ?? '');
       } catch (e) {
-        print('Error fetching user data: ${e.toString()}');
+        //print('Error fetching user data: ${e.toString()}');
         setState(() {
           userName = 'No Name';
           userEmail = 'No Email';
           joinDate = 'No Joined Date available';
         });
-        print('Error fetching user data: ${e.toString()}');
+        //print('Error fetching user data: ${e.toString()}');
       }
     }
   }
@@ -79,15 +79,14 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _changeName() async {
-
     if (_nameController.text.isEmpty) {
-    _showSnackBar('Name cannot be empty', Colors.red);
-    return;
-  }
+      _showSnackBar('Name cannot be empty', Colors.red);
+      return;
+    }
 
     setState(() => isLoading = true);
     try {
-      print("Changing name to: ${_nameController.text}");
+      //print("Changing name to: ${_nameController.text}");
       await _firebaseService.changeName(_nameController.text);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userName', _nameController.text);
@@ -95,7 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _nameController.clear();
       _showSnackBar('Name changed successfully!', Colors.green);
     } catch (e) {
-      print('Error changing name: ${e.toString()}');
+      //print('Error changing name: ${e.toString()}');
       _showSnackBar('Error: ${e.toString()}', Colors.red);
     } finally {
       setState(() => isLoading = false);
@@ -103,26 +102,26 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _changePassword() async {
-
-     if (_passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
-    _showSnackBar('Password fields cannot be empty', Colors.red);
-    return;
-  }
-  if (_passwordController.text != _confirmPasswordController.text) {
-    _showSnackBar('Passwords do not match', Colors.red);
-    return;
-  }
+    if (_passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      _showSnackBar('Password fields cannot be empty', Colors.red);
+      return;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showSnackBar('Passwords do not match', Colors.red);
+      return;
+    }
 
     if (_passwordController.text == _confirmPasswordController.text) {
       setState(() => isLoading = true);
       try {
-        print("Changing password");
+        //print("Changing password");
         await _firebaseService.changePassword(_passwordController.text);
         _showSnackBar('Password changed successfully!', Colors.green);
         _passwordController.clear();
         _confirmPasswordController.clear();
       } catch (e) {
-        print('Error changing password: ${e.toString()}');
+        //print('Error changing password: ${e.toString()}');
         _showSnackBar('Error: ${e.toString()}', Colors.red);
       } finally {
         setState(() => isLoading = false);

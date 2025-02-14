@@ -53,7 +53,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
 
       DateTime now = DateTime.now();
       DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-      DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+      DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
 
       int totalTasksThisWeek = 0;
       int completedTasksThisWeek = 0;
@@ -74,8 +74,8 @@ class _ProgressTrackerState extends State<ProgressTracker> {
         totalTasksAllTime += totalTasks;
         completedTasksAllTime += completedTasks;
 
-        if (recordDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
-            recordDate.isBefore(endOfWeek.add(Duration(days: 1)))) {
+        if (recordDate.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+            recordDate.isBefore(endOfWeek.add(const Duration(days: 1)))) {
           totalTasksThisWeek += totalTasks;
           completedTasksThisWeek += completedTasks;
         }
@@ -90,7 +90,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
         this.completedTasksThisWeek = completedTasksThisWeek;
       });
     } catch (e) {
-      print("Error fetching total task data: $e");
+      //print("Error fetching total task data: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error fetching task data: $e'),
@@ -180,13 +180,13 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Center(
+      return const Center(
         child: PLoader(),
       );
     }
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        padding: const EdgeInsets.all(16),
         child: RefreshIndicator(
           color: Colors.blue,
           onRefresh: _handleRefresh,
@@ -220,7 +220,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
                       child: HeatMapCalendar(
-                        size: 9.w,
+                        size: 9.5.w,
                         colorTipSize: 2.w,
                         monthFontSize: 15.sp,
                         initDate: currentMonth,
@@ -246,6 +246,9 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                       ),
                     ),
                   ),
+                ),
+                Divider(
+                  color: Colors.grey.shade300,
                 ),
 
                 if (selectedDate == null) ...[
@@ -275,8 +278,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                       ),
                     ),
                   ),
-                  // Bar ```dart
-                  // Graph
+                  // BarGraph
                   Container(
                     child: Padding(
                       padding: EdgeInsets.all(2.w),
@@ -297,7 +299,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return PLoader();
+                                    return const PLoader();
                                   }
 
                                   if (snapshot.hasError) {
@@ -308,7 +310,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
 
                                   if (!snapshot.hasData ||
                                       snapshot.data!.isEmpty) {
-                                    return Center(
+                                    return const Center(
                                         child: Text('No data available.'));
                                   }
 
@@ -443,6 +445,9 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                       ),
                     ),
                   ),
+                  SizedBox(
+                    height: 10.h,
+                  )
                 ],
               ],
             ),

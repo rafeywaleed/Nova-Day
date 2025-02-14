@@ -14,7 +14,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'add_tasks.dart';
 import 'notification_settings.dart';
-import 'set_notification.dart';
 
 import 'package:in_app_update/in_app_update.dart';
 
@@ -179,6 +178,9 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: SizedBox(
+        height: 10.h,
+      ),
       key: scaffoldKey,
       body: SingleChildScrollView(
         // Allows scrolling
@@ -251,47 +253,36 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   );
                 },
               ),
-              const SizedBox(height: 20), // Add spacing before buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    // Use Expanded to take available space
-                    child: ElevatedButton(
-                      onPressed: () => logout(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8.w, vertical: 2.h),
-                      ),
-                      child: Text(
-                        'Log Out',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                        ),
-                      ),
+              SizedBox(
+                height: 1.h,
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => logout(context),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 5,
+                    // visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    backgroundColor: Colors.grey.shade100,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 2.w, vertical: 1.h), // Adjusted padding
                   ),
-                  SizedBox(width: 10), // Add spacing between buttons
-                  Expanded(
-                    // Use Expanded to take available space
-                    child: ElevatedButton(
-                      onPressed: _checkForUpdate,
-                      style: ElevatedButton.styleFrom(
-                        elevation: 5,
-                        backgroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8.w, vertical: 2.h),
-                      ),
-                      child: Text(
-                        'Update',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.green,
-                        ),
-                      ),
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Text(
+                      //   'Log Out  ',
+                      //   style: GoogleFonts.plusJakartaSans(
+                      //     color: Colors.white,
+                      //   ),
+                      // ),
+                      Icon(Icons.logout, color: Colors.red),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           ),

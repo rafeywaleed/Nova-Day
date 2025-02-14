@@ -53,7 +53,7 @@ class _IntroScreenState extends State<IntroScreen>
               _buildBackgroundImage(),
               _buildPageContent(),
               _buildNavigationButtons(),
-              widget.input == 0 ? _buildNoteText() : SizedBox.shrink(),
+              widget.input == 0 ? _buildNoteText() : const SizedBox.shrink(),
             ],
           ),
         ),
@@ -65,7 +65,7 @@ class _IntroScreenState extends State<IntroScreen>
     return Container(
       height: 100.h,
       width: 100.w,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage('assets/images/pc.png'),
           fit: BoxFit.cover,
@@ -176,7 +176,7 @@ class _IntroScreenState extends State<IntroScreen>
     if (widget.input == 0) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => AddTasks(input: 0)),
+        MaterialPageRoute(builder: (context) => const AddTasks(input: 0)),
       );
     } else {
       Navigator.pop(context); // Pop back

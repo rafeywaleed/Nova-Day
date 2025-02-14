@@ -17,7 +17,7 @@ class DialogBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: Colors.white,
-      contentPadding: EdgeInsets.all(16), // Add padding
+      contentPadding: const EdgeInsets.all(16), // Add padding
       content: Container(
         height: MediaQuery.of(context).size.height * 0.2,
         child: Column(
@@ -29,13 +29,13 @@ class DialogBox extends StatelessWidget {
               decoration: InputDecoration(
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0),
+                  borderSide: const BorderSide(color: Colors.grey, width: 1.0),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
                 hintText: "Add a new Task",
-                hintStyle: TextStyle(fontFamily: 'Manrope'),
+                hintStyle: const TextStyle(fontFamily: 'Poppins'),
               ),
             ),
 
@@ -53,11 +53,11 @@ class DialogBox extends StatelessWidget {
                     ),
                   ),
                   onPressed: onSave,
-                  child: Text(
-                    "Save",
+                  child: const Text(
+                    "Add",
                     style: TextStyle(
-                      color: Colors.white, // Change text color
-                      fontFamily: 'Manrope', // Change font family
+                      color: Colors.white,
+                      fontFamily: 'Poppins',
                     ),
                   ),
                 ),
@@ -70,14 +70,14 @@ class DialogBox extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius:
                           BorderRadius.circular(10), // Make corners rounded
-                      side: BorderSide(color: Colors.red), // Add border
+                      side: const BorderSide(color: Colors.red), // Add border
                     ),
                   ),
                   onPressed: onCancel,
-                  child: Text(
+                  child: const Text(
                     "Cancel",
                     style: TextStyle(
-                      fontFamily: 'Manrope', // Change font family
+                      fontFamily: 'Poppins', // Change font family
                     ),
                   ),
                 ),

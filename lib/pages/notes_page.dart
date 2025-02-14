@@ -65,10 +65,10 @@ class _NotesListPageState extends State<NotesListPage> {
 
     // if (!isConnected) {
     //   // log("Device is offline");
-    //   // print("Device is offline");
+    //   // //print("Device is offline");
     // } else {
     //   // log("Device is online");
-    //   // print("Device is online");
+    //   // //print("Device is online");
     // }
   }
 
@@ -107,7 +107,7 @@ class _NotesListPageState extends State<NotesListPage> {
           ? null
           : _showSnackBar(
               'No internet connection, fetching notes from local device. Process may be slow',
-              Color.fromARGB(255, 83, 83, 83));
+              const Color.fromARGB(255, 83, 83, 83));
 
       if (isOnline) _syncNotes();
     });
@@ -123,7 +123,7 @@ class _NotesListPageState extends State<NotesListPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        duration: Duration(seconds: 4),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -192,7 +192,7 @@ class _NotesListPageState extends State<NotesListPage> {
       _sortNotes();
     } catch (e) {
       // If Firestore fails (e.g., offline), load cached notes
-      print("Error fetching notes from Firestore: $e");
+      // //print("Error fetching notes from Firestore: $e");
       await _loadCachedNotes();
     }
   }
@@ -221,7 +221,7 @@ class _NotesListPageState extends State<NotesListPage> {
       setState(() => _notes = notes);
       _sortNotes();
     } catch (e) {
-      print("Error syncing notes: $e");
+      //print("Error syncing notes: $e");
     }
   }
 
@@ -263,7 +263,7 @@ class _NotesListPageState extends State<NotesListPage> {
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(15),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black12,
                   blurRadius: 8,
@@ -299,10 +299,10 @@ class _NotesListPageState extends State<NotesListPage> {
                   _confirmDeleteNote(note['id']);
                 },
                 child: Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.9),
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                       topRight: Radius.circular(15),
                       bottomLeft: Radius.circular(15),
                     ),
@@ -385,14 +385,14 @@ class _NotesListPageState extends State<NotesListPage> {
   void _showNoteOptions(BuildContext context, String noteId) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(20), // Rounded corners for the bottom sheet
         ),
       ),
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -410,7 +410,7 @@ class _NotesListPageState extends State<NotesListPage> {
               // Divider(), // Divider to separate the header from options
               // Delete Option
               ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
+                leading: const Icon(Icons.delete, color: Colors.red),
                 title: Text(
                   'Delete Note',
                   style: GoogleFonts.plusJakartaSans(
@@ -464,17 +464,17 @@ class _NotesListPageState extends State<NotesListPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Note'),
-          content: Text('Are you sure you want to delete this note?'),
+          title: const Text('Delete Note'),
+          content: const Text('Are you sure you want to delete this note?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Delete'),
+              child: const Text('Delete'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteNote(noteId);
@@ -527,6 +527,7 @@ class _NotesListPageState extends State<NotesListPage> {
           _checkInitialConnectivity();
         },
         child: Scaffold(
+          bottomNavigationBar: SizedBox(height: 10.h),
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Row(
@@ -534,7 +535,7 @@ class _NotesListPageState extends State<NotesListPage> {
                 Text('My Notes',
                     style: GoogleFonts.plusJakartaSans(
                         fontSize: 18.sp, fontWeight: FontWeight.w600)),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Icon(
                   _isOnline ? Icons.cloud : Icons.cloud_off,
                   size: 18.sp,
@@ -559,7 +560,7 @@ class _NotesListPageState extends State<NotesListPage> {
                     );
                   }).toList();
                 },
-                icon: Icon(Icons.sort, color: Colors.black),
+                icon: const Icon(Icons.sort, color: Colors.black),
               ),
             ],
             elevation: 0,
@@ -609,7 +610,7 @@ class _NotesListPageState extends State<NotesListPage> {
                   ),
                 ),
           floatingActionButton: Bounce(
-            duration: Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 1000),
             child: FloatingActionButton(
               onPressed: () => _openNote(null),
               backgroundColor: Colors.teal,

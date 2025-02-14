@@ -7,8 +7,8 @@ import 'package:hundred_days/homescreen.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hundred_days/pages/notification.dart';
-import 'package:hundred_days/pages/set_notification.dart';
+import 'package:hundred_days/services/notification.dart';
+import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:iconly/iconly.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
@@ -105,11 +105,11 @@ class _AddTasksState extends State<AddTasks> {
         });
         await prefs.setString('userName', userName);
       } catch (e) {
-        print('Error fetching user data: ${e.toString()}');
+        // print('Error fetching user data: ${e.toString()}');
         setState(() {
           userName = 'User';
         });
-        print('Error fetching user data: ${e.toString()}');
+        // print('Error fetching user data: ${e.toString()}');
       }
     }
   }
@@ -117,7 +117,7 @@ class _AddTasksState extends State<AddTasks> {
   Future<void> saveDailyTasksToPreferences(List<String> tasks) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('dailyTasks', tasks);
-    print('Tasks saved to SharedPreferences: $tasks');
+    // print('Tasks saved to SharedPreferences: $tasks');
   }
 
   Future<void> loadDailyTasksFromPreferences() async {
@@ -128,10 +128,10 @@ class _AddTasksState extends State<AddTasks> {
 
     // If no tasks are found in SharedPreferences, load from Firestore
     if (currentDailyTasks.isEmpty) {
-      print('SharedPreferences are empty, fetching from Firebase.');
+      // print('SharedPreferences are empty, fetching from Firebase.');
       await loadDailyTasksFromFirestore();
     } else {
-      print('Tasks loaded from SharedPreferences: $currentDailyTasks');
+      // print('Tasks loaded from SharedPreferences: $currentDailyTasks');
       setState(() {}); // Update UI with loaded tasks
     }
   }
@@ -155,14 +155,13 @@ class _AddTasksState extends State<AddTasks> {
 
           // Save fetched tasks to SharedPreferences for future use
           await saveDailyTasksToPreferences(tasksData);
-          print(
-              'Tasks loaded from Firestore and saved to SharedPreferences: $currentDailyTasks');
+          // print('Tasks loaded from Firestore and saved to SharedPreferences: $currentDailyTasks');
         } else {
-          print('No tasks found in Firestore.');
+          // print('No tasks found in Firestore.');
         }
       }
     } catch (e) {
-      print("Error loading tasks from Firestore: $e");
+      // print("Error loading tasks from Firestore: $e");
     }
   }
 
@@ -173,12 +172,12 @@ class _AddTasksState extends State<AddTasks> {
         DocumentReference userTasksDoc =
             firestore.collection('dailyTasks').doc(userEmail);
         await userTasksDoc.set({'tasks': tasks});
-        print('Current daily tasks saved: $tasks');
+        // print('Current daily tasks saved: $tasks');
 
         await saveDailyTasksToPreferences(tasks);
       }
     } catch (e) {
-      print("Error saving tasks to Firestore: $e");
+      // print("Error saving tasks to Firestore: $e");
     }
   }
 
@@ -217,7 +216,7 @@ class _AddTasksState extends State<AddTasks> {
           children: [
             // TextButton(onPressed: (){showInfoBox();}, child: Text("data")),
             Text(
-              'Hello $userName',
+              'Hello, $userName',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -295,76 +294,21 @@ class _AddTasksState extends State<AddTasks> {
                     showDialog(
                       context: context,
                       builder: (context) {
-                        return Dialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Add New Task',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                TextField(
-                                  controller: _controller,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    hintText: 'Enter task here',
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.grey,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text('Cancel'),
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        if (_controller.text.isNotEmpty) {
-                                          setState(() {
-                                            currentDailyTasks
-                                                .add(_controller.text);
-                                            isTaskListModified = true;
-                                          });
-                                          _controller.clear();
-                                          Navigator.of(context).pop();
-                                        }
-                                      },
-                                      child: const Text('Save'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                        return DialogBox(
+                          Controller: _controller,
+                          onCancel: () {
+                            Navigator.of(context).pop();
+                          },
+                          onSave: () {
+                            if (_controller.text.isNotEmpty) {
+                              setState(() {
+                                currentDailyTasks.add(_controller.text);
+                                isTaskListModified = true;
+                              });
+                              _controller.clear();
+                              Navigator.of(context).pop();
+                            }
+                          },
                         );
                       },
                     );
@@ -435,7 +379,7 @@ class _AddTasksState extends State<AddTasks> {
                     saveDailyTasksToFirestore(currentDailyTasks);
                     saveDailyTasksToPreferences(currentDailyTasks);
                   } else {
-                    print("No changes to task list, not saving.");
+                    // print("No changes to task list, not saving.");
                   }
 
                   if (widget.input == 0)
@@ -450,10 +394,10 @@ class _AddTasksState extends State<AddTasks> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Finish  ',
+                      'Save',
                       style: TextStyle(fontSize: 15.sp),
                     ),
-                    Icon(Icons.add_task, color: Colors.white, size: 20.sp),
+                    // Icon(Icons.add_task, color: Colors.white, size: 20.sp),
                   ],
                 ),
               ),
@@ -466,6 +410,9 @@ class _AddTasksState extends State<AddTasks> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: SizedBox(
+        height: 10.h,
       ),
     );
   }

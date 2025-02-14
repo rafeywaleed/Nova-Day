@@ -44,7 +44,10 @@ class _AddNotePageState extends State<AddNotePage> {
 
     _titleController.addListener(_autoSaveNote);
     _bodyController.addListener(_autoSaveNote);
-    _checkInternetConnectivity();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInternetConnectivity();
+      _informAutoSave();
+    });
   }
 
   bool _isSaving = false; // Tracks if note is being saved
@@ -290,6 +293,22 @@ class _AddNotePageState extends State<AddNotePage> {
     );
   }
 
+  void _informAutoSave() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Center(child: Text('AutoSave is enabled')),
+        backgroundColor: Colors.grey,
+        width: 50.w,
+        elevation: 1,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = themes[_selectedThemeIndex];
@@ -319,6 +338,10 @@ class _AddNotePageState extends State<AddNotePage> {
                     color: textColor.withOpacity(0.7)),
               ),
             ),
+          IconButton(
+            icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
+            onPressed: _saveNote,
+          ),
           Pulse(
             child: Swing(
               duration: Duration(milliseconds: 1000),
@@ -328,10 +351,6 @@ class _AddNotePageState extends State<AddNotePage> {
               ),
             ),
           ),
-          // IconButton(
-          //   icon: Icon(Icons.save, color: textColor.withOpacity(0.8)),
-          //   onPressed: _saveNote,
-          // ),
         ],
       ),
       backgroundColor: backgroundColor,

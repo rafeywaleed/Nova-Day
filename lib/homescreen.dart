@@ -27,6 +27,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'auth/firebase_fun.dart';
 import 'cloud/firebase_api.dart';
+import 'utils/bottom_navbar/navbar_model.dart';
+import 'utils/bottom_navbar/navbar_notch.dart';
+import 'utils/bottom_navbar/navbar_notch_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -44,8 +47,9 @@ class _HomeScreenState extends State<HomeScreen>
   String? userEmail;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
+  final _pageController = PageController(initialPage: 0);
+  final _controller = NotchBottomBarController(index: 0);
   int _selectedIndex = 0;
-  NavigationRailLabelType labelType = NavigationRailLabelType.all;
 
   void _initAnimationController() {
     _logoAnimationController = AnimationController(
@@ -133,9 +137,9 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       await InAppUpdate.startFlexibleUpdate();
       await InAppUpdate.completeFlexibleUpdate();
-      print('Update successful');
+      // //print('Update successful');
     } catch (e) {
-      print('Update failed: $e');
+      ////print('Update failed: $e');
     }
   }
 
@@ -146,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen>
     loadUserEmail();
     loadDailyTasks();
     fetchAdditionalTasks();
-    printSt();
+    //printSt();
     resetTaskAnyway();
     checkAndUpdateTasks();
     startNetworkListener();
@@ -162,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isPremium = false;
   Future<void> _checkPremium() async {
     final userData = await _firebaseService.fetchUserData();
-    print(userData['isPremium']);
+    ////print(userData['isPremium']);
     setState(() {
       _isPremium = userData['isPremium'];
     });
@@ -179,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _logoAnimationController.dispose();
+    _pageController.dispose();
 
     super.dispose();
   }
@@ -353,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.white,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 8,
@@ -450,18 +455,18 @@ class _HomeScreenState extends State<HomeScreen>
     String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     String? storedDate = prefs.getString('tDate');
-    print("inside check and Update");
+    ////print("inside check and Update");
 
     if (storedDate == null || storedDate != currentDate) {
-      print("entered if condition");
+      ////print("entered if condition");
       await saveProgress();
-      print("save progress complete");
+      ////print("save progress complete");
       await resetTasks();
-      print("task's reset");
+      ////print("task's reset");
       await prefs.setString('tDate', currentDate);
-      print(prefs.getString('tDate'));
+      ////print(prefs.getString('tDate'));
     } else {
-      print("date matched");
+      ////print("date matched");
       loadDailyTasks();
     }
   }
@@ -470,14 +475,14 @@ class _HomeScreenState extends State<HomeScreen>
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String? storedData = prefs.getString('tDate');
-    print('Currently stored date: $storedData'); // Debugging output
+    ////print('Currently stored date: $storedData'); // Debugging output
 
     String todayDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     if (storedData == null || storedData != todayDate) {
       await resetTasks();
       await prefs.setString('tDate', todayDate);
-      print('Saved new date: $todayDate'); // Debugging output
+      ////print('Saved new date: $todayDate'); // Debugging output
     }
   }
 
@@ -503,13 +508,13 @@ class _HomeScreenState extends State<HomeScreen>
       }).toList();
 
       await prefs.setStringList('defaultTasks', updatedTaskJsonList);
-      print("All tasks marked as incomplete.");
+      ////print("All tasks marked as incomplete.");
 
       setState(() {
         defaultTasks = updatedTasks;
       });
     } else {
-      print("No tasks found to reset.");
+      ////print("No tasks found to reset.");
     }
   }
 
@@ -548,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> saveProgress() async {
     String? userId = auth.currentUser?.uid;
     String? userEmail = auth.currentUser?.email;
-    print("inside saveProgress");
+    ////print("inside saveProgress");
     if (userId != null && userEmail != null) {
       String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
       List<Map<String, dynamic>> taskProgress = defaultTasks
@@ -631,9 +636,9 @@ class _HomeScreenState extends State<HomeScreen>
     Connectivity().onConnectivityChanged.listen((connectivityResult) async {
       if (connectivityResult != ConnectivityResult.none) {
         await uploadTasksIfOffline().then((_) {
-          print('Tasks uploaded successfully.');
+          ////print('Tasks uploaded successfully.');
         }).catchError((error) {
-          print('Error uploading tasks: $error');
+          ////print('Error uploading tasks: $error');
         });
       }
     });
@@ -648,12 +653,12 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  Future<void> printSt() async {
-    final prefs = await SharedPreferences.getInstance();
-    print(prefs.getStringList('dailyTasks'));
+  // Future<void> //printSt() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   ////print(prefs.getStringList('dailyTasks'));
 
-    print(prefs.getString('tDate'));
-  }
+  //   ////print(prefs.getString('tDate'));
+  // }
 
   Future<void> loadDailyTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -666,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen>
           .map((taskJson) => jsonDecode(taskJson))
           .toList()
           .cast<Map<String, dynamic>>();
-      print('Daily tasks fetched from shredPrefrnces');
+      ////print('Daily tasks fetched from shredPrefrnces');
     } else {
       // If no tasks are found in SharedPreferences, fetch from Firebase
       await fetchDailyTasksFromFirebase();
@@ -725,7 +730,7 @@ class _HomeScreenState extends State<HomeScreen>
             };
           }).toList();
 
-          print('daily tasks fetched from firebase');
+          ////print('daily tasks fetched from firebase');
           // Save the tasks fetched from Firebase to SharedPreferences
           await saveTasksToSharedPreferences(fetchedTasks);
 
@@ -734,11 +739,11 @@ class _HomeScreenState extends State<HomeScreen>
             defaultTasks = fetchedTasks;
           });
         } else {
-          print("No tasks found in Firebase.");
+          ////print("No tasks found in Firebase.");
         }
       }
     } catch (e) {
-      print("Error fetching tasks from Firebase: $e");
+      ////print("Error fetching tasks from Firebase: $e");
     }
   }
 
@@ -758,9 +763,9 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> deleteTask(String taskName) async {
-    print("Attempting to delete task: $taskName");
+    ////print("Attempting to delete task: $taskName");
 
-    print("Current defaultTasks: $defaultTasks");
+    ////print("Current defaultTasks: $defaultTasks");
 
     Map<String, dynamic>? task = defaultTasks.firstWhere(
       (task) => task['task'] == taskName,
@@ -772,36 +777,36 @@ class _HomeScreenState extends State<HomeScreen>
         // Remove the task from the defaultTasks
         defaultTasks.removeWhere((element) => element['task'] == taskName);
 
-        print("Updated defaultTasks: $defaultTasks");
+        ////print("Updated defaultTasks: $defaultTasks");
 
         saveTasksToSharedPreferences(defaultTasks);
 
-        await printSharedPreferencesData();
+        // await //printSharedPreferencesData();
       });
 
       // Remove the task from the dailyTasks list in SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String>? dailyTasks = prefs.getStringList('dailyTasks');
       if (dailyTasks != null) {
-        print("Current dailyTasks: $dailyTasks");
+        ////print("Current dailyTasks: $dailyTasks");
         dailyTasks.remove(taskName);
         await prefs.setStringList('dailyTasks', dailyTasks);
-        print("Updated dailyTasks: $dailyTasks");
-        print("daily task removed from sharedPreferences");
+        ////print("Updated dailyTasks: $dailyTasks");
+        ////print("daily task removed from sharedPreferences");
       }
     } else {
-      print("Task not found in defaultTasks");
+      ////print("Task not found in defaultTasks");
     }
   }
 
-  Future<void> printSharedPreferencesData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? savedDefaultTasks = prefs.getStringList('defaultTasks');
-    List<String>? savedDailyTasks = prefs.getStringList('dailyTasks');
+  // Future<void> //printSharedPreferencesData() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   List<String>? savedDefaultTasks = prefs.getStringList('defaultTasks');
+  //   List<String>? savedDailyTasks = prefs.getStringList('dailyTasks');
 
-    print("Saved defaultTasks in SharedPreferences: $savedDefaultTasks");
-    print("Saved dailyTasks in SharedPreferences: $savedDailyTasks");
-  }
+  //   ////print("Saved defaultTasks in SharedPreferences: $savedDefaultTasks");
+  //   ////print("Saved dailyTasks in SharedPreferences: $savedDailyTasks");
+  // }
 
   Future<void> saveTasksToSharedPreferences(
       List<Map<String, dynamic>> defaultTasks) async {
@@ -813,39 +818,39 @@ class _HomeScreenState extends State<HomeScreen>
 
       await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
     } catch (e) {
-      print('Error saving tasks to SharedPreferences: $e');
+      //print('Error saving tasks to SharedPreferences: $e');
     }
   }
 
-  Future<void> printDefaultTasksWithStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
+  // Future<void> //printDefaultTasksWithStatus() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
 
-    if (savedTasksJson.isNotEmpty) {
-      try {
-        // Print each task with its status
-        for (String taskJson in savedTasksJson) {
-          Map<String, dynamic> task = jsonDecode(taskJson);
-          print('Task: ${task['task']}, Completed: ${task['completed']}');
-        }
-      } catch (e) {
-        print('Error decoding JSON: $e');
-      }
-    } else {
-      print('No tasks found in SharedPreferences.');
-    }
-  }
+  //   if (savedTasksJson.isNotEmpty) {
+  //     try {
+  //       // //print each task with its status
+  //       for (String taskJson in savedTasksJson) {
+  //         Map<String, dynamic> task = jsonDecode(taskJson);
+  //         //print('Task: ${task['task']}, Completed: ${task['completed']}');
+  //       }
+  //     } catch (e) {
+  //       //print('Error decoding JSON: $e');
+  //     }
+  //   } else {
+  //     //print('No tasks found in SharedPreferences.');
+  //   }
+  // }
 
   bool isLoading = true;
 
   Future<void> _handleRefresh() async {
-    print("refreshing");
+    //print("refreshing");
     setState(() {
       isLoading = true;
     });
     loadUserEmail();
     loadDailyTasks();
-    printSt();
+    //printSt();
     resetTaskAnyway();
     checkAndUpdateTasks();
     fetchAdditionalTasks();
@@ -867,7 +872,7 @@ class _HomeScreenState extends State<HomeScreen>
     List<String> taskList =
         additionalTasks.map((task) => jsonEncode(task)).toList();
     await prefs.setStringList('additionalTasks', taskList);
-    print('task saved in sharedPref\n ${taskList}');
+    //print('task saved in sharedPref\n ${taskList}');
   }
 
   Future<void> saveAdditionalTasksToFirebase(
@@ -884,7 +889,7 @@ class _HomeScreenState extends State<HomeScreen>
         'tasks': additionalTasks,
       });
     }
-    print("task saved in firebase");
+    //print("task saved in firebase");
   }
 
   Future<void> createNewAdditionalTask(String taskName) async {
@@ -903,7 +908,7 @@ class _HomeScreenState extends State<HomeScreen>
         : [];
 
     tasks.add(newTask);
-    print('New additional task created !!');
+    //print('New additional task created !!');
 
     await saveAdditionalTasksToSharedPreferences(tasks);
 
@@ -922,7 +927,7 @@ class _HomeScreenState extends State<HomeScreen>
 
       // Remove task
       tasks.removeWhere((task) => task['task'] == taskName);
-      print('Additional tasks removed');
+      //print('Additional tasks removed');
 
       await saveAdditionalTasksToSharedPreferences(tasks);
       await saveAdditionalTasksToFirebase(tasks);
@@ -943,7 +948,7 @@ class _HomeScreenState extends State<HomeScreen>
       for (var task in tasks) {
         if (task['task'] == taskName) {
           task['status'] = completed ? 'complete' : 'incomplete';
-          print('Additional tasks updated \n ${tasks}');
+          //print('Additional tasks updated \n ${tasks}');
         }
       }
 
@@ -967,7 +972,7 @@ class _HomeScreenState extends State<HomeScreen>
             .doc('tasks');
 
         DocumentSnapshot<Object?> querySnapshot = await taskRecordDoc.get();
-        print('Additional tasks fetched from firebase');
+        //print('Additional tasks fetched from firebase');
         if (querySnapshot.exists) {
           List<Map<String, dynamic>> tasks =
               List<Map<String, dynamic>>.from(querySnapshot.get('tasks'));
@@ -987,7 +992,7 @@ class _HomeScreenState extends State<HomeScreen>
             .cast<Map<String, dynamic>>();
       });
     }
-    print('Additional tasks fetched from shredPrefrnces');
+    //print('Additional tasks fetched from shredPrefrnces');
   }
 
   @override
@@ -1020,130 +1025,70 @@ class _HomeScreenState extends State<HomeScreen>
         );
       },
       child: Scaffold(
-        body: Stack(
+        // backgroundColor: Colors.grey,
+        body: PageView(
+          controller: _pageController,
+          physics: NeverScrollableScrollPhysics(),
           children: [
-            Row(
-              children: [
-                NavigationRail(
-                  leading: Padding(
-                    padding: const EdgeInsets.only(top: 14.0),
-                    child: AnimatedBuilder(
-                        animation: _logoAnimationController,
-                        builder: (context, child) {
-                          return Roulette(
-                            // delay: Duration(milliseconds: 3000),
-                            duration: Duration(milliseconds: 3000),
-                            infinite: true,
-                            child: Image.asset(
-                              'assets/images/app_icon.png',
-                              scale: 3.w,
-                            ),
-                          );
-                        }),
-                  ),
-                  labelType: labelType,
-                  useIndicator: false,
-                  indicatorShape: Border.all(width: 20),
-                  indicatorColor: Colors.transparent,
-                  minWidth: 15.w,
-                  groupAlignment: 0,
-                  backgroundColor:
-                      const Color.fromARGB(255, 127, 127, 127).withOpacity(0.1),
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: (value) {
-                    saveNormalProgress();
-                    setState(() {
-                      _selectedIndex = value;
-                    });
-                  },
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: _selectedIndex == 0
-                          ? Icon(IconlyLight.home,
-                              color: Colors.blue, size: 12.w)
-                          : Icon(IconlyBroken.home, size: 9.w),
-                      label: _selectedIndex == 0
-                          ? Text(
-                              'Home',
-                              style: GoogleFonts.sourceCodePro(),
-                            )
-                          : Text(" "),
-                    ),
-                    NavigationRailDestination(
-                      icon: _selectedIndex == 1
-                          ? Icon(Icons.add_task_rounded,
-                              color: Colors.blue, size: 12.w)
-                          : Icon(Icons.task_alt_rounded, size: 9.w),
-                      label: _selectedIndex == 1
-                          ? Text(
-                              'Daily\nTasks',
-                              style: GoogleFonts.plusJakartaSans(),
-                            )
-                          : Text(" "),
-                    ),
-                    NavigationRailDestination(
-                      icon: _selectedIndex == 2
-                          ? Icon(IconlyLight.paper,
-                              color: Colors.blue, size: 12.w)
-                          : Icon(IconlyBroken.paper, size: 9.w),
-                      label: _selectedIndex == 2
-                          ? Text(
-                              'Notes',
-                              style: GoogleFonts.plusJakartaSans(),
-                            )
-                          : Text(" "),
-                    ),
-                    NavigationRailDestination(
-                      icon: _selectedIndex == 3
-                          ? Icon(IconlyLight.graph,
-                              color: Colors.blue, size: 12.w)
-                          : Icon(IconlyBroken.graph, size: 9.w),
-                      label: _selectedIndex == 3
-                          ? Text(
-                              'Record',
-                              style: GoogleFonts.plusJakartaSans(),
-                            )
-                          : Text(' '),
-                    ),
-                    NavigationRailDestination(
-                      icon: _selectedIndex == 4
-                          ? Icon(IconlyLight.setting,
-                              color: Colors.blue, size: 12.w)
-                          : Icon(IconlyBroken.setting, size: 9.w),
-                      label: _selectedIndex == 4
-                          ? Text(
-                              'Settings',
-                              style: GoogleFonts.plusJakartaSans(),
-                            )
-                          : Text(" "),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(2.w),
-                    child: _buildContent(),
-                  ),
-                ),
-              ],
-            ),
-            if (_isPremium == false)
-              if (_showBannerAd)
-                Positioned(
-                  bottom: 5,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: showBannerAd(
-                      context,
-                      _bannerAdName,
-                      _bannerAdLine,
-                      _bannerAdURL,
-                      _bannerImgURL,
-                    ),
-                  ),
-                ),
+            _buildHomeContent(),
+            AddTasks(input: 1),
+            NotesListPage(),
+            ProgressTracker(),
+            UserSettingsPage(),
           ],
+        ),
+        extendBody: true,
+        bottomNavigationBar: AnimatedNotchBottomBar(
+          notchBottomBarController: _controller,
+          color: Colors.grey.shade200,
+          showLabel: true,
+          textOverflow: TextOverflow.visible,
+          maxLine: 1,
+          shadowElevation: 3,
+          kBottomRadius: 28.0,
+          notchColor: Colors.grey.shade200,
+          removeMargins: false,
+          bottomBarWidth: 500,
+          showShadow: true,
+          durationInMilliSeconds: 100,
+          itemLabelStyle: TextStyle(fontSize: 8.sp),
+          elevation: 1,
+          bottomBarItems: const [
+            BottomBarItem(
+              inActiveItem: Icon(IconlyBroken.home, color: Colors.blueGrey),
+              activeItem: Icon(IconlyLight.home, color: Colors.blueAccent),
+              itemLabel: 'Home',
+            ),
+            BottomBarItem(
+              inActiveItem:
+                  Icon(Icons.task_alt_rounded, color: Colors.blueGrey),
+              activeItem:
+                  Icon(Icons.add_task_rounded, color: Colors.blueAccent),
+              itemLabel: 'Tasks',
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(IconlyBroken.paper, color: Colors.blueGrey),
+              activeItem: Icon(IconlyLight.paper, color: Colors.blueAccent),
+              itemLabel: 'Notes',
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(IconlyBroken.graph, color: Colors.blueGrey),
+              activeItem: Icon(IconlyLight.graph, color: Colors.blueAccent),
+              itemLabel: 'Record',
+            ),
+            BottomBarItem(
+              inActiveItem: Icon(IconlyBroken.setting, color: Colors.blueGrey),
+              activeItem: Icon(IconlyLight.setting, color: Colors.blueAccent),
+              itemLabel: 'Settings',
+            ),
+          ],
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+              _pageController.jumpToPage(index);
+            });
+          },
+          kIconSize: 24.0,
         ),
         // floatingActionButton: _selectedIndex != 0
         //     ? null
@@ -1215,133 +1160,127 @@ class _HomeScreenState extends State<HomeScreen>
     return RefreshIndicator(
       color: Colors.blue,
       onRefresh: _handleRefresh,
-      child: SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: FadeInDown(
-                delay: const Duration(milliseconds: 100),
-                duration: const Duration(milliseconds: 800),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ProgressTracker()),
-                    );
-                  },
-                  child: Center(
-                    child: Container(
-                      height: 15.h,
-                      width: 75.w,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                            color: Colors.grey,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                        color: Colors.white,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(3.w), // Reduced padding
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Flash(
-                                  delay: Duration(milliseconds: 800),
-                                  duration: Duration(milliseconds: 800),
-                                  child: Text(
-                                    '$daysLeft',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 8.w,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  'days left for new year',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 3.w,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // Use Flexible here to prevent overflow in larger screens
-                            Flexible(
-                              child: CircularPercentIndicator(
-                                radius: 10.w,
-                                lineWidth: 8.0,
-                                percent: taskCompletion,
-                                center: Text(
-                                  "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 5.w,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                progressColor: Colors.green,
-                                backgroundColor: Colors.grey[300]!,
-                              ),
+      child: Padding(
+        padding: EdgeInsets.all(18),
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: FadeInDown(
+                  delay: const Duration(milliseconds: 100),
+                  duration: const Duration(milliseconds: 800),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ProgressTracker()),
+                      );
+                    },
+                    child: Center(
+                      child: Container(
+                        height: 15.h,
+                        width: 85.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: const [
+                            BoxShadow(
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                              color: Colors.grey,
+                              offset: Offset(0, 5),
                             ),
                           ],
+                          color: Colors.white,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(3.w), // Reduced padding
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flash(
+                                    delay: Duration(milliseconds: 800),
+                                    duration: Duration(milliseconds: 800),
+                                    child: Text(
+                                      '$daysLeft',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 8.w,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'days left for new year',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 3.w,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Use Flexible here to prevent overflow in larger screens
+                              Flexible(
+                                child: CircularPercentIndicator(
+                                  radius: 10.w,
+                                  lineWidth: 8.0,
+                                  percent: taskCompletion,
+                                  center: Text(
+                                    "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 5.w,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                  progressColor: Colors.green,
+                                  backgroundColor: Colors.grey[300]!,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              "Daily Tasks:",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 5.w,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+              SizedBox(height: 10),
+              Text(
+                "Daily Tasks:",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 5.w,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            Container(
-              height: 40.h,
-              child: defaultTasks.isEmpty
+              defaultTasks.isEmpty
                   ? Center(
                       child: Text(
-                        'No tasks for today.',
+                        'No Daily task.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 4.w,
                           color: Colors.grey,
                         ),
                       ),
                     )
-                  : SafeArea(
-                      bottom: true,
+                  : SizedBox(
+                      height: defaultTasks.length * 10.h + 20,
                       child: ListView.builder(
-                        shrinkWrap: true,
+                        // shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
                         itemCount: defaultTasks.length,
                         itemBuilder: (context, index) {
                           Map<String, dynamic> task = defaultTasks[index];
                           return TaskCard(
                             task: task,
-                            // onDelete: () {
-                            //   // setState(() {
-                            //   //   defaultTasks.removeAt(index);
-                            //   // });
-                            //   // deleteTask(task['task']);
-                            //   // saveNormalProgress();
-                            // },
                             isDailyTask: true,
                             onChanged: (value) {
                               setState(() {
@@ -1355,226 +1294,115 @@ class _HomeScreenState extends State<HomeScreen>
                         },
                       ),
                     ),
-            ),
-            // Center(
-            //   child: ElevatedButton(
-            //     style: ButtonStyle(
-            //       backgroundColor: MaterialStateProperty.all(Colors.white),
-            //       shape: MaterialStateProperty.all(
-            //         RoundedRectangleBorder(
-            //           borderRadius:
-            //               BorderRadius.circular(16), // more rounded corners
-            //           side: BorderSide(
-            //               color: Colors.grey.shade200,
-            //               width: 1), // subtle border
-            //         ),
-            //       ),
-            //       elevation: MaterialStateProperty.all(5), // subtle shadow
-            //     ),
-            //     child: Icon(
-            //       Icons.add,
-            //       size: 20.sp, // Increased icon size for better visibility
-            //       color: Colors.blue,
-            //     ),
-            //     onPressed: () {
-            //       // Show the dialog informing user to add tasks
-            //       showDialog(
-            //         context: context,
-            //         builder: (context) {
-            //           return AlertDialog(
-            //             backgroundColor: Colors.white,
-            //             shape: RoundedRectangleBorder(
-            //               borderRadius: BorderRadius.circular(12),
-            //             ),
-            //             title: Row(
-            //               children: [
-            //                 Icon(Icons.add_task, color: Colors.blue, size: 30),
-            //                 SizedBox(width: 10),
-            //                 Text(
-            //                   'Daily Tasks',
-            //                   style: GoogleFonts.plusJakartaSans(
-            //                     fontWeight: FontWeight.w600,
-            //                     fontSize: 16.sp,
-            //                     color: Colors.black87,
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-            //             content: Padding(
-            //               padding: EdgeInsets.symmetric(vertical: 8),
-            //               child: Text(
-            //                 'You need to add a daily task from the "Edit Tasks" page in settings. These tasks should be completed every day.',
-            //                 style: GoogleFonts.plusJakartaSans(
-            //                   fontSize: 12.sp,
-            //                   color: Colors.black54,
-            //                 ),
-            //                 textAlign: TextAlign.start,
-            //               ),
-            //             ),
-            //             actions: <Widget>[
-            //               TextButton(
-            //                 style: TextButton.styleFrom(
-            //                   foregroundColor: Colors.blue,
-            //                   backgroundColor: Colors.white,
-            //                   shape: RoundedRectangleBorder(
-            //                     borderRadius: BorderRadius.circular(8),
-            //                   ),
-            //                   padding: EdgeInsets.symmetric(
-            //                       vertical: 10, horizontal: 20),
-            //                 ),
-            //                 child: Text(
-            //                   'Go to Edit Tasks',
-            //                   style: GoogleFonts.plusJakartaSans(
-            //                     fontSize: 14.sp,
-            //                     fontWeight: FontWeight.w500,
-            //                   ),
-            //                 ),
-            //                 onPressed: () {
-            //                   Navigator.of(context).pop(); // Close the dialog
-            //                   Navigator.push(
-            //                     context,
-            //                     MaterialPageRoute(
-            //                       builder: (context) => AddTasks(
-            //                           input:
-            //                               1), // Assuming AddTasks is the page where the user can edit tasks
-            //                     ),
-            //                   );
-            //                 },
-            //               ),
-            //             ],
-            //           );
-            //         },
-            //       );
-            //     },
-            //   ),
-            // ),
-
-            SizedBox(height: 1.h),
-            // TextButton(
-            //     onPressed: () {
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //           builder: (context) => AddNotePage(),
-            //         ),
-            //       );
-            //     },
-            //     child: Text('button')),
-            Text(
-              "Additional Tasks:",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 5.w,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+              SizedBox(height: 1.h),
+              Text(
+                "To-Do List:",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 5.w,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            // TextButton(
-            //     onPressed: () {
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (context) => NotificationSettings()),
-            //       );
-            //     },
-            //     child: Text("Notification Settings")),
-            if (additionalTasks.isEmpty)
+              SizedBox(
+                height: additionalTasks.length * 9.h + 20,
+                child: ListView.builder(
+                  // shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: additionalTasks.length,
+                  itemBuilder: (context, index) {
+                    return TaskCard(
+                      task: additionalTasks[index],
+                      onDelete: () {
+                        String taskName = additionalTasks[index]['task'];
+                        setState(() {
+                          additionalTasks
+                              .removeWhere((task) => task['task'] == taskName);
+                        });
+                        deleteAdditionalTask(taskName);
+                      },
+                      isDailyTask: false,
+                      onChanged: (value) {
+                        setState(() {
+                          additionalTasks[index]['completed'] = value!;
+                        });
+                        updateAdditionalTask(
+                            additionalTasks[index]['task'], value!);
+                      },
+                    );
+                  },
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
               Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Text(
-                    'No additional tasks available.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 4.w,
-                      color: Colors.grey,
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                            color: Colors.grey.shade200,
+                            width: 1), // subtle border
+                      ),
                     ),
+                    // uniform padding
+                    elevation: MaterialStateProperty.all(5), // subtle shadow
                   ),
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: additionalTasks.length,
-                itemBuilder: (context, index) {
-                  return TaskCard(
-                    task: additionalTasks[index],
-                    onDelete: () {
-                      String taskName = additionalTasks[index]['task'];
-                      setState(() {
-                        additionalTasks
-                            .removeWhere((task) => task['task'] == taskName);
-                      });
-                      deleteAdditionalTask(taskName);
-                    },
-                    isDailyTask: false,
-                    onChanged: (value) {
-                      setState(() {
-                        additionalTasks[index]['completed'] = value!;
-                      });
-                      updateAdditionalTask(
-                          additionalTasks[index]['task'], value!);
-                    },
-                  );
-                },
-              ),
-            SizedBox(
-              height: 1.h,
-            ),
-            Center(
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.white),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                          color: Colors.grey.shade200,
-                          width: 1), // subtle border
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Add Task',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 4.w,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Icon(
+                        Icons.add,
+                        size:
+                            20.sp, // Increased icon size for better visibility
+                        color: Colors.blue,
+                      ),
+                    ],
                   ),
-                  // uniform padding
-                  elevation: MaterialStateProperty.all(5), // subtle shadow
-                ),
-                child: Icon(
-                  Icons.add,
-                  size: 20.sp, // Increased icon size for better visibility
-                  color: Colors.blue,
-                ),
-                onPressed: () {
-                  final _controller = TextEditingController();
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return DialogBox(
-                        Controller: _controller,
-                        onSave: () {
-                          if (_controller.text.isNotEmpty) {
-                            setState(() {
-                              additionalTasks.add({
-                                'task': _controller.text,
-                                'completed': false
+                  onPressed: () {
+                    final _controller = TextEditingController();
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return DialogBox(
+                          Controller: _controller,
+                          onSave: () {
+                            if (_controller.text.isNotEmpty) {
+                              setState(() {
+                                additionalTasks.add({
+                                  'task': _controller.text,
+                                  'completed': false
+                                });
                               });
-                            });
-                            saveAdditionalTasksToSharedPreferences(
-                                additionalTasks);
-                            saveAdditionalTasksToFirebase(additionalTasks);
+                              saveAdditionalTasksToSharedPreferences(
+                                  additionalTasks);
+                              saveAdditionalTasksToFirebase(additionalTasks);
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          onCancel: () {
                             Navigator.of(context).pop();
-                          }
-                        },
-                        onCancel: () {
-                          Navigator.of(context).pop();
-                        },
-                      );
-                    },
-                  );
-                },
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-
-            SizedBox(
-              height: 10.h,
-            ),
-          ],
+              SizedBox(
+                height: 10.h,
+              ),
+            ],
+          ),
         ),
       ),
     );

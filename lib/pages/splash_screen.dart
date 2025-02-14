@@ -7,8 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/auth/welcome.dart';
 import 'package:hundred_days/homescreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hundred_days/pages/notification.dart';
-import 'package:hundred_days/pages/notification_services.dart';
+import 'package:hundred_days/services/notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
@@ -25,50 +24,49 @@ class _SplashScreenState extends State<SplashScreen>
   Timer? _timer;
 
   @override
-void initState() {
-  super.initState();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-  // Call a method to schedule notifications with the correct time
-  _scheduleNotificationsOnStartup();
+    // Call a method to schedule notifications with the correct time
+    _scheduleNotificationsOnStartup();
 
-  _timer = Timer(Duration(milliseconds: 3500), () {
-    _auth.authStateChanges().listen((User? user) {
-      print("Checking auth state...");
+    _timer = Timer(const Duration(milliseconds: 3500), () {
+      _auth.authStateChanges().listen((User? user) {
+        print("Checking auth state...");
 
-      if (user != null) {
-        print("Navigating to HomeScreen from Splash Screen");
-        Navigator.of(context)
-            .pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
-      } else {
-        print("Navigating to Welcome page from Splash Screen");
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => WelcomePage()));
-      }
+        if (user != null) {
+          print("Navigating to HomeScreen from Splash Screen");
+          Navigator.of(context)
+              .pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
+        } else {
+          print("Navigating to Welcome page from Splash Screen");
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const WelcomePage()));
+        }
+      });
     });
-  });
-}
+  }
 
-Future<void> _scheduleNotificationsOnStartup() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+  Future<void> _scheduleNotificationsOnStartup() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  // Retrieve the stored notification times from SharedPreferences
-  String? firstTimeString = prefs.getString('firstNotificationTime');
-  String? secondTimeString = prefs.getString('secondNotificationTime');
+    // Retrieve the stored notification times from SharedPreferences
+    String? firstTimeString = prefs.getString('firstNotificationTime');
+    String? secondTimeString = prefs.getString('secondNotificationTime');
 
-  TimeOfDay firstNotificationTime = firstTimeString != null
-      ? TimeOfDay.fromDateTime(DateTime.parse(firstTimeString))
-      : TimeOfDay(hour: 9, minute: 0); // Default time if not set
+    TimeOfDay firstNotificationTime = firstTimeString != null
+        ? TimeOfDay.fromDateTime(DateTime.parse(firstTimeString))
+        : const TimeOfDay(hour: 9, minute: 0); // Default time if not set
 
-  TimeOfDay secondNotificationTime = secondTimeString != null
-      ? TimeOfDay.fromDateTime(DateTime.parse(secondTimeString))
-      : TimeOfDay(hour: 18, minute: 0); // Default time if not set
+    TimeOfDay secondNotificationTime = secondTimeString != null
+        ? TimeOfDay.fromDateTime(DateTime.parse(secondTimeString))
+        : const TimeOfDay(hour: 18, minute: 0); // Default time if not set
 
-  // Schedule the notifications with the retrieved times
-  await NotificationService.scheduleNotifications(0, firstNotificationTime);
-  await NotificationService.scheduleNotifications(1, secondNotificationTime);
-}
-
+    // Schedule the notifications with the retrieved times
+    await NotificationService.scheduleNotifications(0, firstNotificationTime);
+    await NotificationService.scheduleNotifications(1, secondNotificationTime);
+  }
 
   @override
   void dispose() {
@@ -92,7 +90,7 @@ Future<void> _scheduleNotificationsOnStartup() async {
             children: [
               Roulette(
                 // delay: Duration(milliseconds: 3000),
-                duration: Duration(milliseconds: 3500),
+                duration: const Duration(milliseconds: 3500),
                 infinite: true,
                 child: Image.asset(
                   'assets/images/app_icon.png',
