@@ -1044,7 +1044,7 @@ class _HomeScreenState extends State<HomeScreen>
           showLabel: true,
           textOverflow: TextOverflow.visible,
           maxLine: 1,
-          shadowElevation: 3,
+          shadowElevation: 1,
           kBottomRadius: 28.0,
           notchColor: Colors.grey.shade200,
           removeMargins: false,
@@ -1148,7 +1148,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildHomeContent() {
-    // fetchAdditionalTasks();
     int totalTasks = defaultTasks.length;
     int completedTasks =
         defaultTasks.where((task) => task['completed'] == true).length;
@@ -1186,19 +1185,21 @@ class _HomeScreenState extends State<HomeScreen>
                         height: 15.h,
                         width: 85.w,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: const [
+                          borderRadius: BorderRadius.circular(20),
+                          border:
+                              Border.all(color: Colors.grey.shade200, width: 2),
+                          boxShadow: [
                             BoxShadow(
                               blurRadius: 10,
                               spreadRadius: 1,
-                              color: Colors.grey,
+                              color: Colors.grey.withOpacity(0.2),
                               offset: Offset(0, 5),
                             ),
                           ],
                           color: Colors.white,
                         ),
                         child: Padding(
-                          padding: EdgeInsets.all(3.w), // Reduced padding
+                          padding: EdgeInsets.all(3.w),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -1227,7 +1228,6 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ],
                               ),
-                              // Use Flexible here to prevent overflow in larger screens
                               Flexible(
                                 child: CircularPercentIndicator(
                                   radius: 10.w,
@@ -1252,7 +1252,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               Text(
                 "Daily Tasks:",
                 style: GoogleFonts.plusJakartaSans(
@@ -1274,7 +1274,6 @@ class _HomeScreenState extends State<HomeScreen>
                   : SizedBox(
                       height: defaultTasks.length * 10.h + 20,
                       child: ListView.builder(
-                        // shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: defaultTasks.length,
                         itemBuilder: (context, index) {
@@ -1294,7 +1293,7 @@ class _HomeScreenState extends State<HomeScreen>
                         },
                       ),
                     ),
-              SizedBox(height: 1.h),
+              SizedBox(height: 20),
               Text(
                 "To-Do List:",
                 style: GoogleFonts.plusJakartaSans(
@@ -1306,7 +1305,6 @@ class _HomeScreenState extends State<HomeScreen>
               SizedBox(
                 height: additionalTasks.length * 9.h + 20,
                 child: ListView.builder(
-                  // shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: additionalTasks.length,
                   itemBuilder: (context, index) {
@@ -1332,23 +1330,18 @@ class _HomeScreenState extends State<HomeScreen>
                   },
                 ),
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.white),
                     shape: MaterialStateProperty.all(
                       RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                            color: Colors.grey.shade200,
-                            width: 1), // subtle border
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: Colors.grey.shade200, width: 1),
                       ),
                     ),
-                    // uniform padding
-                    elevation: MaterialStateProperty.all(5), // subtle shadow
+                    elevation: MaterialStateProperty.all(5),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1362,8 +1355,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       Icon(
                         Icons.add,
-                        size:
-                            20.sp, // Increased icon size for better visibility
+                        size: 20.sp,
                         color: Colors.blue,
                       ),
                     ],
@@ -1398,9 +1390,7 @@ class _HomeScreenState extends State<HomeScreen>
                   },
                 ),
               ),
-              SizedBox(
-                height: 10.h,
-              ),
+              SizedBox(height: 10.h),
             ],
           ),
         ),
@@ -1412,16 +1402,16 @@ class _HomeScreenState extends State<HomeScreen>
 class TaskCard extends StatelessWidget {
   final Map<String, dynamic> task;
   final ValueChanged<bool?> onChanged;
-  final VoidCallback? onDelete; // Make onDelete optional
-  final bool isDismissible; // New parameter to control dismissibility
-  final bool isDailyTask; // New parameter to indicate if it's a daily task
+  final VoidCallback? onDelete;
+  final bool isDismissible;
+  final bool isDailyTask;
 
   const TaskCard({
     required this.task,
     required this.onChanged,
-    this.onDelete, // Optional onDelete callback
-    this.isDismissible = true, // Default to true
-    this.isDailyTask = false, // Default to false
+    this.onDelete,
+    this.isDismissible = true,
+    this.isDailyTask = false,
     Key? key,
   }) : super(key: key);
 
@@ -1429,15 +1419,12 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return isDismissible
         ? Dismissible(
-            key: Key(task['task'] +
-                task['completed'].toString()), // Use a unique key
+            key: Key(task['task'] + task['completed'].toString()),
             direction: DismissDirection.startToEnd,
             confirmDismiss: (direction) async {
-              // Show alert dialog if it's a daily task
               if (isDailyTask) {
                 return await _showDeleteAlertDialog(context);
               } else {
-                // Allow deletion for additional tasks
                 onDelete?.call();
                 return true;
               }
@@ -1450,14 +1437,14 @@ class TaskCard extends StatelessWidget {
             ),
             child: _buildTaskCard(),
           )
-        : _buildTaskCard(); // Just return the card without dismissible
+        : _buildTaskCard();
   }
 
   Widget _buildTaskCard() {
     return Card(
-      elevation: 5,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: CheckboxListTile(
         title: Text(
@@ -1482,12 +1469,11 @@ class TaskCard extends StatelessWidget {
         return AlertDialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
           ),
           title: Row(
             children: [
-              const Icon(Icons.block,
-                  color: Colors.red, size: 30), // Warning icon
+              const Icon(Icons.block, color: Colors.red, size: 30),
               const SizedBox(width: 10),
               Text(
                 'Cannot Delete Task',
@@ -1504,20 +1490,19 @@ class TaskCard extends StatelessWidget {
             child: Text(
               'Daily tasks cannot be deleted. You can edit tasks from the settings.',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.sp, // Responsive font size
-                color: Colors.black54, // Lighter color for the content
+                fontSize: 12.sp,
+                color: Colors.black54,
               ),
-              textAlign: TextAlign.start, // Center align for a balanced look
+              textAlign: TextAlign.start,
             ),
           ),
           actions: <Widget>[
-            // Add some spacing between the buttons
             TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.blue,
                 backgroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -1539,29 +1524,6 @@ class TaskCard extends StatelessWidget {
                 );
               },
             ),
-            //SizedBox(width: 10),
-            // TextButton(
-            //   style: TextButton.styleFrom(
-            //     foregroundColor: Colors.blue,
-            //     backgroundColor: Colors.white, // Primary action button color
-            //     shape: RoundedRectangleBorder(
-            //       borderRadius: BorderRadius.circular(8),
-            //     ),
-            //     padding: EdgeInsets.symmetric(
-            //         vertical: 10, horizontal: 20), // Subtle padding
-            //   ),
-            //   child: Text(
-            //     'OK',
-            //     style: GoogleFonts.plusJakartaSans(
-            //       fontSize: 14.sp, // Keep the text responsive
-            //       fontWeight:
-            //           FontWeight.w500, // Slightly lighter text for the button
-            //     ),
-            //   ),
-            //   onPressed: () {
-            //     Navigator.of(context).pop(); // Close the dialog
-            //   },
-            // ),
           ],
         );
       },
