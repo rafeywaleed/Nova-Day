@@ -191,7 +191,9 @@ class _AddTasksState extends State<AddTasks> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: widget.input == 0
-          ? AppBar()
+          ? AppBar(
+              automaticallyImplyLeading: false,
+            )
           : AppBar(
               automaticallyImplyLeading: false,
               // leading: widget.input == 1
@@ -411,9 +413,11 @@ class _AddTasksState extends State<AddTasks> {
           ],
         ),
       ),
-      bottomNavigationBar: SizedBox(
-        height: 10.h,
-      ),
+      bottomNavigationBar: widget.input == 0
+          ? null
+          : SizedBox(
+              height: 10.h,
+            ),
     );
   }
 }

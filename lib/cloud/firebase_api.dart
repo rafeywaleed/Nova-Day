@@ -61,10 +61,13 @@ class FirebaseApi {
     await subscribeToTopic('allUsers');
     //print("Subscribed to allUsers");
 
+    // Fetch the current topic document from Firestore
     final docSnapshot =
         await _firestore.collection('adminPanel').doc('currentTopic').get();
-    final n =
-        await _firestore.collection('adminPanel').doc('currentTopic').get();
+    final currentTopicDoc = docSnapshot.data();
+
+// Get the value of 'n' (the topic number) from the document
+    final n = currentTopicDoc != null ? currentTopicDoc['n'] : -1;
 
     //By default, subscribe to the topic 'all' if no topic is found in the admin panel
     if (n == -1)
@@ -165,7 +168,7 @@ class FirebaseApi {
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _firebaseMessaging.subscribeToTopic(topic);
-      //print('Subscribed to topic: $topic');
+      print('Subscribed to topic: $topic');
 
       // Get current user
       User? user = FirebaseAuth.instance.currentUser;
@@ -173,10 +176,11 @@ class FirebaseApi {
         // Create or update subscription in Firestore
         await FirebaseFirestore.instance
             .collection('subscriptions')
-            .doc(user.uid)
+            .doc(user.email)
             .set(
                 {
               'userId': user.uid,
+              'email': user.email,
               'topic': topic,
             },
                 SetOptions(
@@ -186,7 +190,7 @@ class FirebaseApi {
         //print('Subscription stored for user ${user.uid} to topic $topic');
       }
     } catch (e) {
-      //print('Error subscribing to topic: $e');
+      print('Error subscribing to topic: $e');
     }
   }
 }

@@ -29,7 +29,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    FirebaseApi().initNotification();
 
     // Call a method to schedule notifications with the correct time
     _scheduleNotificationsOnStartup();

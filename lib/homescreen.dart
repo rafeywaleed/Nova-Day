@@ -159,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen>
     _animate();
     _fetchAdData();
     _checkPremium();
+    FirebaseApi().initNotification();
   }
 
   final FirebaseService _firebaseService = FirebaseService();
