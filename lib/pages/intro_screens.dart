@@ -60,6 +60,7 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
+  // Background image with a slight dark overlay for better text readability
   Widget _buildBackgroundImage() {
     return Container(
       height: 100.h,
@@ -76,6 +77,7 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
+  // Page content switching with fade transition
   Widget _buildPageContent() {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
@@ -87,6 +89,7 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
+  // Navigation buttons (Previous, Next / Done)
   Widget _buildNavigationButtons() {
     return Positioned(
       bottom: 8.h,
@@ -156,6 +159,7 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
+  // Small note at the bottom of the screen
   Widget _buildNoteText() {
     return Positioned(
       bottom: 1.h,
@@ -171,6 +175,7 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
+  // Navigate to the next page
   void _navigateNextPage() {
     if (widget.input == 0) {
       Navigator.push(
@@ -183,6 +188,7 @@ class _IntroScreenState extends State<IntroScreen>
   }
 }
 
+// Intro page with information about Daily Tasks
 class IntroPage1 extends StatelessWidget {
   const IntroPage1({Key? key}) : super(key: key);
 
@@ -244,6 +250,7 @@ class IntroPage1 extends StatelessWidget {
   }
 }
 
+// Intro page with information about Additional Tasks
 class IntroPage2 extends StatelessWidget {
   const IntroPage2({Key? key}) : super(key: key);
 
@@ -277,7 +284,7 @@ class IntroPage2 extends StatelessWidget {
                   FadeIn(
                     duration: const Duration(milliseconds: 1500),
                     child: Text(
-                      'Additional Tasks',
+                      'To-Do List',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
@@ -287,7 +294,7 @@ class IntroPage2 extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    'Additional tasks are occasional tasks, like completing assignments or doing laundry. These tasks aren’t tracked for growth but need to be completed.',
+                    'To-Do tasks are occasional tasks, like completing assignments or doing laundry. These tasks aren’t tracked for growth but need to be completed.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                         fontSize: 14.sp, color: Colors.grey),

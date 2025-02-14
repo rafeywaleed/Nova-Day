@@ -123,7 +123,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        duration: const Duration(seconds: 1),
+        duration: Duration(seconds: 1),
       ),
     );
   }
@@ -217,10 +217,10 @@ class _NotificationSettingsState extends State<NotificationSettings> {
           ),
           backgroundColor: Colors.white,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 350),
+                constraints: BoxConstraints(maxWidth: 350),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +240,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     Text(
                       'Thank you for downloading the app! If you have any suggestions, bug reports, or feature requests, feel free to contact me through the Settings page.',
                       style: GoogleFonts.plusJakartaSans(
@@ -248,7 +248,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -324,8 +324,8 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                         ),
                       ],
                     ),
-                    const Divider(
-                      color: Color.fromARGB(255, 217, 217, 217),
+                    Divider(
+                      color: const Color.fromARGB(255, 217, 217, 217),
                     ),
                     SizedBox(height: 10.sp),
                     Column(
@@ -382,8 +382,8 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                                 shape: MaterialStateProperty.all(
                                     RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
-                                        side: const BorderSide(
-                                            color: Colors.white)))),
+                                        side:
+                                            BorderSide(color: Colors.white)))),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

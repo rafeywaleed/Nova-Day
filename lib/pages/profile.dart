@@ -156,227 +156,78 @@ class _ProfilePageState extends State<ProfilePage> {
             fontSize: 20.sp,
           ),
         ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black), // Back button color
       ),
       body: isLoading
           ? Center(child: PLoader())
           : SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.all(10.0.sp),
+                padding: EdgeInsets.all(16.0.sp),
                 child: Column(
                   children: [
+                    // User Info Section
                     Text(
                       userName,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 43, 43, 43),
+                        color: Colors.black,
                       ),
                     ),
                     SizedBox(height: 1.h),
                     Text(
                       userEmail,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16.sp,
+                        fontSize: 14.sp,
                         color: Colors.grey,
                       ),
                     ),
-                    SizedBox(height: 2.h),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Colors.grey, width: 0.5.w),
-                      ),
-                      child: Padding(
-                        padding:
-                            EdgeInsets.fromLTRB(10.sp, 20.sp, 10.sp, 20.sp),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FadeInDown(
-                              delay: const Duration(milliseconds: 300),
-                              duration: const Duration(milliseconds: 400),
-                              child: Text(
-                                'You can set a new Name',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            FadeInDown(
-                              delay: const Duration(milliseconds: 200),
-                              duration: const Duration(milliseconds: 300),
-                              child: Container(
-                                margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 5.w, vertical: .3.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                      width: 1, color: Color(0xFFD2D2D4)),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: TextField(
-                                  controller: _nameController,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Change Name',
-                                    hintStyle: GoogleFonts.plusJakartaSans(),
-                                  ),
-                                  style: GoogleFonts.plusJakartaSans(),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 16.sp),
-                            FadeIn(
-                              duration: const Duration(milliseconds: 500),
-                              child: Center(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    minimumSize: const Size(100, 40),
-                                  ),
-                                  onPressed: _changeName,
-                                  child: const Text('Change Name'),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
+                    SizedBox(height: 3.h),
+
+                    // Change Name Section
+                    _buildSection(
+                      title: 'Change Name',
+                      description: 'You can set a new name.',
+                      controller: _nameController,
+                      hintText: 'Enter new name',
+                      buttonText: 'Update Name',
+                      buttonColor: Colors.blue,
+                      onPressed: _changeName,
                     ),
-                    SizedBox(height: 2.h),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Colors.grey, width: 0.5.w),
-                      ),
-                      child: Padding(
-                        padding:
-                            EdgeInsets.fromLTRB(10.sp, 20.sp, 10.sp, 20.sp),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FadeInDown(
-                              delay: const Duration(milliseconds: 100),
-                              duration: const Duration(milliseconds: 200),
-                              child: Text(
-                                'Set Password',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            FadeInDown(
-                              delay: const Duration(milliseconds: 100),
-                              duration: const Duration(milliseconds: 300),
-                              child: Container(
-                                margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 5.w, vertical: .3.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                      width: 1, color: Color(0xFFD2D2D4)),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: TextField(
-                                  controller: _passwordController,
-                                  obscureText: !showPassword,
-                                  decoration: InputDecoration(
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        showPassword
-                                            ? Icons.visibility
-                                            : Icons.visibility_off,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          showPassword = !showPassword;
-                                        });
-                                      },
-                                    ),
-                                    border: InputBorder.none,
-                                    hintText: 'Password',
-                                    hintStyle: GoogleFonts.plusJakartaSans(),
-                                  ),
-                                  style: GoogleFonts.plusJakartaSans(),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 2.h),
-                            FadeInDown(
-                              delay: const Duration(milliseconds: 200),
-                              duration: const Duration(milliseconds: 300),
-                              child: Text(
-                                'Confirm Password',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            FadeInDown(
-                              delay: const Duration(milliseconds: 100),
-                              duration: const Duration(milliseconds: 200),
-                              child: Container(
-                                margin: EdgeInsets.symmetric(vertical: 0.8.h),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 5.w, vertical: .3.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                      width: 1, color: Color(0xFFD2D2D4)),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: TextField(
-                                  controller: _confirmPasswordController,
-                                  obscureText: !showPassword,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Confirm Password',
-                                    hintStyle: GoogleFonts.plusJakartaSans(),
-                                  ),
-                                  style: GoogleFonts.plusJakartaSans(),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 16.sp),
-                            FadeIn(
-                              duration: const Duration(milliseconds: 500),
-                              child: Center(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    minimumSize: const Size(100, 40),
-                                  ),
-                                  onPressed: _changePassword,
-                                  child: const Text('Change Password'),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    SizedBox(height: 3.h),
+
+                    // Change Password Section
+                    _buildSection(
+                      title: 'Change Password',
+                      description: 'Set a new password.',
+                      controller: _passwordController,
+                      hintText: 'Enter new password',
+                      isPassword: true,
+                      showPassword: showPassword,
+                      onTogglePassword: () {
+                        setState(() {
+                          showPassword = !showPassword;
+                        });
+                      },
+                      confirmController: _confirmPasswordController,
+                      confirmHintText: 'Confirm new password',
+                      buttonText: 'Update Password',
+                      buttonColor: Colors.red,
+                      onPressed: _changePassword,
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 3.h),
+
+                    // Joined Date Section
                     Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 1.h), // Responsive padding
+                      padding: EdgeInsets.symmetric(vertical: 1.h),
                       child: Text(
                         'Joined on: ${joinDate ?? "Loading..."}',
                         style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.bold,
-                          color: const Color.fromARGB(255, 121, 121, 121),
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ),
@@ -384,6 +235,147 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ),
+    );
+  }
+
+// Reusable Section Widget
+  Widget _buildSection({
+    required String title,
+    required String description,
+    required TextEditingController controller,
+    required String hintText,
+    String? buttonText,
+    Color? buttonColor,
+    VoidCallback? onPressed,
+    bool isPassword = false,
+    bool showPassword = false,
+    VoidCallback? onTogglePassword,
+    TextEditingController? confirmController,
+    String? confirmHintText,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(16.sp),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: 0.5.h),
+          Text(
+            description,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.sp,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 1.5.h),
+          // Input Field
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 12.sp),
+            child: TextField(
+              controller: controller,
+              obscureText: isPassword && !showPassword,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: hintText,
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  color: Colors.grey[500],
+                ),
+                suffixIcon: isPassword
+                    ? IconButton(
+                        icon: Icon(
+                          showPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.grey,
+                        ),
+                        onPressed: onTogglePassword,
+                      )
+                    : null,
+              ),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14.sp,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          if (confirmController != null) ...[
+            SizedBox(height: 1.5.h),
+            // Confirm Password Field
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.sp),
+              child: TextField(
+                controller: confirmController,
+                obscureText: isPassword && !showPassword,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: confirmHintText,
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 14.sp,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+          if (buttonText != null) ...[
+            SizedBox(height: 2.h),
+            Center(
+              child: ElevatedButton(
+                onPressed: onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: Size(120, 40),
+                  elevation: 0,
+                ),
+                child: Text(
+                  buttonText,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

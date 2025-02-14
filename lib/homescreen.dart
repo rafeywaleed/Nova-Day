@@ -1090,41 +1090,6 @@ class _HomeScreenState extends State<HomeScreen>
           },
           kIconSize: 24.0,
         ),
-        // floatingActionButton: _selectedIndex != 0
-        //     ? null
-        //     : SafeArea(
-        //         child: FloatingActionButton(
-        //           onPressed: () {
-        //             final _controller = TextEditingController();
-        //             showDialog(
-        //               context: context,
-        //               builder: (context) {
-        //                 return DialogBox(
-        //                   Controller: _controller,
-        //                   onSave: () {
-        //                     if (_controller.text.isNotEmpty) {
-        //                       setState(() {
-        //                         additionalTasks.add({
-        //                           'task': _controller.text,
-        //                           'completed': false
-        //                         });
-        //                       });
-        //                       saveAdditionalTasksToSharedPreferences(
-        //                           additionalTasks);
-        //                       saveAdditionalTasksToFirebase(additionalTasks);
-        //                       Navigator.of(context).pop();
-        //                     }
-        //                   },
-        //                   onCancel: () {
-        //                     Navigator.of(context).pop();
-        //                   },
-        //                 );
-        //               },
-        //             );
-        //           },
-        //           child: Icon(Icons.add),
-        //         ),
-        //       ),
       ),
     );
   }

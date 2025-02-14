@@ -193,20 +193,19 @@ class _AddTasksState extends State<AddTasks> {
       appBar: widget.input == 0
           ? AppBar(
               automaticallyImplyLeading: false,
+              backgroundColor: Colors.white,
+              elevation: 0,
             )
           : AppBar(
               automaticallyImplyLeading: false,
-              // leading: widget.input == 1
-              //     ? IconButton(
-              //         icon: const Icon(Icons.arrow_back_ios_new_rounded),
-              //         onPressed: () {
-              //           Navigator.pop(context);
-              //         },
-              //       )
-              //     : null,
+              backgroundColor: Colors.white,
+              elevation: 0,
               title: const Text(
                 'Add Daily Task',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
       body: Padding(
@@ -214,12 +213,12 @@ class _AddTasksState extends State<AddTasks> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TextButton(onPressed: (){showInfoBox();}, child: Text("data")),
             Text(
               'Hello, $userName',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
             const Divider(
@@ -228,39 +227,11 @@ class _AddTasksState extends State<AddTasks> {
             Text(
               'These are daily tasks (e.g., gym, reading, studying) that reset every day.',
               style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.sp, color: Colors.grey),
+                fontSize: 10.sp,
+                color: Colors.grey,
+              ),
             ),
-            // Divider(
-            //   color: Colors.grey,
-            // ),
-
             const SizedBox(height: 16),
-            // Padding(
-            //   padding: const EdgeInsets.all(8.0),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     children: [
-            //       Flexible(
-            //         child: Text(
-            //           'Reminder notifications will be sent everyday at 12pm, 6pm and 10pm (GMT+5:30)',
-            //           style: GoogleFonts.plusJakartaSans(
-            //             fontSize: 12.sp,
-            //             color: Colors.grey,
-            //           ),
-            //         ),
-            //       ),
-            //       Switch(
-            //         value: notificationsEnabled,
-            //         onChanged: toggleNotifications,
-            //         activeColor: Colors.blue, // Switch active color
-            //         inactiveThumbColor:
-            //             Colors.grey, // Thumb color when inactive
-            //         inactiveTrackColor:
-            //             Colors.grey[300], // Track color when inactive
-            //       ),
-            //     ],
-            //   ),
-            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -269,6 +240,7 @@ class _AddTasksState extends State<AddTasks> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
                 ElevatedButton(
@@ -322,7 +294,6 @@ class _AddTasksState extends State<AddTasks> {
               ],
             ),
             const SizedBox(height: 16),
-
             Expanded(
               child: ListView.builder(
                 itemCount: currentDailyTasks.length,
@@ -346,15 +317,16 @@ class _AddTasksState extends State<AddTasks> {
                             const Icon(IconlyLight.delete, color: Colors.white),
                       ),
                       child: Card(
-                        elevation: 5,
+                        elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
                           title: Text(
                             currentDailyTasks[index],
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 16,
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -371,21 +343,21 @@ class _AddTasksState extends State<AddTasks> {
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  minimumSize: const Size(100, 40),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+                  // minimumSize: const Size(120, 50),
+                  elevation: 0,
                 ),
                 onPressed: () async {
                   if (isTaskListModified) {
                     saveDailyTasksToFirestore(currentDailyTasks);
                     saveDailyTasksToPreferences(currentDailyTasks);
-                  } else {
-                    // print("No changes to task list, not saving.");
                   }
-
-                  if (widget.input == 0)
+                  if (widget.input == 0) {
                     await showInfoBox();
-                  else {
+                  } else {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -399,7 +371,6 @@ class _AddTasksState extends State<AddTasks> {
                       'Save',
                       style: TextStyle(fontSize: 15.sp),
                     ),
-                    // Icon(Icons.add_task, color: Colors.white, size: 20.sp),
                   ],
                 ),
               ),
@@ -408,7 +379,9 @@ class _AddTasksState extends State<AddTasks> {
             Text(
               'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
               style: GoogleFonts.plusJakartaSans(
-                  fontSize: 8.sp, color: Colors.grey),
+                fontSize: 8.sp,
+                color: Colors.grey,
+              ),
             ),
           ],
         ),

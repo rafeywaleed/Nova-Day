@@ -206,6 +206,22 @@ class _AddNotePageState extends State<AddNotePage> {
     return '$day$month$year$hour$minute$second'; // Unique ID with seconds
   }
 
+  void _informAutoSave() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Center(child: Text('AutoSave is enabled')),
+        backgroundColor: Colors.grey,
+        width: 50.w,
+        elevation: 1,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
+  }
+
   void _showThemeModal() {
     showModalBottomSheet(
       context: context,
@@ -287,22 +303,6 @@ class _AddNotePageState extends State<AddNotePage> {
           ),
         );
       },
-    );
-  }
-
-  void _informAutoSave() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Center(child: Text('AutoSave is enabled')),
-        backgroundColor: Colors.grey,
-        width: 50.w,
-        elevation: 1,
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-      ),
     );
   }
 

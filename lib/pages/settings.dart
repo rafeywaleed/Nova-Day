@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:hundred_days/cloud/admin_notifiy.dart';
+import 'package:iconly/iconly.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
@@ -183,59 +184,52 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       ),
       key: scaffoldKey,
       body: SingleChildScrollView(
-        // Allows scrolling
         child: Padding(
           padding: EdgeInsets.all(4.w), // Responsive padding
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 5.h), // Responsive height
+              SizedBox(height: 5.h), // Responsive spacing
               Text(
-                'User  Settings',
+                'User Settings',
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.blue,
                   fontWeight: FontWeight.bold,
-                  fontSize: 25.sp, // Responsive font size
+                  fontSize: 22.sp, // Responsive font size
                 ),
               ),
-              // Ensure each section is wrapped properly
-              // _buildSection(
-              //   'Edit Tasks',
-              //   'Easily modify your daily tasks.',
-              //   () {
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(
-              //           builder: (context) => const AddTasks(input: 1)),
-              //     );
-              //   },
-              // ),
+              SizedBox(height: 3.h), // Spacing after the title
               _buildSection(
                 'Notifications',
-                'Schedule your Reminders',
+                'Schedule your reminders.',
+                Icons.notifications,
                 () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            const NotificationSettings(intro: 1)),
+                      builder: (context) =>
+                          const NotificationSettings(intro: 1),
+                    ),
                   );
                 },
               ),
               _buildSection(
                 'Profile',
-                'Update your name and password',
+                'Update your name and password.',
+                IconlyBold.profile,
                 () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const ProfilePage()),
+                      builder: (context) => const ProfilePage(),
+                    ),
                   );
                 },
               ),
               _buildSection(
                 'Contact',
                 'For requests, reports, or suggestions, feel free to contact me via email.',
+                IconlyBold.message,
                 () {
                   _launchEmail();
                 },
@@ -243,43 +237,52 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               _buildSection(
                 'Guide',
                 'View notes and instructions related to task lists.',
+                IconlyBold.discovery,
                 () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const IntroScreen(
-                              input: 1,
-                            )),
+                      builder: (context) => const IntroScreen(input: 1),
+                    ),
                   );
                 },
               ),
-              SizedBox(
-                height: 1.h,
-              ),
+              SizedBox(height: 3.5.h), // Spacing before the logout button
               Align(
-                alignment: Alignment.centerRight,
+                alignment: Alignment.center,
                 child: ElevatedButton(
                   onPressed: () => logout(context),
                   style: ElevatedButton.styleFrom(
-                    elevation: 5,
-                    // visualDensity: VisualDensity.compact,
+                    elevation: 1, // Flat design
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     backgroundColor: Colors.grey.shade100,
+                    side: BorderSide(
+                      color: Colors.grey,
+                      width: 1,
+                    ),
                     padding: EdgeInsets.symmetric(
-                        horizontal: 2.w, vertical: 1.h), // Adjusted padding
+                      horizontal: 3.w,
+                      vertical: 1.5.h,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Text(
-                      //   'Log Out  ',
-                      //   style: GoogleFonts.plusJakartaSans(
-                      //     color: Colors.white,
-                      //   ),
-                      // ),
-                      Icon(Icons.logout, color: Colors.red),
+                      Text(
+                        'Logout  ',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.red,
+                          // fontWeight: FontWeight.bold,
+                          fontSize: 13.sp, // Responsive font size
+                        ),
+                      ),
+                      Icon(
+                        Icons.logout,
+                        color: Colors.red,
+                        size: 17.sp,
+                      ),
                     ],
                   ),
                 ),
@@ -291,7 +294,8 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
     );
   }
 
-  Widget _buildSection(String title, String subtitle, VoidCallback onTap) {
+  Widget _buildSection(
+      String title, String subtitle, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: FadeInRight(
@@ -301,33 +305,51 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: const [
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 6,
                 offset: Offset(0, 2),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15.sp, // Responsive font size
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 65, 65, 65),
+              Icon(
+                icon,
+                color: Colors.blue,
+                size: 20.sp,
+              ),
+              SizedBox(width: 4.w), // Spacing between icon and text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(
+                        height: 0.5.h), // Spacing between title and subtitle
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 0.5.h), // Responsive height
-              Text(
-                subtitle,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.sp, // Responsive font size
-                  color: Colors.grey[600],
-                ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey,
+                size: 15.sp,
               ),
             ],
           ),
