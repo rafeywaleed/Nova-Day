@@ -11,6 +11,8 @@ import 'package:hundred_days/services/notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
+import '../cloud/firebase_api.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    FirebaseApi().initNotification();
 
     // Call a method to schedule notifications with the correct time
     _scheduleNotificationsOnStartup();

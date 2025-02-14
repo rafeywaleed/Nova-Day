@@ -11,9 +11,9 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Background message handler
 Future<void> handleBackgroundMessage(RemoteMessage message) async {
-  print('Title: ${message.notification?.title}');
-  print('Body: ${message.notification?.body}');
-  print('Payload: ${message.data}');
+  //print('Title: ${message.notification?.title}');
+  //print('Body: ${message.notification?.body}');
+  //print('Payload: ${message.data}');
 }
 
 class FirebaseApi {
@@ -59,7 +59,7 @@ class FirebaseApi {
     // Subscribe to topic
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
     await subscribeToTopic('allUsers');
-    print("Subscribed to allUsers");
+    //print("Subscribed to allUsers");
 
     final docSnapshot =
         await _firestore.collection('adminPanel').doc('currentTopic').get();
@@ -79,8 +79,8 @@ class FirebaseApi {
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Received a message while in the foreground!');
-      print('Message data: ${message.data}');
+      //print('Received a message while in the foreground!');
+      //print('Message data: ${message.data}');
 
       if (message.notification != null) {
         showNotification(message.notification!, message.data);
@@ -89,7 +89,7 @@ class FirebaseApi {
 
     // Handle notification taps when the app is in the background or terminated
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
+      //print('A new onMessageOpenedApp event was published!');
       // Handle the notification tap
       handleNotificationTap(message.data['link']);
     });
@@ -125,7 +125,7 @@ class FirebaseApi {
       if (await canLaunch(payload)) {
         await launch(payload);
       } else {
-        print("Could not launch $payload");
+        //print("Could not launch $payload");
       }
     } else {
       // If no link is found or data is empty, navigate to home screen
@@ -154,19 +154,39 @@ class FirebaseApi {
             .doc(user.uid)
             .set({'fcmToken': fcmToken}, SetOptions(merge: true));
       }
-      print('Stored FCM Token: $fcmToken');
+      //print('Stored FCM Token: $fcmToken');
     } catch (e) {
-      print('Error storing FCM token: $e');
+      //print('Error storing FCM token: $e');
     }
   }
 
   // Subscribe to a topic
+  // Subscribe to a topic and store in Firestore
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _firebaseMessaging.subscribeToTopic(topic);
-      print('Subscribed to topic: $topic');
+      //print('Subscribed to topic: $topic');
+
+      // Get current user
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Create or update subscription in Firestore
+        await FirebaseFirestore.instance
+            .collection('subscriptions')
+            .doc(user.uid)
+            .set(
+                {
+              'userId': user.uid,
+              'topic': topic,
+            },
+                SetOptions(
+                    merge: true)); // Use merge to update existing doc if needed
+
+        // Optionally, print to verify the action
+        //print('Subscription stored for user ${user.uid} to topic $topic');
+      }
     } catch (e) {
-      print('Error subscribing to topic: $e');
+      //print('Error subscribing to topic: $e');
     }
   }
 }

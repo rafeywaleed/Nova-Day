@@ -2,12 +2,10 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_days/auth/firebase_fun.dart';
-import 'package:hundred_days/auth/login.dart';
 import 'package:hundred_days/homescreen.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hundred_days/services/notification.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:iconly/iconly.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -222,7 +220,7 @@ class _AddTasksState extends State<AddTasks> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Divider(
+            const Divider(
               color: Colors.grey,
             ),
             Text(
@@ -285,7 +283,7 @@ class _AddTasksState extends State<AddTasks> {
                       ),
                     ),
                     padding: MaterialStateProperty.all(
-                      EdgeInsets.all(
+                      const EdgeInsets.all(
                           5), // Uniform padding to make it square (you can adjust the value)
                     ),
                     elevation: MaterialStateProperty.all(5), // subtle shadow
@@ -341,8 +339,9 @@ class _AddTasksState extends State<AddTasks> {
                       background: Container(
                         color: Colors.red,
                         alignment: Alignment.centerLeft,
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Icon(IconlyLight.delete, color: Colors.white),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child:
+                            const Icon(IconlyLight.delete, color: Colors.white),
                       ),
                       child: Card(
                         elevation: 5,
@@ -384,11 +383,12 @@ class _AddTasksState extends State<AddTasks> {
 
                   if (widget.input == 0)
                     await showInfoBox();
-                  else
+                  else {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
+                  }
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

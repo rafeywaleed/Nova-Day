@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AnimationController _logoAnimationController = AnimationController(
     vsync: this,
-    duration: Duration(milliseconds: 8000),
+    duration: const Duration(milliseconds: 8000),
   );
   List<Map<String, dynamic>> defaultTasks = [];
   List<Map<String, dynamic>> additionalTasks = [];
@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen>
   void _initAnimationController() {
     _logoAnimationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 5000),
+      duration: const Duration(milliseconds: 5000),
     );
   }
 
@@ -159,7 +159,6 @@ class _HomeScreenState extends State<HomeScreen>
     _animate();
     _fetchAdData();
     _checkPremium();
-    FirebaseApi().initNotification();
   }
 
   final FirebaseService _firebaseService = FirebaseService();
@@ -174,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _animate() async {
     await _logoAnimationController.forward();
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 3));
     _logoAnimationController.reset();
     _animate();
   }
@@ -266,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen>
                       if (loadingProgress == null) {
                         return child;
                       } else {
-                        return Center(child: PLoader());
+                        return const Center(child: PLoader());
                       }
                     },
                   ),
@@ -274,14 +273,14 @@ class _HomeScreenState extends State<HomeScreen>
                 // SizedBox(height: 16),
                 Text(
                   dialogAdName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 // Dialog Description (Ad Line)
                 Text(
                   dialogAdLine,
@@ -293,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen>
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -310,15 +309,15 @@ class _HomeScreenState extends State<HomeScreen>
                             borderRadius:
                                 BorderRadius.circular(8), // Rounded corners
                           ),
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: 32, vertical: 12),
                         ),
-                        child: Text('Visit',
+                        child: const Text('Visit',
                             style:
                                 TextStyle(fontSize: 16, color: Colors.white)),
                       ),
 
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Close Button
                       ElevatedButton(
                         onPressed: () {
@@ -330,10 +329,10 @@ class _HomeScreenState extends State<HomeScreen>
                             borderRadius:
                                 BorderRadius.circular(8), // Rounded corners
                           ),
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: 32, vertical: 12),
                         ),
-                        child: Text('Close',
+                        child: const Text('Close',
                             style:
                                 TextStyle(fontSize: 16, color: Colors.black)),
                       ),
@@ -391,19 +390,19 @@ class _HomeScreenState extends State<HomeScreen>
                       if (loadingProgress == null) {
                         return child;
                       } else {
-                        return PLoader();
+                        return const PLoader();
                       }
                     },
                     errorBuilder: (BuildContext context, Object error,
                         StackTrace? stackTrace) {
                       // Placeholder image in case of an error (could be a default image)
-                      return PLoader();
+                      return const PLoader();
                     },
                   ),
                 ],
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             // Text content
             Expanded(
               child: Column(
@@ -412,13 +411,13 @@ class _HomeScreenState extends State<HomeScreen>
                   // Banner Name
                   Text(
                     bannerAdName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   // Banner description/line with overflow handling
                   Text(
                     bannerAdline,
@@ -1009,15 +1008,15 @@ class _HomeScreenState extends State<HomeScreen>
         return await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Confirm Exit'),
-            content: Text('Are you sure you want to exit the app?'),
+            title: const Text('Confirm Exit'),
+            content: const Text('Are you sure you want to exit the app?'),
             actions: [
               TextButton(
-                child: Text('No'),
+                child: const Text('No'),
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               TextButton(
-                child: Text('Yes'),
+                child: const Text('Yes'),
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],
@@ -1028,13 +1027,13 @@ class _HomeScreenState extends State<HomeScreen>
         // backgroundColor: Colors.grey,
         body: PageView(
           controller: _pageController,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             _buildHomeContent(),
-            AddTasks(input: 1),
+            const AddTasks(input: 1),
             NotesListPage(),
-            ProgressTracker(),
-            UserSettingsPage(),
+            const ProgressTracker(),
+            const UserSettingsPage(),
           ],
         ),
         extendBody: true,
@@ -1134,13 +1133,13 @@ class _HomeScreenState extends State<HomeScreen>
       case 0:
         return _buildHomeContent();
       case 1:
-        return AddTasks(input: 1);
+        return const AddTasks(input: 1);
       case 2:
         return NotesListPage();
       case 3:
-        return ProgressTracker();
+        return const ProgressTracker();
       case 4:
-        return UserSettingsPage();
+        return const UserSettingsPage();
 
       default:
         return _buildHomeContent();
@@ -1161,9 +1160,9 @@ class _HomeScreenState extends State<HomeScreen>
       color: Colors.blue,
       onRefresh: _handleRefresh,
       child: Padding(
-        padding: EdgeInsets.all(18),
+        padding: const EdgeInsets.all(18),
         child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1207,8 +1206,8 @@ class _HomeScreenState extends State<HomeScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Flash(
-                                    delay: Duration(milliseconds: 800),
-                                    duration: Duration(milliseconds: 800),
+                                    delay: const Duration(milliseconds: 800),
+                                    duration: const Duration(milliseconds: 800),
                                     child: Text(
                                       '$daysLeft',
                                       style: GoogleFonts.plusJakartaSans(
@@ -1252,7 +1251,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 "Daily Tasks:",
                 style: GoogleFonts.plusJakartaSans(
@@ -1275,7 +1274,7 @@ class _HomeScreenState extends State<HomeScreen>
                       height: defaultTasks.length * 10.h + 20,
                       child: ListView.builder(
                         // shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: defaultTasks.length,
                         itemBuilder: (context, index) {
                           Map<String, dynamic> task = defaultTasks[index];
@@ -1307,7 +1306,7 @@ class _HomeScreenState extends State<HomeScreen>
                 height: additionalTasks.length * 9.h + 20,
                 child: ListView.builder(
                   // shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: additionalTasks.length,
                   itemBuilder: (context, index) {
                     return TaskCard(
@@ -1332,7 +1331,7 @@ class _HomeScreenState extends State<HomeScreen>
                   },
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Center(
@@ -1445,8 +1444,8 @@ class TaskCard extends StatelessWidget {
             background: Container(
               color: Colors.red,
               alignment: Alignment.centerLeft,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Icon(IconlyLight.delete, color: Colors.white),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(IconlyLight.delete, color: Colors.white),
             ),
             child: _buildTaskCard(),
           )
@@ -1486,8 +1485,9 @@ class TaskCard extends StatelessWidget {
           ),
           title: Row(
             children: [
-              Icon(Icons.block, color: Colors.red, size: 30), // Warning icon
-              SizedBox(width: 10),
+              const Icon(Icons.block,
+                  color: Colors.red, size: 30), // Warning icon
+              const SizedBox(width: 10),
               Text(
                 'Cannot Delete Task',
                 style: GoogleFonts.plusJakartaSans(
@@ -1499,7 +1499,7 @@ class TaskCard extends StatelessWidget {
             ],
           ),
           content: Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               'Daily tasks cannot be deleted. You can edit tasks from the settings.',
               style: GoogleFonts.plusJakartaSans(
@@ -1518,7 +1518,8 @@ class TaskCard extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               ),
               child: Text(
                 'Edit Tasks',
@@ -1532,7 +1533,7 @@ class TaskCard extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddTasks(input: 1),
+                    builder: (context) => const AddTasks(input: 1),
                   ),
                 );
               },

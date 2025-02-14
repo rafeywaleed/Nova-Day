@@ -23,7 +23,7 @@ class FirebaseService {
         await _saveUserDetails(name, email, user.uid);
       }
     } on FirebaseAuthException catch (e) {
-      print('Error signing up: ${e.message}');
+      //print('Error signing up: ${e.message}');
       throw e;
     }
   }
@@ -39,9 +39,9 @@ class FirebaseService {
         'joinedDate': joinedDate,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      print('User data stored in Firestore');
+      //print('User data stored in Firestore');
     } catch (error) {
-      print('Error storing user data in Firestore: $error');
+      //print('Error storing user data in Firestore: $error');
     }
 
     // Save user data in SharedPreferences
@@ -50,9 +50,9 @@ class FirebaseService {
       await prefs.setString('userName', name);
       await prefs.setString('userEmail', email);
       await prefs.setString('joinedDate', joinedDate);
-      print('User data stored in SharedPreferences');
+      //print('User data stored in SharedPreferences');
     } catch (error) {
-      print('Error storing user data in SharedPreferences: $error');
+      //print('Error storing user data in SharedPreferences: $error');
     }
   }
 
@@ -78,7 +78,7 @@ class FirebaseService {
         throw Exception("User not found after sign in.");
       }
     } on FirebaseAuthException catch (e) {
-      print('Error signing in: ${e.message}');
+      //print('Error signing in: ${e.message}');
       throw e;
     }
   }
@@ -89,7 +89,7 @@ class FirebaseService {
       await _auth.signOut();
       userId = null; // Clear stored user ID
     } on FirebaseAuthException catch (e) {
-      print('Error signing out: ${e.message}');
+      //print('Error signing out: ${e.message}');
       throw e;
     }
   }
@@ -106,7 +106,7 @@ class FirebaseService {
         throw Exception("No user signed in.");
       }
     } on FirebaseAuthException catch (e) {
-      print('Error changing name: ${e.message}');
+      //print('Error changing name: ${e.message}');
       throw e; // Optionally, throw a custom exception
     }
   }
@@ -121,7 +121,7 @@ class FirebaseService {
         throw Exception("No user signed in.");
       }
     } on FirebaseAuthException catch (e) {
-      print('Error changing password: ${e.message}');
+      //print('Error changing password: ${e.message}');
       throw e; // Optionally, throw a custom exception
     }
   }
