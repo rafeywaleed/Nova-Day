@@ -15,11 +15,15 @@ import 'add_notes.dart';
 import 'package:hundred_days/utils/notes_theme_list.dart';
 
 class NotesListPage extends StatefulWidget {
+  const NotesListPage({Key? key}) : super(key: key);
   @override
   _NotesListPageState createState() => _NotesListPageState();
 }
 
-class _NotesListPageState extends State<NotesListPage> {
+class _NotesListPageState extends State<NotesListPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   List<Map<String, dynamic>> _notes = [];
   final String _notesKey = 'cached_notes';
   final String _sortOrderKey = 'sort_order'; // Key for sort order preference
@@ -29,14 +33,16 @@ class _NotesListPageState extends State<NotesListPage> {
   @override
   void initState() {
     super.initState();
-    _loadSortOrderPreference().then((_) {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await _loadSortOrderPreference().then((_) {
       _fetchNotes();
       _loadCachedNotes();
       _syncNotes();
-      _myCheck();
       _isOnline = false;
       _checkInternetConnectivity();
-      // Delay the initial connectivity check until after the first frame
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkInitialConnectivity();
       });
@@ -45,9 +51,7 @@ class _NotesListPageState extends State<NotesListPage> {
 
   Future<void> _loadSortOrderPreference() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _sortOrder = prefs.getString(_sortOrderKey) ?? 'Descending';
-    });
+    _sortOrder = prefs.getString(_sortOrderKey) ?? 'Descending';
   }
 
   Future<void> _saveSortOrderPreference(String sortOrder) async {
@@ -55,24 +59,14 @@ class _NotesListPageState extends State<NotesListPage> {
     await prefs.setString(_sortOrderKey, sortOrder);
   }
 
-  // Updated _myCheck method
   Future<void> _myCheck() async {
     List<ConnectivityResult> connectivityResults =
         await Connectivity().checkConnectivity();
     bool isConnected = connectivityResults.any(
       (result) => result != ConnectivityResult.none,
     );
-
-    // if (!isConnected) {
-    //   // log("Device is offline");
-    //   // //print("Device is offline");
-    // } else {
-    //   // log("Device is online");
-    //   // //print("Device is online");
-    // }
   }
 
-  // Updated _checkInitialConnectivity method
   Future<void> _checkInitialConnectivity() async {
     List<ConnectivityResult> connectivityResults =
         await Connectivity().checkConnectivity();
@@ -90,7 +84,6 @@ class _NotesListPageState extends State<NotesListPage> {
     }
   }
 
-  // Updated connectivity listener
   void _checkInternetConnectivity() {
     Connectivity()
         .onConnectivityChanged
@@ -103,11 +96,11 @@ class _NotesListPageState extends State<NotesListPage> {
         setState(() => _isOnline = isOnline);
       }
 
-      isOnline
-          ? null
-          : _showSnackBar(
-              'No internet connection, fetching notes from local device. Process may be slow',
-              const Color.fromARGB(255, 83, 83, 83));
+      if (!isOnline) {
+        _showSnackBar(
+            'No internet connection, fetching notes from local device. Process may be slow',
+            const Color.fromARGB(255, 83, 83, 83));
+      }
 
       if (isOnline) _syncNotes();
     });
@@ -161,7 +154,6 @@ class _NotesListPageState extends State<NotesListPage> {
       return data;
     }).toList();
 
-    // Save the fetched notes to cache
     await _saveNotesToCache(notes);
 
     return notes;
@@ -172,7 +164,6 @@ class _NotesListPageState extends State<NotesListPage> {
     if (user == null) return;
 
     try {
-      // Fetch notes from Firestore
       final querySnapshot = await FirebaseFirestore.instance
           .collection('userNotes')
           .doc(user.uid)
@@ -185,14 +176,11 @@ class _NotesListPageState extends State<NotesListPage> {
         return data;
       }).toList();
 
-      // Save notes to SharedPreferences
       await _saveNotesToCache(notes);
 
       setState(() => _notes = notes);
       _sortNotes();
     } catch (e) {
-      // If Firestore fails (e.g., offline), load cached notes
-      // //print("Error fetching notes from Firestore: $e");
       await _loadCachedNotes();
     }
   }
@@ -202,7 +190,6 @@ class _NotesListPageState extends State<NotesListPage> {
     if (user == null) return;
 
     try {
-      // Fetch notes from Firestore
       final querySnapshot = await FirebaseFirestore.instance
           .collection('userNotes')
           .doc(user.uid)
@@ -215,7 +202,6 @@ class _NotesListPageState extends State<NotesListPage> {
         return data;
       }).toList();
 
-      // Save notes to SharedPreferences
       await _saveNotesToCache(notes);
 
       setState(() => _notes = notes);
@@ -285,7 +271,6 @@ class _NotesListPageState extends State<NotesListPage> {
               ),
             ),
           ),
-          // Delete button overlay (visible only on long press)
           Visibility(
             visible: _showDeleteButton,
             child: Positioned(
@@ -387,7 +372,7 @@ class _NotesListPageState extends State<NotesListPage> {
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20), // Rounded corners for the bottom sheet
+          top: Radius.circular(20),
         ),
       ),
       builder: (BuildContext context) {
@@ -396,19 +381,6 @@ class _NotesListPageState extends State<NotesListPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header for the bottom sheet
-              // Padding(
-              //   padding: EdgeInsets.symmetric(vertical: 8),
-              //   child: Text(
-              //     'Note Options',
-              //     style: GoogleFonts.plusJakartaSans(
-              //       fontSize: 16.sp,
-              //       fontWeight: FontWeight.w600,
-              //     ),
-              //   ),
-              // ),
-              // Divider(), // Divider to separate the header from options
-              // Delete Option
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: Text(
@@ -426,32 +398,10 @@ class _NotesListPageState extends State<NotesListPage> {
                   ),
                 ),
                 onTap: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  _confirmDeleteNote(noteId); // Show confirmation dialog
+                  Navigator.pop(context);
+                  _confirmDeleteNote(noteId);
                 },
               ),
-              // Edit Option
-              // ListTile(
-              //   leading: Icon(Icons.edit, color: Colors.blue),
-              //   title: Text(
-              //     'Edit Note',
-              //     style: GoogleFonts.plusJakartaSans(
-              //       fontSize: 14.sp,
-              //       color: Colors.blue,
-              //     ),
-              //   ),
-              //   subtitle: Text(
-              //     'Modify the content of this note',
-              //     style: GoogleFonts.plusJakartaSans(
-              //       fontSize: 10.sp,
-              //       color: Colors.grey,
-              //     ),
-              //   ),
-              //   onTap: () {
-              //     Navigator.pop(context); // Close the bottom sheet
-              //     // Add logic to edit the note
-              //   },
-              // ),
             ],
           ),
         );
@@ -495,25 +445,9 @@ class _NotesListPageState extends State<NotesListPage> {
     ).then((_) => _fetchNotes());
   }
 
-  // void _showSlow() {
-  //   if (!_isOnline)
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         showCloseIcon: true,
-  //         content: Text(
-  //             'No internet connection, fetching notes from local device. Process may be slow'),
-  //         backgroundColor: Colors.grey,
-  //         behavior: SnackBarBehavior.floating,
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(10.0),
-  //         ),
-  //         duration: Duration(seconds: 8),
-  //       ),
-  //     );
-  // }
-
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -548,8 +482,8 @@ class _NotesListPageState extends State<NotesListPage> {
                 onSelected: (value) {
                   setState(() {
                     _sortOrder = value;
-                    _saveSortOrderPreference(value); // Save the sort order
-                    _sortNotes(); // Sort notes when the order is changed
+                    _saveSortOrderPreference(value);
+                    _sortNotes();
                   });
                 },
                 itemBuilder: (BuildContext context) {
@@ -601,7 +535,7 @@ class _NotesListPageState extends State<NotesListPage> {
                           ),
                           itemCount: _notes.length,
                           itemBuilder: (context, index) => FadeInUp(
-                            delay: Duration(milliseconds: 300 * index),
+                            delay: Duration(milliseconds: 100 * index),
                             child: _buildNoteCard(_notes[index], context),
                           ),
                         ),
@@ -610,7 +544,7 @@ class _NotesListPageState extends State<NotesListPage> {
                   ),
                 ),
           floatingActionButton: Bounce(
-            duration: const Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 500),
             child: FloatingActionButton(
               onPressed: () => _openNote(null),
               backgroundColor: Colors.teal,
