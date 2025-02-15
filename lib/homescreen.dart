@@ -1254,6 +1254,11 @@ class _HomeScreenState extends State<HomeScreen>
                                 saveNormalProgress();
                               });
                             },
+                            onEditTasks: () => setState(() {
+                              _selectedIndex = 1;
+                              _pageController.jumpToPage(1);
+                              _controller.jumpTo(1);
+                            }),
                           );
                         },
                       ),
@@ -1370,6 +1375,7 @@ class TaskCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool isDismissible;
   final bool isDailyTask;
+  final VoidCallback? onEditTasks; // Add this line
 
   const TaskCard({
     required this.task,
@@ -1377,6 +1383,7 @@ class TaskCard extends StatelessWidget {
     this.onDelete,
     this.isDismissible = true,
     this.isDailyTask = false,
+    this.onEditTasks, // Add this line
     Key? key,
   }) : super(key: key);
 
@@ -1481,12 +1488,7 @@ class TaskCard extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddTasks(input: 1),
-                  ),
-                );
+                onEditTasks?.call(); // Call the callback function
               },
             ),
           ],
