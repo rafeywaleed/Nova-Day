@@ -1,91 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:sizer/sizer.dart';
 
 class DialogBox extends StatelessWidget {
-  final Controller;
-
+  final TextEditingController Controller;
+  final TextEditingController? descriptionController;
   final VoidCallback onSave;
   final VoidCallback onCancel;
+  final bool isDailyTask;
 
-  DialogBox({
-    super.key,
-    this.Controller,
+  const DialogBox({
+    required this.Controller,
     required this.onSave,
     required this.onCancel,
-  });
+    this.descriptionController,
+    this.isDailyTask = false,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.white,
-      contentPadding: const EdgeInsets.all(16), // Add padding
-      content: Container(
-        height: MediaQuery.of(context).size.height * 0.2,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Get user input
-            TextField(
-              controller: Controller,
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                hintText: "Add a new Task",
-                hintStyle: const TextStyle(fontFamily: 'Poppins'),
-              ),
-            ),
-
-            // Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // Save
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue, // Change button color
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10), // Make corners rounded
-                    ),
-                  ),
-                  onPressed: onSave,
-                  child: const Text(
-                    "Add",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Cancel
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    backgroundColor: Colors.white, // Change text color
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10), // Make corners rounded
-                      side: const BorderSide(color: Colors.red), // Add border
-                    ),
-                  ),
-                  onPressed: onCancel,
-                  child: const Text(
-                    "Cancel",
-                    style: TextStyle(
-                      fontFamily: 'Poppins', // Change font family
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: Text(
+        'Add Task',
+        style: GoogleFonts.plusJakartaSans(
+          fontWeight: FontWeight.bold,
+          fontSize: 18.sp,
         ),
       ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: Controller,
+            decoration: InputDecoration(
+              labelText: 'Task Name',
+              labelStyle: GoogleFonts.plusJakartaSans(),
+            ),
+          ),
+          if (!isDailyTask)
+            TextField(
+              controller: descriptionController,
+              decoration: InputDecoration(
+                labelText: 'Description',
+                labelStyle: GoogleFonts.plusJakartaSans(),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: onCancel,
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.red,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: onSave,
+          child: Text(
+            'Save',
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.blue,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

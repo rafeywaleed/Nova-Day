@@ -289,6 +289,7 @@ class _AddTasksState extends State<AddTasks> {
                         builder: (context) {
                           return DialogBox(
                             Controller: _controller,
+                            isDailyTask: true,
                             onCancel: () {
                               Navigator.of(context).pop();
                             },

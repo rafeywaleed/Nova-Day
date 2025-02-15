@@ -844,13 +844,11 @@ class _HomeScreenState extends State<HomeScreen>
   bool isLoading = true;
 
   Future<void> _handleRefresh() async {
-    //print("refreshing");
     setState(() {
       isLoading = true;
     });
     loadUserEmail();
     loadDailyTasks();
-    //printSt();
     resetTaskAnyway();
     checkAndUpdateTasks();
     fetchAdditionalTasks();
@@ -872,7 +870,6 @@ class _HomeScreenState extends State<HomeScreen>
     List<String> taskList =
         additionalTasks.map((task) => jsonEncode(task)).toList();
     await prefs.setStringList('additionalTasks', taskList);
-    //print('task saved in sharedPref\n ${taskList}');
   }
 
   Future<void> saveAdditionalTasksToFirebase(
@@ -889,12 +886,13 @@ class _HomeScreenState extends State<HomeScreen>
         'tasks': additionalTasks,
       });
     }
-    //print("task saved in firebase");
   }
 
-  Future<void> createNewAdditionalTask(String taskName) async {
+  Future<void> createNewAdditionalTask(
+      String taskName, String description) async {
     Map<String, dynamic> newTask = {
       'task': taskName,
+      'description': description,
       'status': 'incomplete',
     };
 
@@ -908,10 +906,8 @@ class _HomeScreenState extends State<HomeScreen>
         : [];
 
     tasks.add(newTask);
-    //print('New additional task created !!');
 
     await saveAdditionalTasksToSharedPreferences(tasks);
-
     await saveAdditionalTasksToFirebase(tasks);
   }
 
@@ -972,7 +968,6 @@ class _HomeScreenState extends State<HomeScreen>
             .doc('tasks');
 
         DocumentSnapshot<Object?> querySnapshot = await taskRecordDoc.get();
-        //print('Additional tasks fetched from firebase');
         if (querySnapshot.exists) {
           List<Map<String, dynamic>> tasks =
               List<Map<String, dynamic>>.from(querySnapshot.get('tasks'));
@@ -980,7 +975,7 @@ class _HomeScreenState extends State<HomeScreen>
               tasks.map((task) => jsonEncode(task)).toList();
           await prefs.setStringList('additionalTasks', taskJsonList);
           setState(() {
-            additionalTasks = tasks; // Update the additionalTasks list here
+            additionalTasks = tasks;
           });
         }
       }
@@ -992,7 +987,6 @@ class _HomeScreenState extends State<HomeScreen>
             .cast<Map<String, dynamic>>();
       });
     }
-    //print('Additional tasks fetched from shredPrefrnces');
   }
 
   @override
@@ -1332,16 +1326,19 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   onPressed: () {
                     final _controller = TextEditingController();
+                    final _descriptionController = TextEditingController();
                     showDialog(
                       context: context,
                       builder: (context) {
                         return DialogBox(
                           Controller: _controller,
+                          descriptionController: _descriptionController,
                           onSave: () {
                             if (_controller.text.isNotEmpty) {
                               setState(() {
                                 additionalTasks.add({
                                   'task': _controller.text,
+                                  'description': _descriptionController.text,
                                   'completed': false
                                 });
                               });
@@ -1354,6 +1351,7 @@ class _HomeScreenState extends State<HomeScreen>
                           onCancel: () {
                             Navigator.of(context).pop();
                           },
+                          isDailyTask: false,
                         );
                       },
                     );
@@ -1369,13 +1367,13 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatefulWidget {
   final Map<String, dynamic> task;
   final ValueChanged<bool?> onChanged;
   final VoidCallback? onDelete;
   final bool isDismissible;
   final bool isDailyTask;
-  final VoidCallback? onEditTasks; // Add this line
+  final VoidCallback? onEditTasks;
 
   const TaskCard({
     required this.task,
@@ -1383,21 +1381,28 @@ class TaskCard extends StatelessWidget {
     this.onDelete,
     this.isDismissible = true,
     this.isDailyTask = false,
-    this.onEditTasks, // Add this line
+    this.onEditTasks,
     Key? key,
   }) : super(key: key);
 
   @override
+  _TaskCardState createState() => _TaskCardState();
+}
+
+class _TaskCardState extends State<TaskCard> {
+  bool _showDescription = false;
+
+  @override
   Widget build(BuildContext context) {
-    return isDismissible
+    return widget.isDismissible
         ? Dismissible(
-            key: Key(task['task'] + task['completed'].toString()),
+            key: Key(widget.task['task'] + widget.task['completed'].toString()),
             direction: DismissDirection.startToEnd,
             confirmDismiss: (direction) async {
-              if (isDailyTask) {
+              if (widget.isDailyTask) {
                 return await _showDeleteAlertDialog(context);
               } else {
-                onDelete?.call();
+                widget.onDelete?.call();
                 return true;
               }
             },
@@ -1418,18 +1423,50 @@ class TaskCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      child: CheckboxListTile(
-        title: Text(
-          task['task'],
-          style: GoogleFonts.plusJakartaSans(
-            decoration: task['completed'] == true
-                ? TextDecoration.lineThrough
-                : TextDecoration.none,
-            color: task['completed'] == true ? Colors.grey : Colors.black,
+      child: Column(
+        children: [
+          CheckboxListTile(
+            title: Text(
+              widget.task['task'],
+              style: GoogleFonts.plusJakartaSans(
+                decoration: widget.task['completed'] == true
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+                color: widget.task['completed'] == true
+                    ? Colors.grey
+                    : Colors.black,
+              ),
+            ),
+            value: widget.task['completed'] ?? false,
+            onChanged: widget.onChanged,
+            secondary: widget.isDailyTask
+                ? null
+                : IconButton(
+                    icon: Icon(
+                      _showDescription
+                          ? Icons.arrow_drop_up
+                          : Icons.arrow_drop_down,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showDescription = !_showDescription;
+                      });
+                    },
+                  ),
           ),
-        ),
-        value: task['completed'] ?? false,
-        onChanged: onChanged,
+          if (_showDescription && !widget.isDailyTask)
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                widget.task['description'] ?? 'No description provided.',
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1488,7 +1525,7 @@ class TaskCard extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.of(context).pop();
-                onEditTasks?.call(); // Call the callback function
+                widget.onEditTasks?.call();
               },
             ),
           ],
