@@ -90,7 +90,7 @@ class _AddNotePageState extends State<AddNotePage> {
     }
 
     // Hide autosave indicator after a short delay
-    Future.delayed(Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         _isSaving = false;
       });
@@ -111,8 +111,8 @@ class _AddNotePageState extends State<AddNotePage> {
     Connectivity().checkConnectivity().then((value) {
       if (value == ConnectivityResult.none) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No Internet Connection'),
+          const SnackBar(
+            content: const Text('No Internet Connection'),
             backgroundColor: Colors.red,
           ),
         );
@@ -209,12 +209,12 @@ class _AddNotePageState extends State<AddNotePage> {
   void _informAutoSave() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Center(child: Text('AutoSave is enabled')),
+        content: const Center(child: Text('AutoSave is enabled')),
         backgroundColor: Colors.grey,
         width: 50.w,
         elevation: 1,
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 1),
+        duration: const Duration(seconds: 1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -227,7 +227,7 @@ class _AddNotePageState extends State<AddNotePage> {
       context: context,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -270,7 +270,7 @@ class _AddNotePageState extends State<AddNotePage> {
                             width: 2,
                           ),
                         ),
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -328,9 +328,9 @@ class _AddNotePageState extends State<AddNotePage> {
         actions: [
           if (_isSaving)
             Padding(
-              padding: EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.only(right: 10),
               child: FadeIn(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 child: Icon(Icons.cloud_upload_outlined,
                     color: textColor.withOpacity(0.7)),
               ),
@@ -341,7 +341,7 @@ class _AddNotePageState extends State<AddNotePage> {
           ),
           Pulse(
             child: Swing(
-              duration: Duration(milliseconds: 1000),
+              duration: const Duration(milliseconds: 1000),
               child: IconButton(
                 icon: Icon(Icons.color_lens, color: textColor.withOpacity(0.8)),
                 onPressed: _showThemeModal,
@@ -352,7 +352,7 @@ class _AddNotePageState extends State<AddNotePage> {
       ),
       backgroundColor: backgroundColor,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

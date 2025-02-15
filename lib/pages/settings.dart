@@ -49,7 +49,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
             'No updates available at the moment.',
             style: GoogleFonts.plusJakartaSans(fontSize: 14.sp),
           ),
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
           backgroundColor:
               Colors.blue, // Custom background color for the snackbar
         ),
@@ -259,7 +259,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     backgroundColor: Colors.grey.shade100,
-                    side: BorderSide(
+                    side: const BorderSide(
                       color: Colors.grey,
                       width: 1,
                     ),
@@ -311,7 +311,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 6,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -365,17 +365,17 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Log Out"),
-          content: Text("Are you sure you want to log out?"),
+          title: const Text("Log Out"),
+          content: const Text("Are you sure you want to log out?"),
           actions: <Widget>[
             TextButton(
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
             ),
             TextButton(
-              child: Text("Log Out"),
+              child: const Text("Log Out"),
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
                 try {

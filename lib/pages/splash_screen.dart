@@ -35,14 +35,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     _timer = Timer(const Duration(milliseconds: 3500), () {
       _auth.authStateChanges().listen((User? user) {
-        print("Checking auth state...");
+        //print("Checking auth state...");
 
         if (user != null) {
-          print("Navigating to HomeScreen from Splash Screen");
+          //print("Navigating to HomeScreen from Splash Screen");
           Navigator.of(context)
               .pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
         } else {
-          print("Navigating to Welcome page from Splash Screen");
+          //print("Navigating to Welcome page from Splash Screen");
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => const WelcomePage()));
         }

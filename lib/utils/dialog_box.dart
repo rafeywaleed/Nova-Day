@@ -40,10 +40,10 @@ class DialogBox extends StatelessWidget {
             decoration: InputDecoration(
               labelText: 'Task Name',
               labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
-              enabledBorder: UnderlineInputBorder(
+              enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey),
               ),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.blue),
               ),
             ),
@@ -55,10 +55,10 @@ class DialogBox extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Description',
                 labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
-                enabledBorder: UnderlineInputBorder(
+                enabledBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey),
                 ),
-                focusedBorder: UnderlineInputBorder(
+                focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.blue),
                 ),
               ),
