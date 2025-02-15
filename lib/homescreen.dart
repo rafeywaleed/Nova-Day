@@ -1118,10 +1118,10 @@ class _HomeScreenState extends State<HomeScreen>
     return RefreshIndicator(
       color: Colors.blue,
       onRefresh: _handleRefresh,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1230,32 +1230,30 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                     )
-                  : SizedBox(
-                      height: defaultTasks.length * 10.h + 23,
-                      child: ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: defaultTasks.length,
-                        itemBuilder: (context, index) {
-                          Map<String, dynamic> task = defaultTasks[index];
-                          return TaskCard(
-                            task: task,
-                            isDailyTask: true,
-                            onChanged: (value) {
-                              setState(() {
-                                defaultTasks[index]['completed'] = value!;
-                                saveTasksToSharedPreferences(defaultTasks);
-                                saveProgress();
-                                saveNormalProgress();
-                              });
-                            },
-                            onEditTasks: () => setState(() {
-                              _selectedIndex = 1;
-                              _pageController.jumpToPage(1);
-                              _controller.jumpTo(1);
-                            }),
-                          );
-                        },
-                      ),
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: defaultTasks.length,
+                      itemBuilder: (context, index) {
+                        Map<String, dynamic> task = defaultTasks[index];
+                        return TaskCard(
+                          task: task,
+                          isDailyTask: true,
+                          onChanged: (value) {
+                            setState(() {
+                              defaultTasks[index]['completed'] = value!;
+                              saveTasksToSharedPreferences(defaultTasks);
+                              saveProgress();
+                              saveNormalProgress();
+                            });
+                          },
+                          onEditTasks: () => setState(() {
+                            _selectedIndex = 1;
+                            _pageController.jumpToPage(1);
+                            _controller.jumpTo(1);
+                          }),
+                        );
+                      },
                     ),
               SizedBox(height: 20),
               Text(
@@ -1266,96 +1264,120 @@ class _HomeScreenState extends State<HomeScreen>
                   color: Colors.grey,
                 ),
               ),
-              SizedBox(
-                height: additionalTasks.length * 9.h + 23,
-                child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: additionalTasks.length,
-                  itemBuilder: (context, index) {
-                    return TaskCard(
-                      task: additionalTasks[index],
-                      onDelete: () {
-                        String taskName = additionalTasks[index]['task'];
-                        setState(() {
-                          additionalTasks
-                              .removeWhere((task) => task['task'] == taskName);
-                        });
-                        deleteAdditionalTask(taskName);
-                      },
-                      isDailyTask: false,
-                      onChanged: (value) {
-                        setState(() {
-                          additionalTasks[index]['completed'] = value!;
-                        });
-                        updateAdditionalTask(
-                            additionalTasks[index]['task'], value!);
-                      },
-                    );
-                  },
-                ),
-              ),
               const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.white),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(color: Colors.grey.shade200, width: 1),
-                      ),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade200, width: 1),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                      color: Colors.grey.withOpacity(0.2),
+                      offset: Offset(0, 5),
                     ),
-                    elevation: MaterialStateProperty.all(5),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Add Task',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 4.w,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Icon(
-                        Icons.add,
-                        size: 20.sp,
-                        color: Colors.blue,
-                      ),
-                    ],
-                  ),
-                  onPressed: () {
-                    final _controller = TextEditingController();
-                    final _descriptionController = TextEditingController();
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return DialogBox(
-                          Controller: _controller,
-                          descriptionController: _descriptionController,
-                          onSave: () {
-                            if (_controller.text.isNotEmpty) {
-                              setState(() {
-                                additionalTasks.add({
-                                  'task': _controller.text,
-                                  'description': _descriptionController.text,
-                                  'completed': false
-                                });
-                              });
-                              saveAdditionalTasksToSharedPreferences(
-                                  additionalTasks);
-                              saveAdditionalTasksToFirebase(additionalTasks);
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          onCancel: () {
-                            Navigator.of(context).pop();
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      reverse: true,
+                      itemCount: additionalTasks.length,
+                      itemBuilder: (context, index) {
+                        return TaskCard(
+                          task: additionalTasks[index],
+                          onDelete: () {
+                            String taskName = additionalTasks[index]['task'];
+                            setState(() {
+                              additionalTasks.removeWhere(
+                                  (task) => task['task'] == taskName);
+                            });
+                            deleteAdditionalTask(taskName);
                           },
                           isDailyTask: false,
+                          onChanged: (value) {
+                            setState(() {
+                              additionalTasks[index]['completed'] = value!;
+                            });
+                            updateAdditionalTask(
+                                additionalTasks[index]['task'], value!);
+                          },
                         );
                       },
-                    );
-                  },
+                    ),
+                    Center(
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all(Colors.white),
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                  color: Colors.grey.shade200, width: 1),
+                            ),
+                          ),
+                          elevation: MaterialStateProperty.all(5),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Add Task',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 4.w,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Icon(
+                              Icons.add,
+                              size: 20.sp,
+                              color: Colors.blue,
+                            ),
+                          ],
+                        ),
+                        onPressed: () {
+                          final _controller = TextEditingController();
+                          final _descriptionController =
+                              TextEditingController();
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return DialogBox(
+                                Controller: _controller,
+                                descriptionController: _descriptionController,
+                                onSave: () {
+                                  if (_controller.text.isNotEmpty) {
+                                    setState(() {
+                                      additionalTasks.add({
+                                        'task': _controller.text,
+                                        'description':
+                                            _descriptionController.text,
+                                        'completed': false
+                                      });
+                                    });
+                                    saveAdditionalTasksToSharedPreferences(
+                                        additionalTasks);
+                                    saveAdditionalTasksToFirebase(
+                                        additionalTasks);
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                                onCancel: () {
+                                  Navigator.of(context).pop();
+                                },
+                                isDailyTask: false,
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: 10.h),
