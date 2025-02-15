@@ -72,7 +72,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
 
     if (notificationsEnabled) {
       for (int i = 0; i < notificationTimes.length; i++) {
-        await _scheduleNotification(i, 'Task Reminder ${i + 1}',
+        await _scheduleNotification(i, 'Task Reminder ',
             'Have you started your tasks for today?', notificationTimes[i]);
       }
     }
@@ -100,7 +100,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     if (value) {
       try {
         for (int i = 0; i < notificationTimes.length; i++) {
-          await _scheduleNotification(i, 'Task Reminder ${i + 1}',
+          await _scheduleNotification(i, 'Task Reminder',
               'Have you started your tasks for today?', notificationTimes[i]);
         }
       } catch (e) {
