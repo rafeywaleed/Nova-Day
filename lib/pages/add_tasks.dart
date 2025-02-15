@@ -189,208 +189,230 @@ class _AddTasksState extends State<AddTasks> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: widget.input == 0
-          ? AppBar(
-              automaticallyImplyLeading: false,
-              backgroundColor: Colors.white,
-              elevation: 0,
-            )
-          : AppBar(
-              automaticallyImplyLeading: false,
-              backgroundColor: Colors.white,
-              elevation: 0,
-              title: const Text(
-                'Add Daily Task',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+    return WillPopScope(
+      onWillPop: () async {
+        // Show a dialog to confirm if the user wants to exit the app
+        return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirm Exit'),
+            content: const Text('Are you sure you want to exit the app?'),
+            actions: [
+              TextButton(
+                child: const Text('No'),
+                onPressed: () => Navigator.of(context).pop(false),
               ),
-            ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hello, $userName',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+              TextButton(
+                child: const Text('Yes'),
+                onPressed: () => Navigator.of(context).pop(true),
               ),
-            ),
-            const Divider(
-              color: Colors.grey,
-            ),
-            Text(
-              'These are daily tasks (e.g., gym, reading, studying) that reset every day.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10.sp,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Daily Tasks:",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15.sp,
+            ],
+          ),
+        );
+      },
+      child: Scaffold(
+        appBar: widget.input == 0
+            ? AppBar(
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.white,
+                elevation: 0,
+              )
+            : AppBar(
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.white,
+                elevation: 0,
+                title: const Text(
+                  'Add Daily Task',
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.white),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            16), // No rounded corners, square button
-                        side: BorderSide(
-                          color: Colors.blue.shade200,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    padding: MaterialStateProperty.all(
-                      const EdgeInsets.all(
-                          5), // Uniform padding to make it square (you can adjust the value)
-                    ),
-                    elevation: MaterialStateProperty.all(5), // subtle shadow
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return DialogBox(
-                          Controller: _controller,
-                          onCancel: () {
-                            Navigator.of(context).pop();
-                          },
-                          onSave: () {
-                            if (_controller.text.isNotEmpty) {
-                              setState(() {
-                                currentDailyTasks.add(_controller.text);
-                                isTaskListModified = true;
-                              });
-                              _controller.clear();
-                              Navigator.of(context).pop();
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                  child: Icon(
-                    Icons.add,
-                    size: 20.sp,
-                    color: Colors.blue,
-                  ),
+              ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hello, $userName',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: currentDailyTasks.length,
-                itemBuilder: (context, index) {
-                  return FadeInUp(
-                    duration: const Duration(milliseconds: 800),
-                    child: Dismissible(
-                      key: Key(currentDailyTasks[index]),
-                      direction: DismissDirection.startToEnd,
-                      onDismissed: (direction) {
-                        setState(() {
-                          currentDailyTasks.removeAt(index);
-                          isTaskListModified = true;
-                        });
-                      },
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child:
-                            const Icon(IconlyLight.delete, color: Colors.white),
-                      ),
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              ),
+              const Divider(
+                color: Colors.grey,
+              ),
+              Text(
+                'These are daily tasks (e.g., gym, reading, studying) that reset every day.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.sp,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Daily Tasks:",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.white),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              16), // No rounded corners, square button
+                          side: BorderSide(
+                            color: Colors.blue.shade200,
+                            width: 2,
+                          ),
                         ),
-                        child: ListTile(
-                          title: Text(
-                            currentDailyTasks[index],
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              color: Colors.black,
+                      ),
+                      padding: MaterialStateProperty.all(
+                        const EdgeInsets.all(
+                            5), // Uniform padding to make it square (you can adjust the value)
+                      ),
+                      elevation: MaterialStateProperty.all(5), // subtle shadow
+                    ),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return DialogBox(
+                            Controller: _controller,
+                            onCancel: () {
+                              Navigator.of(context).pop();
+                            },
+                            onSave: () {
+                              if (_controller.text.isNotEmpty) {
+                                setState(() {
+                                  currentDailyTasks.add(_controller.text);
+                                  isTaskListModified = true;
+                                });
+                                _controller.clear();
+                                Navigator.of(context).pop();
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: Icon(
+                      Icons.add,
+                      size: 20.sp,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: currentDailyTasks.length,
+                  itemBuilder: (context, index) {
+                    return FadeInUp(
+                      duration: const Duration(milliseconds: 800),
+                      child: Dismissible(
+                        key: Key(currentDailyTasks[index]),
+                        direction: DismissDirection.startToEnd,
+                        onDismissed: (direction) {
+                          setState(() {
+                            currentDailyTasks.removeAt(index);
+                            isTaskListModified = true;
+                          });
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(IconlyLight.delete,
+                              color: Colors.white),
+                        ),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              currentDailyTasks[index],
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 30),
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
-                  // minimumSize: const Size(120, 50),
-                  elevation: 0,
-                ),
-                onPressed: () async {
-                  if (isTaskListModified) {
-                    saveDailyTasksToFirestore(currentDailyTasks);
-                    saveDailyTasksToPreferences(currentDailyTasks);
-                  }
-                  if (widget.input == 0) {
-                    await showInfoBox();
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
-                  }
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Save',
-                      style: TextStyle(fontSize: 15.sp),
-                    ),
-                  ],
+                  },
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 8.sp,
-                color: Colors.grey,
+              const SizedBox(height: 30),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+                    // minimumSize: const Size(120, 50),
+                    elevation: 0,
+                  ),
+                  onPressed: () async {
+                    if (isTaskListModified) {
+                      saveDailyTasksToFirestore(currentDailyTasks);
+                      saveDailyTasksToPreferences(currentDailyTasks);
+                    }
+                    if (widget.input == 0) {
+                      await showInfoBox();
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Save',
+                        style: TextStyle(fontSize: 15.sp),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 8.sp,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
         ),
+        bottomNavigationBar: widget.input == 0
+            ? null
+            : SizedBox(
+                height: 10.h,
+              ),
       ),
-      bottomNavigationBar: widget.input == 0
-          ? null
-          : SizedBox(
-              height: 10.h,
-            ),
     );
   }
 }

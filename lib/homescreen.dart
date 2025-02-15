@@ -1237,7 +1237,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     )
                   : SizedBox(
-                      height: defaultTasks.length * 10.h + 20,
+                      height: defaultTasks.length * 10.h + 23,
                       child: ListView.builder(
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: defaultTasks.length,
@@ -1273,7 +1273,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               SizedBox(
-                height: additionalTasks.length * 9.h + 20,
+                height: additionalTasks.length * 9.h + 23,
                 child: ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: additionalTasks.length,

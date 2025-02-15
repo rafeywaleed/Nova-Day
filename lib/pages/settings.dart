@@ -359,40 +359,67 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   }
 
   void logout(BuildContext context) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      print("Shared preferences cleared");
+    // Show an Android-style confirmation dialog before logging out
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Log Out"),
+          content: Text("Are you sure you want to log out?"),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: Text("Log Out"),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                try {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  print("Shared preferences cleared");
 
-      await FirebaseAuth.instance.signOut();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Logged out successfully (local data cleared)'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      );
+                  await FirebaseAuth.instance.signOut();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text(
+                          'Logged out successfully (local data cleared)'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  );
 
-      Navigator.popUntil(context, (route) => route.isFirst);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomePage()),
-      );
-    } catch (e) {
-      print("Logout error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Logout error: $e'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      );
-    }
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const WelcomePage()),
+                  );
+                } catch (e) {
+                  print("Logout error: $e");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Logout error: $e'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
