@@ -1212,21 +1212,54 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
-                "Daily Tasks:",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 5.w,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text(
+                  "Daily Tasks:",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 5.w,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
                 ),
+              ]),
+              //     ElevatedButton(
+              //         style: ButtonStyle(
+              //           elevation: MaterialStateProperty.all(0),
+              //           shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+              //               borderRadius: BorderRadius.circular(10))),
+              //           backgroundColor:
+              //               MaterialStateProperty.all(Colors.white),
+              //           side: MaterialStateProperty.all(
+              //               BorderSide(color: Colors.grey.shade300, width: 2)),
+              //         ),
+              //         onPressed: () {
+              //           setState(() {
+              //             _selectedIndex = 1;
+              //             _pageController.jumpToPage(1);
+              //             _controller.jumpTo(1);
+              //           });
+              //         },
+              //         child: Text('Edit',
+              //             style: GoogleFonts.plusJakartaSans(
+              //               fontSize: 4.w,
+              //               color: Colors.grey,
+              //             ))),
+              //   ],
+              // ),
+              Divider(
+                color: Colors.grey.shade300,
+                thickness: 1,
               ),
               defaultTasks.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No Daily task.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 4.w,
-                          color: Colors.grey,
+                  ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(
+                        child: Text(
+                          'No Daily task.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 4.w,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     )
@@ -1255,37 +1288,89 @@ class _HomeScreenState extends State<HomeScreen>
                         );
                       },
                     ),
-              SizedBox(height: 20),
-              Text(
-                "To-Do List:",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 5.w,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
               const SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade200, width: 1),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                      color: Colors.grey.withOpacity(0.2),
-                      offset: Offset(0, 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "To-Do List:",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 5.w,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    ListView.builder(
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      elevation: MaterialStateProperty.all(0),
+                      shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))),
+                      backgroundColor: MaterialStateProperty.all(Colors.white),
+                      side: MaterialStateProperty.all(
+                          BorderSide(color: Colors.grey.shade300, width: 2)),
+                    ),
+                    child: Text(
+                      'Add Task',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 4.w,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    onPressed: () {
+                      final _controller = TextEditingController();
+                      final _descriptionController = TextEditingController();
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return DialogBox(
+                            Controller: _controller,
+                            descriptionController: _descriptionController,
+                            onSave: () {
+                              if (_controller.text.isNotEmpty) {
+                                setState(() {
+                                  additionalTasks.add({
+                                    'task': _controller.text,
+                                    'description': _descriptionController.text,
+                                    'completed': false
+                                  });
+                                });
+                                saveAdditionalTasksToSharedPreferences(
+                                    additionalTasks);
+                                saveAdditionalTasksToFirebase(additionalTasks);
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            onCancel: () {
+                              Navigator.of(context).pop();
+                            },
+                            isDailyTask: false,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              Divider(
+                color: Colors.grey.shade200,
+                thickness: 1,
+              ),
+              additionalTasks.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(
+                        child: Text(
+                          'No additional task.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 4.w,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      reverse: true,
                       itemCount: additionalTasks.length,
                       itemBuilder: (context, index) {
                         return TaskCard(
@@ -1309,77 +1394,6 @@ class _HomeScreenState extends State<HomeScreen>
                         );
                       },
                     ),
-                    Center(
-                      child: ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all(Colors.white),
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
-                                  color: Colors.grey.shade200, width: 1),
-                            ),
-                          ),
-                          elevation: MaterialStateProperty.all(5),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Add Task',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 4.w,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Icon(
-                              Icons.add,
-                              size: 20.sp,
-                              color: Colors.blue,
-                            ),
-                          ],
-                        ),
-                        onPressed: () {
-                          final _controller = TextEditingController();
-                          final _descriptionController =
-                              TextEditingController();
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return DialogBox(
-                                Controller: _controller,
-                                descriptionController: _descriptionController,
-                                onSave: () {
-                                  if (_controller.text.isNotEmpty) {
-                                    setState(() {
-                                      additionalTasks.add({
-                                        'task': _controller.text,
-                                        'description':
-                                            _descriptionController.text,
-                                        'completed': false
-                                      });
-                                    });
-                                    saveAdditionalTasksToSharedPreferences(
-                                        additionalTasks);
-                                    saveAdditionalTasksToFirebase(
-                                        additionalTasks);
-                                    Navigator.of(context).pop();
-                                  }
-                                },
-                                onCancel: () {
-                                  Navigator.of(context).pop();
-                                },
-                                isDailyTask: false,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               SizedBox(height: 10.h),
             ],
           ),
@@ -1422,11 +1436,14 @@ class _TaskCardState extends State<TaskCard> {
             direction: DismissDirection.startToEnd,
             confirmDismiss: (direction) async {
               if (widget.isDailyTask) {
-                return await _showDeleteAlertDialog(context);
+                return await _showDeleteAlertDialog(context, true);
               } else {
-                widget.onDelete?.call();
-                return true;
+                return await _showDeleteAlertDialog(context, false);
               }
+            },
+            onDismissed: (direction) {
+              // Reset the state of the task card
+              setState(() {});
             },
             background: Container(
               color: Colors.red,
@@ -1481,11 +1498,20 @@ class _TaskCardState extends State<TaskCard> {
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                widget.task['description'] ?? 'No description provided.',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.grey[700],
-                ),
+              child: Column(
+                children: [
+                  Divider(color: Colors.grey[300]),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      widget.task['description'] ?? 'No description provided.',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.grey[700],
+                      ),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
@@ -1493,9 +1519,12 @@ class _TaskCardState extends State<TaskCard> {
     );
   }
 
-  Future<bool> _showDeleteAlertDialog(BuildContext context) async {
-    await showDialog(
+  Future<bool> _showDeleteAlertDialog(
+      BuildContext context, bool isDailyTask) async {
+    return await showDialog(
       context: context,
+      barrierDismissible:
+          true, // Allows dismissing the dialog by clicking outside
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.white,
@@ -1507,7 +1536,7 @@ class _TaskCardState extends State<TaskCard> {
               const Icon(Icons.block, color: Colors.red, size: 30),
               const SizedBox(width: 10),
               Text(
-                'Cannot Delete Task',
+                isDailyTask ? 'Cannot Delete Task' : 'Delete Task',
                 style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w600,
                   fontSize: 16.sp,
@@ -1519,7 +1548,9 @@ class _TaskCardState extends State<TaskCard> {
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              'Daily tasks cannot be deleted. You can edit tasks from the settings.',
+              isDailyTask
+                  ? 'Daily tasks cannot be deleted. You can edit the tasks instead.'
+                  : 'Are you sure you want to delete this task?',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.sp,
                 color: Colors.black54,
@@ -1528,6 +1559,29 @@ class _TaskCardState extends State<TaskCard> {
             ),
           ),
           actions: <Widget>[
+            if (!isDailyTask)
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                ),
+                child: Text(
+                  'Delete',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                  widget.onDelete?.call();
+                },
+              ),
             TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.blue,
@@ -1539,21 +1593,26 @@ class _TaskCardState extends State<TaskCard> {
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               ),
               child: Text(
-                'Edit Tasks',
+                isDailyTask ? 'Edit Tasks' : 'Cancel',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
-                widget.onEditTasks?.call();
+                Navigator.of(context).pop(false);
+                if (isDailyTask) {
+                  widget.onEditTasks?.call();
+                }
               },
             ),
           ],
         );
       },
-    );
-    return false;
+    ).then((value) {
+      // Reset the state of the task card if the dialog is dismissed
+      setState(() {});
+      return value ?? false;
+    });
   }
 }

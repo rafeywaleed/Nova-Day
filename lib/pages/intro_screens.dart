@@ -294,7 +294,7 @@ class IntroPage2 extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    'To-Do tasks are occasional tasks, like completing assignments or doing laundry. These tasks aren’t tracked for growth but need to be completed.',
+                    'To-Do tasks are occasional tasks with brief description, like completing assignments or doing laundry. These tasks aren’t tracked for growth but need to be completed.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                         fontSize: 14.sp, color: Colors.grey),

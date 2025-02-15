@@ -36,17 +36,31 @@ class DialogBox extends StatelessWidget {
         children: [
           TextField(
             controller: Controller,
+            autofocus: true,
             decoration: InputDecoration(
               labelText: 'Task Name',
-              labelStyle: GoogleFonts.plusJakartaSans(),
+              labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue),
+              ),
             ),
           ),
           if (!isDailyTask)
             TextField(
               controller: descriptionController,
+              maxLines: null,
               decoration: InputDecoration(
                 labelText: 'Description',
-                labelStyle: GoogleFonts.plusJakartaSans(),
+                labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
               ),
             ),
         ],

@@ -265,54 +265,44 @@ class _AddTasksState extends State<AddTasks> {
                     ),
                   ),
                   ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.white),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              16), // No rounded corners, square button
-                          side: BorderSide(
-                            color: Colors.blue.shade200,
-                            width: 2,
-                          ),
-                        ),
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(0),
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.white),
+                        side: MaterialStateProperty.all(
+                            BorderSide(color: Colors.grey.shade300, width: 2)),
                       ),
-                      padding: MaterialStateProperty.all(
-                        const EdgeInsets.all(
-                            5), // Uniform padding to make it square (you can adjust the value)
-                      ),
-                      elevation: MaterialStateProperty.all(5), // subtle shadow
-                    ),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return DialogBox(
-                            Controller: _controller,
-                            isDailyTask: true,
-                            onCancel: () {
-                              Navigator.of(context).pop();
-                            },
-                            onSave: () {
-                              if (_controller.text.isNotEmpty) {
-                                setState(() {
-                                  currentDailyTasks.add(_controller.text);
-                                  isTaskListModified = true;
-                                });
-                                _controller.clear();
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return DialogBox(
+                              Controller: _controller,
+                              isDailyTask: true,
+                              onCancel: () {
                                 Navigator.of(context).pop();
-                              }
-                            },
-                          );
-                        },
-                      );
-                    },
-                    child: Icon(
-                      Icons.add,
-                      size: 20.sp,
-                      color: Colors.blue,
-                    ),
-                  ),
+                              },
+                              onSave: () {
+                                if (_controller.text.isNotEmpty) {
+                                  setState(() {
+                                    currentDailyTasks.add(_controller.text);
+                                    isTaskListModified = true;
+                                  });
+                                  _controller.clear();
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                            );
+                          },
+                        );
+                      },
+                      child: Text(
+                        "Add Task",
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.sp, color: Colors.grey),
+                      )),
                 ],
               ),
               const SizedBox(height: 16),
@@ -367,10 +357,7 @@ class _AddTasksState extends State<AddTasks> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
-                    // minimumSize: const Size(120, 50),
-                    elevation: 0,
+                    minimumSize: const Size(100, 40),
                   ),
                   onPressed: () async {
                     if (isTaskListModified) {
@@ -386,33 +373,25 @@ class _AddTasksState extends State<AddTasks> {
                       );
                     }
                   },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Save',
-                        style: TextStyle(fontSize: 15.sp),
-                      ),
-                    ],
+                  child: Text(
+                    'Save',
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 8.sp,
-                  color: Colors.grey,
-                ),
+              // const SizedBox(height: 16),
+              // Text(
+              //   'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
+              //   style: GoogleFonts.plusJakartaSans(
+              //     fontSize: 8.sp,
+              //     color: Colors.grey,
+              //   ),
+              // ),
+              SizedBox(
+                height: 10.h,
               ),
             ],
           ),
         ),
-        bottomNavigationBar: widget.input == 0
-            ? null
-            : SizedBox(
-                height: 10.h,
-              ),
       ),
     );
   }
