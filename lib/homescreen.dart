@@ -1222,30 +1222,6 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               ]),
-              //     ElevatedButton(
-              //         style: ButtonStyle(
-              //           elevation: MaterialStateProperty.all(0),
-              //           shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-              //               borderRadius: BorderRadius.circular(10))),
-              //           backgroundColor:
-              //               MaterialStateProperty.all(Colors.white),
-              //           side: MaterialStateProperty.all(
-              //               BorderSide(color: Colors.grey.shade300, width: 2)),
-              //         ),
-              //         onPressed: () {
-              //           setState(() {
-              //             _selectedIndex = 1;
-              //             _pageController.jumpToPage(1);
-              //             _controller.jumpTo(1);
-              //           });
-              //         },
-              //         child: Text('Edit',
-              //             style: GoogleFonts.plusJakartaSans(
-              //               fontSize: 4.w,
-              //               color: Colors.grey,
-              //             ))),
-              //   ],
-              // ),
               Divider(
                 color: Colors.grey.shade300,
                 thickness: 1,
@@ -1303,11 +1279,15 @@ class _HomeScreenState extends State<HomeScreen>
                   ElevatedButton(
                     style: ButtonStyle(
                       elevation: MaterialStateProperty.all(0),
-                      shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                       backgroundColor: MaterialStateProperty.all(Colors.white),
                       side: MaterialStateProperty.all(
-                          BorderSide(color: Colors.grey.shade300, width: 2)),
+                        BorderSide(color: Colors.grey.shade300, width: 2),
+                      ),
                     ),
                     child: Text(
                       'Add Task',

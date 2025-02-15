@@ -44,6 +44,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _loginWithEmailAndPassword() async {
+    if (_emailController.text.isEmpty) {
+      _showErrorSnackbar('Please enter your email.');
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      _showErrorSnackbar('Please enter your password.');
+      return;
+    }
+
     try {
       await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -70,25 +79,19 @@ class _LoginPageState extends State<LoginPage> {
           case 'user-not-found':
             errorMessage = 'No user found with this email.';
             break;
+          case 'invalid-email':
+            errorMessage = 'Invalid email address.';
+            break;
+          case 'user-disabled':
+            errorMessage = 'This user has been disabled.';
+            break;
           default:
             errorMessage = 'Login failed: ${e.message}';
         }
       } else {
         errorMessage = 'An error occurred. Please try again.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          errorMessage,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-      ));
+      _showErrorSnackbar(errorMessage);
     }
   }
 
@@ -101,6 +104,21 @@ class _LoginPageState extends State<LoginPage> {
       duration: const Duration(seconds: 1),
       behavior: SnackBarBehavior.floating,
       backgroundColor: Colors.green,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _showErrorSnackbar(String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+      ),
+      backgroundColor: Colors.red,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }

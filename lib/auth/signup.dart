@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hundred_days/pages/intro_screens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:hundred_days/intro_screen.dart'; // Import your IntroScreen
 import 'package:sizer/sizer.dart';
 import 'package:iconly/iconly.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -74,17 +73,24 @@ class _SignUpPageState extends State<SignUpPage> {
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
 
+    if (name.isEmpty) {
+      _showErrorSnackbar('Please enter your name.');
+      return;
+    }
+    if (email.isEmpty) {
+      _showErrorSnackbar('Please enter your email.');
+      return;
+    }
+    if (password.isEmpty) {
+      _showErrorSnackbar('Please enter your password.');
+      return;
+    }
+    if (confirmPassword.isEmpty) {
+      _showErrorSnackbar('Please confirm your password.');
+      return;
+    }
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Passwords do not match'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      );
+      _showErrorSnackbar('Passwords do not match.');
       return;
     }
 
@@ -110,16 +116,6 @@ class _SignUpPageState extends State<SignUpPage> {
       await prefs.setString('userName', name);
       await prefs.setString('userEmail', email);
       await prefs.setString('joinedDate', DateTime.now().toString());
-
-      // Print stored values
-      print('Stored values in Firestore:');
-      print('Name: $name');
-      print('Email: $email');
-      print('Joined Date: ${DateTime.now().toString()}');
-      print('Stored values in SharedPreferences:');
-      print('Name: ${prefs.getString('userName')}');
-      print('Email: ${prefs.getString('userEmail')}');
-      print('Joined Date: ${prefs.getString('joinedDate')}');
 
       // Navigate to IntroScreen without delay
       Navigator.pushReplacement(
@@ -149,28 +145,25 @@ class _SignUpPageState extends State<SignUpPage> {
         default:
           errorMessage = 'An error occurred. Please try again.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      );
+      _showErrorSnackbar(errorMessage);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      );
+      _showErrorSnackbar('Error: ${e.toString()}');
     }
+  }
+
+  void _showErrorSnackbar(String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+      ),
+      backgroundColor: Colors.red,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
@@ -307,9 +300,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             s_email = value!;
                           });
                         },
-
                         controller: _emailController,
-
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Your Email',

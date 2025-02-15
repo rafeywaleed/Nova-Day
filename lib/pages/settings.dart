@@ -156,8 +156,9 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
       scheme: 'mailto',
       path: 'a.rafeywaleeda5@gmail.com',
       query: encodeQueryParameters({
-        'subject': 'Your Subject Here',
-        'body': 'Your message here',
+        'subject': 'Report Bug | Suggestions',
+        'body':
+            'Hi, \n\nI would like to report a bug or suggest a feature for the app(Nova Day). Here are the details: \n',
       }),
     );
 
@@ -193,7 +194,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
               Text(
                 'User Settings',
                 style: GoogleFonts.plusJakartaSans(
-                  color: Colors.blue,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 22.sp, // Responsive font size
                 ),
