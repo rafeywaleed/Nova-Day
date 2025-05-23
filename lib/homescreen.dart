@@ -9,6 +9,7 @@ import 'package:hundred_days/cloud/admin_notifiy.dart';
 import 'package:hundred_days/pages/add_notes.dart';
 import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
+import 'package:hundred_days/pages/habit_tracker.dart';
 import 'package:hundred_days/pages/notes_page.dart';
 import 'package:hundred_days/pages/notification_settings.dart';
 import 'package:hundred_days/pages/record_view.dart';
@@ -42,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
     vsync: this,
     duration: const Duration(milliseconds: 8000),
   );
+
   List<Map<String, dynamic>> defaultTasks = [];
   List<Map<String, dynamic>> additionalTasks = [];
   String? userEmail;
@@ -1019,7 +1021,7 @@ class _HomeScreenState extends State<HomeScreen>
         );
       },
       child: Scaffold(
-        // backgroundColor: Colors.grey,
+        backgroundColor: const Color.fromRGBO(243, 243, 243, 1),
         body: PageView(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
@@ -1034,45 +1036,44 @@ class _HomeScreenState extends State<HomeScreen>
         extendBody: true,
         bottomNavigationBar: AnimatedNotchBottomBar(
           notchBottomBarController: _controller,
-          color: Colors.grey.shade200,
+          color: Colors.blueGrey,
           showLabel: true,
           textOverflow: TextOverflow.visible,
           maxLine: 1,
-          shadowElevation: 1,
-          kBottomRadius: 28.0,
-          notchColor: Colors.grey.shade200,
+          shadowElevation: 0,
+          kBottomRadius: 20.0,
+          notchColor: Colors.blueGrey,
           removeMargins: false,
-          bottomBarWidth: 500,
+
+          // bottomBarWidth: 500,
           showShadow: true,
           durationInMilliSeconds: 100,
-          itemLabelStyle: TextStyle(fontSize: 8.sp),
-          elevation: 1,
+          itemLabelStyle: TextStyle(fontSize: 8.sp, color: Colors.white),
+          elevation: 0,
           bottomBarItems: const [
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.home, color: Colors.blueGrey),
-              activeItem: Icon(IconlyLight.home, color: Colors.blueAccent),
+              inActiveItem: Icon(IconlyBroken.home, color: Colors.white),
+              activeItem: Icon(IconlyLight.home, color: Colors.white),
               itemLabel: 'Home',
             ),
             BottomBarItem(
-              inActiveItem:
-                  Icon(Icons.task_alt_rounded, color: Colors.blueGrey),
-              activeItem:
-                  Icon(Icons.add_task_rounded, color: Colors.blueAccent),
+              inActiveItem: Icon(Icons.task_alt_rounded, color: Colors.white),
+              activeItem: Icon(Icons.add_task_rounded, color: Colors.white),
               itemLabel: 'Tasks',
             ),
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.paper, color: Colors.blueGrey),
-              activeItem: Icon(IconlyLight.paper, color: Colors.blueAccent),
+              inActiveItem: Icon(IconlyBroken.paper, color: Colors.white),
+              activeItem: Icon(IconlyLight.paper, color: Colors.white),
               itemLabel: 'Notes',
             ),
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.graph, color: Colors.blueGrey),
-              activeItem: Icon(IconlyLight.graph, color: Colors.blueAccent),
+              inActiveItem: Icon(IconlyBroken.graph, color: Colors.white),
+              activeItem: Icon(IconlyLight.graph, color: Colors.white),
               itemLabel: 'Record',
             ),
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.setting, color: Colors.blueGrey),
-              activeItem: Icon(IconlyLight.setting, color: Colors.blueAccent),
+              inActiveItem: Icon(IconlyBroken.setting, color: Colors.white),
+              activeItem: Icon(IconlyLight.setting, color: Colors.white),
               itemLabel: 'Settings',
             ),
           ],
@@ -1125,6 +1126,15 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HabitTracker()),
+                  );
+                },
+                child: Text('Open Habit Tracker'),
+              ),
               SizedBox(height: MediaQuery.of(context).size.height * 0.05),
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),

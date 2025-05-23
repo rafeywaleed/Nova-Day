@@ -9,9 +9,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:focus_detector/focus_detector.dart';
 
 class ProgressTracker extends StatefulWidget {
-  const ProgressTracker({super.key});
+  const ProgressTracker();
 
   @override
   State<ProgressTracker> createState() => _ProgressTrackerState();
@@ -172,31 +173,49 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       return const Center(child: PLoader());
     }
 
-    return Scaffold(
-      body: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedDate = null;
-          });
-        },
-        child: Padding(
+    return FocusDetector(
+      onFocusGained: () {
+        fetchTaskDataFromFirebase();
+        fetchTotalTaskDataFromFirebase();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'DashBoard',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          iconTheme: const IconThemeData(color: Colors.black),
+        ),
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Padding(
           padding: const EdgeInsets.all(16),
           child: RefreshIndicator(
             color: Colors.blue,
             onRefresh: _handleRefresh,
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  SizedBox(height: 1.h),
-                  // Heatmap Calendar
                   _buildHeatmapCalendar(),
-                  Divider(color: Colors.grey.shade300),
-                  if (selectedDate == null) ...[
-                    _buildProgressIndicators(),
-                    _buildTaskCompletionProgress(),
-                  ] else ...[
-                    _buildSelectedDateTasks(),
-                  ],
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: selectedDate == null
+                        ? Column(
+                            children: [
+                              _buildProgressIndicators(),
+                              _buildTaskCompletionProgress(),
+                            ],
+                          )
+                        : _buildSelectedDateTasks(),
+                  ),
                 ],
               ),
             ),
@@ -212,26 +231,40 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       child: Padding(
         padding: EdgeInsets.all(2.w),
         child: HeatMapCalendar(
-          size: 9.5.w,
-          colorTipSize: 2.w,
-          monthFontSize: 15.sp,
+          size: 11.w,
+          colorTipSize: 3.w,
+          monthFontSize: 20.sp,
+          borderRadius: 12,
+          colorTipCount: 4,
+          defaultColor: const Color(0xFFF1F1F1),
+          weekTextColor: Colors.black,
+          fontSize: 10.sp,
+          textColor: Colors.black,
           initDate: currentMonth,
           datasets: dateMap,
           colorMode: ColorMode.color,
           colorsets: {
-            1: Colors.green[200]!,
-            2: Colors.green[400]!,
-            3: Colors.green[600]!,
-            4: Colors.green[800]!,
+            1: const Color(0xFFC8E6C9),
+            2: const Color(0xFF81C784),
+            3: const Color(0xFF4CAF50),
+            4: const Color(0xFF388E3C),
           },
           onClick: (date) {
             setState(() {
-              selectedDate = date;
-              fetchTasksForDate(selectedDate!).then((fetchedTasks) {
-                setState(() {
-                  tasks = fetchedTasks;
+              if (selectedDate != null &&
+                  selectedDate!.year == date.year &&
+                  selectedDate!.month == date.month &&
+                  selectedDate!.day == date.day) {
+                selectedDate = null;
+                tasks = [];
+              } else {
+                selectedDate = date;
+                fetchTasksForDate(date).then((fetchedTasks) {
+                  setState(() {
+                    tasks = fetchedTasks;
+                  });
                 });
-              });
+              }
             });
           },
         ),
@@ -258,7 +291,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
             percent: totalTasksAllTime > 0
                 ? completedTasksAllTime / totalTasksAllTime
                 : 0.0,
-            progressColor: Colors.purple,
+            progressColor: const Color(0xFF4A47A3),
             header: "All Time",
           ),
         ],
@@ -276,11 +309,24 @@ class _ProgressTrackerState extends State<ProgressTracker> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14.sp,
               fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
           SizedBox(height: 1.h),
           Container(
             height: 40.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 2,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: FutureBuilder(
               future: Future.wait(
                   dateMap.keys.map((date) => fetchTasksForDate(date))),
@@ -294,7 +340,12 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No data available.'));
+                  return Center(
+                    child: Text(
+                      'No data available.',
+                      style: GoogleFonts.plusJakartaSans(),
+                    ),
+                  );
                 }
 
                 List<List<Map<String, dynamic>>> tasksList = snapshot.data!;
@@ -311,26 +362,44 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                     double completionRate =
                         tasks.isEmpty ? 0 : completion / tasks.length;
 
-                    return ListTile(
-                      title: Text(
-                        DateFormat('dd-MM-yyyy').format(date),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10.sp),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.05),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
-                      trailing: Container(
-                        width: 30.w,
-                        height: 2.h,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(5),
+                      child: ListTile(
+                        title: Text(
+                          DateFormat('dd-MM-yyyy').format(date),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        child: FractionallySizedBox(
-                          alignment: Alignment.centerLeft,
-                          widthFactor: completionRate,
-                          child: Container(
-                            height: 2.h,
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(5),
+                        trailing: Container(
+                          width: 30.w,
+                          height: 2.h,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEEEEEE),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: completionRate,
+                            child: Container(
+                              height: 2.h,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4CAF50),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
                             ),
                           ),
                         ),
@@ -347,63 +416,162 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   }
 
   Widget _buildSelectedDateTasks() {
-    return FadeOut(
+    return FadeIn(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 2.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Tasks for ${DateFormat('dd-MM-yyyy').format(selectedDate!)} :",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.bold,
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today,
+                      size: 16.sp, color: const Color(0xFF6C63FF)),
+                  SizedBox(width: 8),
+                  Text(
+                    DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedDate = null;
+                        tasks = [];
+                      });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.grey[200],
+                      ),
+                      child: Icon(Icons.close,
+                          size: 14.sp, color: Colors.grey[600]),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 1.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildCircularProgressIndicator(
-                  radius: 10.w,
-                  percent: tasks.isNotEmpty
-                      ? tasks
-                              .where((task) => task['status'] == 'completed')
-                              .length /
-                          tasks.length
-                      : 0.0,
-                  progressColor: Colors.purple,
-                  header: "Task Completion",
-                ),
-                Text(
-                  "${tasks.where((task) => task['status'] == 'completed').length} / ${tasks.length}",
-                  style: GoogleFonts.plusJakartaSans(fontSize: 25.sp),
-                ),
-              ],
+            SizedBox(height: 2.h),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildCircularProgressIndicator(
+                    radius: 10.w,
+                    percent: tasks.isNotEmpty
+                        ? tasks
+                                .where((task) => task['status'] == 'completed')
+                                .length /
+                            tasks.length
+                        : 0.0,
+                    progressColor: Colors.black,
+                    header: "",
+                  ),
+                  Text(
+                    "${tasks.where((task) => task['status'] == 'completed').length} / ${tasks.length}",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 25.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 2.h),
             Container(
               height: 30.h,
-              child: ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  return ListTile(
-                    title: Text(
-                      task['task'],
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
+              child: tasks.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No tasks for this date',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.sp,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) {
+                        final task = tasks[index];
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.05),
+                                spreadRadius: 1,
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            title: Text(
+                              task['task'],
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            trailing: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: task['status'] == 'completed'
+                                    ? const Color(0xFFE8F5E9)
+                                    : const Color(0xFFFFEBEE),
+                              ),
+                              child: Icon(
+                                task['status'] == 'completed'
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
+                                color: task['status'] == 'completed'
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFFEF5350),
+                                size: 18.sp,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                    trailing: Icon(
-                      task['status'] == 'completed'
-                          ? Icons.check_circle
-                          : Icons.circle,
-                      color: task['status'] == 'completed'
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -422,18 +590,27 @@ class _ProgressTrackerState extends State<ProgressTracker> {
       lineWidth: 8.0,
       percent: percent,
       progressColor: progressColor,
-      backgroundColor: Colors.grey[300]!,
+      backgroundColor: const Color(0xFFEEEEEE),
       center: Text(
         "${(percent * 100).toStringAsFixed(0)}%",
-        style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
       ),
-      header: Padding(
+      animationDuration: 500,
+      footer: Padding(
         padding: EdgeInsets.only(bottom: 1.h),
         child: Text(
           header,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.sp),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12.sp,
+            color: Colors.black54,
+          ),
         ),
       ),
+      animation: true,
     );
   }
 }

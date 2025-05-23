@@ -461,6 +461,7 @@ class _NotesListPageState extends State<NotesListPage>
           _checkInitialConnectivity();
         },
         child: Scaffold(
+          backgroundColor: Color.fromRGBO(243, 243, 243, 1),
           bottomNavigationBar: SizedBox(height: 10.h),
           appBar: AppBar(
             automaticallyImplyLeading: false,

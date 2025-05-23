@@ -378,14 +378,6 @@ class _AddTasksState extends State<AddTasks> {
                   ),
                 ),
               ),
-              // const SizedBox(height: 16),
-              // Text(
-              //   'Guide: Tap on + to add tasks, swipe right to delete a task, and click Finish to save your Daily Tasks.',
-              //   style: GoogleFonts.plusJakartaSans(
-              //     fontSize: 8.sp,
-              //     color: Colors.grey,
-              //   ),
-              // ),
               SizedBox(
                 height: 10.h,
               ),
