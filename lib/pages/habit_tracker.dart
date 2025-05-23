@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hundred_days/pages/record_view.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,7 +20,7 @@ class HabitTracker extends StatefulWidget {
 }
 
 class _HabitTrackerState extends State<HabitTracker> {
-  List<Map<String, dynamic>> dailyTasks = [];
+  List<Map<String, dynamic>> defaultTasks = [];
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -71,7 +72,7 @@ class _HabitTrackerState extends State<HabitTracker> {
 
   Future<void> resetTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? taskJsonList = prefs.getStringList('dailyTasks');
+    List<String>? taskJsonList = prefs.getStringList('defaultTasks');
 
     if (taskJsonList != null) {
       List<Map<String, dynamic>> tasks = taskJsonList.map((taskJson) {
@@ -80,7 +81,7 @@ class _HabitTrackerState extends State<HabitTracker> {
 
       List<Map<String, dynamic>> updatedTasks = tasks.map((task) {
         return {
-          'task': task['task'],
+          'task': task['task'], // Use 'task' instead of 'name'
           'completed': false,
         };
       }).toList();
@@ -90,11 +91,11 @@ class _HabitTrackerState extends State<HabitTracker> {
         return jsonEncode(task);
       }).toList();
 
-      await prefs.setStringList('dailyTasks', updatedTaskJsonList);
+      await prefs.setStringList('defaultTasks', updatedTaskJsonList);
       ////print("All tasks marked as incomplete.");
 
       setState(() {
-        dailyTasks = updatedTasks;
+        defaultTasks = updatedTasks;
       });
     } else {
       ////print("No tasks found to reset.");
@@ -112,7 +113,7 @@ class _HabitTrackerState extends State<HabitTracker> {
           .collection('records')
           .doc(today);
 
-      List<Map<String, dynamic>> taskProgress = dailyTasks
+      List<Map<String, dynamic>> taskProgress = defaultTasks
           .map((task) => {
                 'task': task['task'],
                 'status': task['completed'] ? 'completed' : 'incomplete'
@@ -139,7 +140,7 @@ class _HabitTrackerState extends State<HabitTracker> {
     ////print("inside saveProgress");
     if (userId != null && userEmail != null) {
       String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-      List<Map<String, dynamic>> taskProgress = dailyTasks
+      List<Map<String, dynamic>> taskProgress = defaultTasks
           .map((task) => {
                 'task': task['task'],
                 'status': task['completed'] ? 'completed' : 'incomplete'
@@ -178,16 +179,6 @@ class _HabitTrackerState extends State<HabitTracker> {
 
     toBeUploaded.add(jsonEncode(data));
     await prefs.setStringList('toBeUploaded', toBeUploaded);
-  }
-
-  String? userEmail;
-  Future<void> loadUserEmail() async {
-    User? user = auth.currentUser;
-    if (user != null) {
-      setState(() {
-        userEmail = user.email;
-      });
-    }
   }
 
 // Function to upload data directly to Firebase
@@ -237,38 +228,100 @@ class _HabitTrackerState extends State<HabitTracker> {
     });
   }
 
+  String? userEmail;
+  Future<void> loadUserEmail() async {
+    User? user = auth.currentUser;
+    if (user != null) {
+      setState(() {
+        userEmail = user.email;
+      });
+    }
+  }
+
   Future<void> loadDailyTasks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> taskNames = prefs.getStringList('dailyTasks') ?? [];
+
     List<String>? savedTasksJson = prefs.getStringList('defaultTasks') ?? [];
     List<Map<String, dynamic>> savedTasks = [];
-    if (taskNames.isNotEmpty) {
+
+    if (savedTasksJson.isNotEmpty) {
       savedTasks = savedTasksJson
           .map((taskJson) => jsonDecode(taskJson))
           .toList()
           .cast<Map<String, dynamic>>();
       ////print('Daily tasks fetched from shredPrefrnces');
     } else {
+      // If no tasks are found in SharedPreferences, fetch from Firebase
       await fetchDailyTasksFromFirebase();
+    }
+
+    // Load the task names (task titles) for the day from SharedPreferences
+    List<String>? dailyTasks = prefs.getStringList('dailyTasks') ?? [];
+
+    // Check if dailyTasks is not empty
+    if (dailyTasks.isNotEmpty) {
+      // Prepare a new list for updated defaultTasks
+      List<Map<String, dynamic>> newDefaultTasks = [];
+
+      // Iterate through the dailyTasks and merge with savedTasks to retain their status
+      for (String taskName in dailyTasks) {
+        // Check if the task already exists in savedTasks
+        Map<String, dynamic>? existingTask = savedTasks.firstWhere(
+          (task) => task['task'] == taskName,
+          orElse: () => {},
+        );
+
+        if (existingTask.isNotEmpty) {
+          // If the task exists, retain its status
+          newDefaultTasks.add(existingTask);
+        } else {
+          // If it's a new task, add it as incomplete
+          newDefaultTasks.add({'task': taskName, 'completed': false});
+        }
+      }
+
+      // Update the defaultTasks in the state
+      setState(() {
+        defaultTasks = newDefaultTasks;
+      });
+
+      // Save updated defaultTasks back to SharedPreferences
+      await saveTasksToSharedPreferences(defaultTasks);
     }
   }
 
   Future<void> fetchDailyTasksFromFirebase() async {
-    String? userEmail = auth.currentUser?.email;
-    if (userEmail != null) {
-      DocumentSnapshot userTasksSnapshot =
-          await firestore.collection('dailyTasks').doc(userEmail).get();
+    try {
+      String? userEmail = auth.currentUser?.email;
+      if (userEmail != null) {
+        DocumentSnapshot userTasksSnapshot =
+            await firestore.collection('dailyTasks').doc(userEmail).get();
 
-      if (userTasksSnapshot.exists) {
-        var data = userTasksSnapshot.data() as Map<String, dynamic>;
-        List<String> taskNames = List<String>.from(data['tasks'] ?? []);
-        setState(() {
-          dailyTasks = taskNames
-              .map((name) => {'task': name, 'completed': false})
-              .toList();
-        });
-        await saveTasksToSharedPreferences(dailyTasks);
+        if (userTasksSnapshot.exists) {
+          var data = userTasksSnapshot.data() as Map<String, dynamic>;
+          List<dynamic> firebaseTasks = data['tasks'] ?? [];
+
+          List<Map<String, dynamic>> fetchedTasks = firebaseTasks.map((task) {
+            return {
+              'task': task['task'],
+              'completed': task['completed'],
+            };
+          }).toList();
+
+          ////print('daily tasks fetched from firebase');
+          // Save the tasks fetched from Firebase to SharedPreferences
+          await saveTasksToSharedPreferences(fetchedTasks);
+
+          // Update the defaultTasks with the fetched data
+          setState(() {
+            defaultTasks = fetchedTasks;
+          });
+        } else {
+          ////print("No tasks found in Firebase.");
+        }
       }
+    } catch (e) {
+      ////print("Error fetching tasks from Firebase: $e");
     }
   }
 
@@ -297,52 +350,60 @@ class _HabitTrackerState extends State<HabitTracker> {
     }
   }
 
-  Future<void> updateTaskRecordOnFirebase() async {
-    String? userEmail = auth.currentUser?.email;
-    if (userEmail != null) {
-      String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
-      DocumentReference taskRecordDoc = firestore
-          .collection('taskRecord')
-          .doc(userEmail)
-          .collection('records')
-          .doc(today);
+  // Future<void> updateTaskRecordOnFirebase() async {
+  //   String? userEmail = auth.currentUser?.email;
+  //   if (userEmail != null) {
+  //     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  //     DocumentReference taskRecordDoc = firestore
+  //         .collection('taskRecord')
+  //         .doc(userEmail)
+  //         .collection('records')
+  //         .doc(today);
 
-      List<Map<String, dynamic>> taskProgress = dailyTasks
-          .map((task) => {
-                'task': task['task'],
-                'status': task['completed'] ? 'completed' : 'incomplete'
-              })
-          .toList();
+  //     List<Map<String, dynamic>> taskProgress = dailyTasks
+  //         .map((task) => {
+  //               'task': task['task'],
+  //               'status': task['completed'] ? 'completed' : 'incomplete'
+  //             })
+  //         .toList();
 
-      int totalTasks = taskProgress.length;
-      int completedTasks =
-          taskProgress.where((task) => task['status'] == 'completed').length;
+  //     int totalTasks = taskProgress.length;
+  //     int completedTasks =
+  //         taskProgress.where((task) => task['status'] == 'completed').length;
 
-      await taskRecordDoc.set({
-        'tasks': taskProgress,
-        'overallCompletion': '$completedTasks/$totalTasks',
-        'date': today,
-      });
-    }
-  }
+  //     await taskRecordDoc.set({
+  //       'tasks': taskProgress,
+  //       'overallCompletion': '$completedTasks/$totalTasks',
+  //       'date': today,
+  //     });
+  //   }
+  // }
 
   Future<void> addDailyTask(String taskName) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // 1. Update the names list in SharedPreferences and Firestore
-    List<String> taskNames = prefs.getStringList('dailyTasks') ?? [];
-    if (!taskNames.contains(taskName)) {
-      taskNames.add(taskName);
-      await prefs.setStringList('dailyTasks', taskNames);
-      if (userEmail != null) {
-        await firestore
-            .collection('dailyTasks')
-            .doc(userEmail)
-            .set({'tasks': taskNames});
-      }
+    // 1. Add to defaultTasks (local and UI)
+    setState(() {
+      defaultTasks.add({'task': taskName, 'completed': false});
+    });
+
+    // 2. Save defaultTasks to SharedPreferences
+    List<String> updatedDefaultTasksJson =
+        defaultTasks.map((task) => jsonEncode(task)).toList();
+    await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
+
+    // 3. Update dailyTasks (names only) in SharedPreferences and Firestore
+    List<String> taskNames =
+        defaultTasks.map((task) => task['task'] as String).toList();
+    await prefs.setStringList('dailyTasks', taskNames);
+    if (userEmail != null) {
+      await firestore
+          .collection('dailyTasks')
+          .doc(userEmail)
+          .set({'tasks': taskNames});
     }
 
-    // 2. Update today's taskRecord in Firestore (with status)
+    // 4. Update today's taskRecord in Firestore
     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
     DocumentReference taskRecordDoc = firestore
         .collection('taskRecord')
@@ -367,21 +428,25 @@ class _HabitTrackerState extends State<HabitTracker> {
       'overallCompletion': '$completedTasks/$totalTasks',
       'date': today,
     });
-
-    // 3. Update local UI list
-    setState(() {
-      dailyTasks =
-          taskNames.map((name) => {'task': name, 'completed': false}).toList();
-    });
   }
 
   Future<void> deleteDailyTask(int index) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String taskName = dailyTasks[index]['task'];
+    String taskName = defaultTasks[index]['task'];
 
-    // 1. Remove from names list in SharedPreferences and Firestore
-    List<String> taskNames = prefs.getStringList('dailyTasks') ?? [];
-    taskNames.remove(taskName);
+    // 1. Remove from defaultTasks (local and UI)
+    setState(() {
+      defaultTasks.removeAt(index);
+    });
+
+    // 2. Save defaultTasks to SharedPreferences
+    List<String> updatedDefaultTasksJson =
+        defaultTasks.map((task) => jsonEncode(task)).toList();
+    await prefs.setStringList('defaultTasks', updatedDefaultTasksJson);
+
+    // 3. Update dailyTasks (names only) in SharedPreferences and Firestore
+    List<String> taskNames =
+        defaultTasks.map((task) => task['task'] as String).toList();
     await prefs.setStringList('dailyTasks', taskNames);
     if (userEmail != null) {
       await firestore
@@ -390,7 +455,7 @@ class _HabitTrackerState extends State<HabitTracker> {
           .set({'tasks': taskNames});
     }
 
-    // 2. Remove from today's taskRecord in Firestore
+    // 4. Remove from today's taskRecord in Firestore
     String today = DateFormat('dd-MM-yyyy').format(DateTime.now());
     DocumentReference taskRecordDoc = firestore
         .collection('taskRecord')
@@ -413,26 +478,16 @@ class _HabitTrackerState extends State<HabitTracker> {
         'date': today,
       });
     }
-
-    // 3. Update local UI list
-    setState(() {
-      dailyTasks.removeAt(index);
-    });
-
-    // can delete these 3 lines
-    await saveTasksToSharedPreferences(dailyTasks);
-    await saveTasksToFirebase(dailyTasks);
-    await updateTaskRecordOnFirebase();
   }
 
-  Future<void> updateTaskCompletion(int index, bool? value) async {
-    setState(() {
-      dailyTasks[index]['completed'] = value ?? false;
-    });
-    await saveTasksToSharedPreferences(dailyTasks);
-    await saveTasksToFirebase(dailyTasks);
-    await updateTaskRecordOnFirebase();
-  }
+  // Future<void> updateTaskCompletion(int index, bool? value) async {
+  //   setState(() {
+  //     dailyTasks[index]['completed'] = value ?? false;
+  //   });
+  //   await saveTasksToSharedPreferences(dailyTasks);
+  //   await saveTasksToFirebase(dailyTasks);
+  //   await updateTaskRecordOnFirebase();
+  // }
 
   bool isLoading = true;
 
@@ -452,11 +507,11 @@ class _HabitTrackerState extends State<HabitTracker> {
   }
 
   int get completedCount =>
-      dailyTasks.where((task) => task['completed'] == true).length;
+      defaultTasks.where((task) => task['completed'] == true).length;
 
   @override
   Widget build(BuildContext context) {
-    int totalTasks = dailyTasks.length;
+    int totalTasks = defaultTasks.length;
     double taskCompletion = totalTasks > 0 ? completedCount / totalTasks : 0;
     int daysLeft = DateTime(DateTime.now().year + 1, 1, 1)
         .difference(DateTime.now())
@@ -480,206 +535,145 @@ class _HabitTrackerState extends State<HabitTracker> {
           scrolledUnderElevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
         ),
-        backgroundColor: const Color(0xFFF8F9FA),
-        body: RefreshIndicator(
-          color: Colors.blue,
-          onRefresh: loadDailyTasks,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 100.w,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border:
-                            Border.all(color: Colors.grey.shade200, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                            color: Colors.grey.withOpacity(0.2),
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                        color: Colors.white,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(3.w),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Today\'s overview',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 4.w,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                Text(
-                                  '$daysLeft',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 8.w,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  'days left for new year',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 3.w,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Flexible(
-                              child: CircularPercentIndicator(
-                                radius: 13.w,
-                                animation: true,
-                                lineWidth: 12.0,
-                                percent: taskCompletion,
-                                center: Text(
-                                  "${(taskCompletion * 100).toStringAsFixed(0)}%",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 5.w,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                progressColor: Colors.green,
-                                backgroundColor: Colors.grey[300]!,
-                              ),
-                            ),
-                          ],
-                        ),
+        backgroundColor: const Color.fromRGBO(243, 243, 243, 1),
+        body: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDaysLeftHeader(daysLeft, taskCompletion),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      " Track Today:",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 5.w,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Daily Tasks:",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 5.w,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
+                    Tooltip(
+                      exitDuration: const Duration(milliseconds: 1000),
+                      padding: const EdgeInsets.all(20),
+                      message:
+                          'These are your daily habits \n(like gym, reading, or studying). \nThey reset every day. \nSwipe left to remove a habit.',
+                      child: Icon(
+                        Icons.info_outline,
+                        color: Colors.grey,
+                        size: 5.w,
                       ),
-                    ],
-                  ),
-                  Divider(
-                    color: Colors.grey.shade300,
-                    thickness: 1,
-                  ),
-                  dailyTasks.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Center(
-                            child: Text(
-                              'No Daily task.',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 4.w,
-                                color: Colors.grey,
-                              ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                defaultTasks.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            'No Daily task.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 4.w,
+                              color: Colors.grey,
                             ),
                           ),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: dailyTasks.length,
-                          itemBuilder: (context, index) {
-                            Map<String, dynamic> task = dailyTasks[index];
-                            return Dismissible(
-                              key: Key(
-                                  task['task'] + task['completed'].toString()),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                color: Colors.red,
-                                child: const Icon(Icons.delete,
-                                    color: Colors.white),
-                              ),
-                              confirmDismiss: (direction) async {
-                                bool? confirm = await showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Delete Task'),
-                                    content: const Text(
-                                        'Are you sure you want to delete this daily task? This change is permanent.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                return confirm == true;
-                              },
-                              onDismissed: (direction) async {
-                                await deleteDailyTask(index);
-                              },
-                              child: Card(
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: ListTile(
-                                  leading: Checkbox(
-                                    value: task['completed'] ?? false,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        dailyTasks[index]['completed'] = value!;
-                                        saveTasksToSharedPreferences(
-                                            dailyTasks);
-                                        saveProgress();
-                                        saveNormalProgress();
-                                      });
-                                    },
-                                  ),
-                                  title: Text(
-                                    task['task'],
-                                    style: GoogleFonts.plusJakartaSans(
-                                      decoration: task['completed'] == true
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
-                                      color: task['completed'] == true
-                                          ? Colors.grey
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                  trailing: Icon(
-                                    Icons.drag_handle,
-                                    color: Colors.grey[400],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
                         ),
-                  const SizedBox(height: 80),
-                ],
-              ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: defaultTasks.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> task = defaultTasks[index];
+                          return Dismissible(
+                            key: Key(
+                                task['task'] + task['completed'].toString()),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              color: Colors.red,
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            confirmDismiss: (direction) async {
+                              bool? confirm = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Remove Habit'),
+                                  content: const Text(
+                                      'Are you sure you want to remove this habit from your daily routine? This action can’t be undone.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              return confirm == true;
+                            },
+                            onDismissed: (direction) async {
+                              await deleteDailyTask(index);
+                            },
+                            child: Card(
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                // side: const BorderSide(
+                                //   color: Colors.grey,
+                                //   width: 0.9,
+                                // ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: ListTile(
+                                leading: Checkbox(
+                                  value: task['completed'] ?? false,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      defaultTasks[index]['completed'] = value!;
+                                      saveTasksToSharedPreferences(
+                                          defaultTasks);
+                                      saveProgress();
+                                      saveNormalProgress();
+                                    });
+                                  },
+                                ),
+                                title: Text(
+                                  task['task'],
+                                  style: GoogleFonts.plusJakartaSans(
+                                    decoration: task['completed'] == true
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                                    color: task['completed'] == true
+                                        ? Colors.grey
+                                        : Colors.black,
+                                  ),
+                                ),
+                                trailing: Icon(
+                                  Icons.drag_indicator_rounded,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                const SizedBox(height: 80),
+              ],
             ),
           ),
         ),
@@ -690,20 +684,31 @@ class _HabitTrackerState extends State<HabitTracker> {
               builder: (context) {
                 final controller = TextEditingController();
                 return AlertDialog(
-                  title: const Text('Add Daily Task'),
+                  title: Text(
+                    'Add a New Habit',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 5.w,
+                      color: Colors.black,
+                    ),
+                  ),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
+                        autofocus: true,
                         controller: controller,
                         decoration: const InputDecoration(
-                          labelText: 'Task Name',
+                          // labelText: 'new Habit',
+                          hintText: 'e.g., Gym, Reading, Studying',
+                          hintStyle: TextStyle(
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        'This change is permanent and will be reflected everywhere.',
-                        style: TextStyle(color: Colors.red, fontSize: 13),
+                        'This will become a part of your daily routine.',
                       ),
                     ],
                   ),
@@ -730,9 +735,85 @@ class _HabitTrackerState extends State<HabitTracker> {
             }
           },
           child: const Icon(Icons.add),
-          tooltip: 'Add Daily Task',
+          tooltip: 'Add a new habit',
         ),
       ),
     );
   }
+}
+
+Widget _buildDaysLeftHeader(int daysLeft, double taskCompletion) {
+  return Center(
+    child: Container(
+      width: 100.w,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 10,
+            spreadRadius: 1,
+            color: Colors.grey.withOpacity(0.2),
+            offset: Offset(0, 5),
+          ),
+        ],
+        color: Colors.white,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(3.w),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Today\'s overview',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 4.w,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 87, 87, 87),
+                  ),
+                ),
+                Text(
+                  '$daysLeft',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 8.w,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  'days left for new year',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 3.w,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            Flexible(
+              child: CircularPercentIndicator(
+                radius: 13.w,
+                animation: true,
+                lineWidth: 12.0,
+                percent: taskCompletion,
+                center: Text(
+                  "${(taskCompletion * 100).toStringAsFixed(0)}%",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 5.w,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                progressColor: Colors.green,
+                backgroundColor: Colors.grey[300]!,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
