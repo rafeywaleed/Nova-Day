@@ -28,7 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  animate_do: ^3.3.4
+  animate_do: ^4.2.0
+  animated_notch_bottom_bar: ^1.0.3
   cloud_firestore: ^5.4.2
   connectivity_plus: ^6.0.5
   encrypt: ^5.0.3

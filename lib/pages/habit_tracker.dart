@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/pages/record_view.dart';
+import 'package:iconly/iconly.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -553,7 +554,7 @@ class _HabitTrackerState extends State<HabitTracker> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 5.w,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: const Color.fromARGB(255, 95, 95, 95),
                       ),
                     ),
                     Tooltip(
@@ -575,9 +576,10 @@ class _HabitTrackerState extends State<HabitTracker> {
                         padding: const EdgeInsets.all(16.0),
                         child: Center(
                           child: Text(
-                            'No Daily task.',
+                            '\n\nNo habits added yet. \nTap the "+" button to add a new habit.',
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 4.w,
+                              fontSize: 12.sp,
                               color: Colors.grey,
                             ),
                           ),
@@ -594,20 +596,35 @@ class _HabitTrackerState extends State<HabitTracker> {
                                 task['task'] + task['completed'].toString()),
                             direction: DismissDirection.endToStart,
                             background: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                               alignment: Alignment.centerRight,
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 20),
-                              color: Colors.red,
-                              child:
-                                  const Icon(Icons.delete, color: Colors.white),
+                              child: const Icon(IconlyLight.delete,
+                                  color: Colors.white),
                             ),
                             confirmDismiss: (direction) async {
                               bool? confirm = await showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const Text('Remove Habit'),
-                                  content: const Text(
-                                      'Are you sure you want to remove this habit from your daily routine? This action can’t be undone.'),
+                                  title: Text(
+                                    'Remove Habit',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16.sp,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    'Are you sure you want to remove this habit from your daily routine? This action can’t be undone.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.sp,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
@@ -677,6 +694,7 @@ class _HabitTrackerState extends State<HabitTracker> {
             ),
           ),
         ),
+        bottomNavigationBar: SizedBox(height: 10.h),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             String? newTask = await showDialog<String>(

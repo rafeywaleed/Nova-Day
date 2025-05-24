@@ -40,33 +40,35 @@ class _ProfilePageState extends State<ProfilePage> {
     String? storedUserEmail = prefs.getString('userEmail');
     String? storedJoinDate = prefs.getString('joinDate');
 
-    if (storedUserName != null && storedUserEmail != null) {
+    // if (storedUserName != null && storedUserEmail != null) {
+    //   setState(() {
+    //     userName = storedUserName;
+    //     userEmail = storedUserEmail;
+    //     joinDate = storedJoinDate;
+    //     Text('UserName: $userName');
+    //     Text('UserEmail: $userEmail');
+    //     Text('JoinDate: $joinDate');
+    //   });
+    // } else {
+    try {
+      final userData = await _firebaseService.fetchUserData();
       setState(() {
-        userName = storedUserName;
-        userEmail = storedUserEmail;
-        joinDate = storedJoinDate;
+        userName = userData['name'];
+        userEmail = userData['email'];
+        DateTime parsedDate = DateTime.parse(userData['joinedDate']);
+        joinDate = DateFormat('dd-MM-yyyy').format(parsedDate);
       });
-    } else {
-      try {
-        final userData = await _firebaseService.fetchUserData();
-        setState(() {
-          userName = userData['name'];
-          userEmail = userData['email'];
-          DateTime parsedDate = DateTime.parse(userData['joinedDate']);
-          joinDate = DateFormat('dd-MM-yyyy').format(parsedDate);
-        });
-        await prefs.setString('userName', userName);
-        await prefs.setString('userEmail', userEmail);
-        await prefs.setString('joinDate', joinDate ?? '');
-      } catch (e) {
-        //print('Error fetching user data: ${e.toString()}');
-        setState(() {
-          userName = 'No Name';
-          userEmail = 'No Email';
-          joinDate = 'No Joined Date available';
-        });
-        //print('Error fetching user data: ${e.toString()}');
-      }
+      await prefs.setString('userName', userName);
+      await prefs.setString('userEmail', userEmail);
+      await prefs.setString('joinDate', joinDate ?? '');
+    } catch (e) {
+      //print('Error fetching user data: ${e.toString()}');
+      setState(() {
+        userName = 'No Name';
+        userEmail = 'No Email';
+        joinDate = 'No Joined Date available';
+      });
+      //print('Error fetching user data: ${e.toString()}');
     }
   }
 
@@ -146,95 +148,108 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Profile Settings',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20.sp,
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {
+          isLoading = true;
+        });
+        await _loadUserData();
+        setState(() {
+          isLoading = false;
+        });
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          scrolledUnderElevation: 0,
+          title: Text(
+            'Profile Settings',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black), // Back button color
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black), // Back button color
-      ),
-      body: isLoading
-          ? Center(child: PLoader())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(16.0.sp),
-                child: Column(
-                  children: [
-                    // User Info Section
-                    Text(
-                      userName,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 1.h),
-                    Text(
-                      userEmail,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    SizedBox(height: 3.h),
-
-                    // Change Name Section
-                    _buildSection(
-                      title: 'Change Name',
-                      description: 'You can set a new name.',
-                      controller: _nameController,
-                      hintText: 'Enter new name',
-                      buttonText: 'Update Name',
-                      buttonColor: Colors.blue,
-                      onPressed: _changeName,
-                    ),
-                    SizedBox(height: 3.h),
-
-                    // Change Password Section
-                    _buildSection(
-                      title: 'Change Password',
-                      description: 'Set a new password.',
-                      controller: _passwordController,
-                      hintText: 'Enter new password',
-                      isPassword: true,
-                      showPassword: showPassword,
-                      onTogglePassword: () {
-                        setState(() {
-                          showPassword = !showPassword;
-                        });
-                      },
-                      confirmController: _confirmPasswordController,
-                      confirmHintText: 'Confirm new password',
-                      buttonText: 'Update Password',
-                      buttonColor: Colors.red,
-                      onPressed: _changePassword,
-                    ),
-                    SizedBox(height: 3.h),
-
-                    // Joined Date Section
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 1.h),
-                      child: Text(
-                        'Joined on: ${joinDate ?? "Loading..."}',
+        backgroundColor: Color.fromRGBO(243, 243, 243, 1),
+        body: isLoading
+            ? Center(child: PLoader())
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0.sp),
+                  child: Column(
+                    children: [
+                      // User Info Section
+                      Text(
+                        userName,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 1.h),
+                      Text(
+                        userEmail,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.sp,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      SizedBox(height: 3.h),
+
+                      // Change Name Section
+                      _buildSection(
+                        title: 'Change Name',
+                        description: 'You can set a new name.',
+                        controller: _nameController,
+                        hintText: 'Enter new name',
+                        buttonText: 'Update Name',
+                        buttonColor: Colors.blue,
+                        onPressed: _changeName,
+                      ),
+                      SizedBox(height: 3.h),
+
+                      // Change Password Section
+                      _buildSection(
+                        title: 'Change Password',
+                        description: 'Set a new password.',
+                        controller: _passwordController,
+                        hintText: 'Enter new password',
+                        isPassword: true,
+                        showPassword: showPassword,
+                        onTogglePassword: () {
+                          setState(() {
+                            showPassword = !showPassword;
+                          });
+                        },
+                        confirmController: _confirmPasswordController,
+                        confirmHintText: 'Confirm new password',
+                        buttonText: 'Update Password',
+                        buttonColor: Colors.red,
+                        onPressed: _changePassword,
+                      ),
+                      SizedBox(height: 3.h),
+
+                      // Joined Date Section
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 1.h),
+                        child: Text(
+                          'Joined on: ${joinDate ?? "Loading..."}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -257,13 +272,13 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.1),
+        //     blurRadius: 6,
+        //     offset: Offset(0, 2),
+        //   ),
+        // ],
       ),
       padding: EdgeInsets.all(16.sp),
       child: Column(

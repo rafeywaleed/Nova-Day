@@ -9,14 +9,17 @@ import 'package:hundred_days/cloud/admin_notifiy.dart';
 import 'package:hundred_days/pages/add_notes.dart';
 import 'package:hundred_days/pages/add_tasks.dart';
 import 'package:hundred_days/pages/ads_page.dart';
+import 'package:hundred_days/pages/checklist_page.dart';
 import 'package:hundred_days/pages/habit_tracker.dart';
 import 'package:hundred_days/pages/notes_page.dart';
 import 'package:hundred_days/pages/notification_settings.dart';
 import 'package:hundred_days/pages/record_view.dart';
 import 'package:hundred_days/pages/settings.dart';
 import 'package:hundred_days/pages/splash_screen.dart';
+import 'package:hundred_days/utils/animate_icon.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
 import 'package:hundred_days/utils/loader.dart';
+import 'package:hundred_days/utils/task_card.dart';
 import 'package:iconly/iconly.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -31,6 +34,7 @@ import 'cloud/firebase_api.dart';
 import 'utils/bottom_navbar/navbar_model.dart';
 import 'utils/bottom_navbar/navbar_notch.dart';
 import 'utils/bottom_navbar/navbar_notch_controller.dart';
+// import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -50,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen>
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
   final _pageController = PageController(initialPage: 0);
-  final _controller = NotchBottomBarController(index: 0);
+  final _controller = NotchBottomBarController(index: 2);
   int _selectedIndex = 0;
 
   void _initAnimationController() {
@@ -658,7 +662,6 @@ class _HomeScreenState extends State<HomeScreen>
   // Future<void> //printSt() async {
   //   final prefs = await SharedPreferences.getInstance();
   //   ////print(prefs.getStringList('dailyTasks'));
-
   //   ////print(prefs.getString('tDate'));
   // }
 
@@ -1025,55 +1028,101 @@ class _HomeScreenState extends State<HomeScreen>
         body: PageView(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
-          children: [
-            _buildHomeContent(),
-            const AddTasks(input: 1),
+          children: const [
             NotesListPage(),
-            const ProgressTracker(),
-            const UserSettingsPage(),
+            ProgressTracker(),
+            HabitTracker(),
+            CheckListPage(),
+            UserSettingsPage(),
           ],
         ),
         extendBody: true,
         bottomNavigationBar: AnimatedNotchBottomBar(
           notchBottomBarController: _controller,
-          color: Colors.blueGrey,
+          color: Colors.white,
           showLabel: true,
           textOverflow: TextOverflow.visible,
           maxLine: 1,
-          shadowElevation: 0,
-          kBottomRadius: 20.0,
-          notchColor: Colors.blueGrey,
+          shadowElevation: 2,
+          kBottomRadius: 0.0,
+          notchColor: Colors.white,
           removeMargins: false,
-
+          showBottomRadius: true,
+          showTopRadius: true,
           // bottomBarWidth: 500,
-          showShadow: true,
+          // showShadow: true,
           durationInMilliSeconds: 100,
-          itemLabelStyle: TextStyle(fontSize: 8.sp, color: Colors.white),
+          itemLabelStyle: TextStyle(fontSize: 8.sp, color: Colors.black54),
           elevation: 0,
-          bottomBarItems: const [
+          bottomBarItems: [
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.home, color: Colors.white),
-              activeItem: Icon(IconlyLight.home, color: Colors.white),
-              itemLabel: 'Home',
-            ),
-            BottomBarItem(
-              inActiveItem: Icon(Icons.task_alt_rounded, color: Colors.white),
-              activeItem: Icon(Icons.add_task_rounded, color: Colors.white),
-              itemLabel: 'Tasks',
-            ),
-            BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.paper, color: Colors.white),
-              activeItem: Icon(IconlyLight.paper, color: Colors.white),
+              inActiveItem:
+                  const Icon(IconlyBroken.paper, color: Colors.black54),
+              activeItem: AnimateDoIconSwitcher(
+                icons: const [
+                  IconlyLight.paper,
+                  Icons.book_outlined,
+                  IconlyLight.category,
+                  Icons.sticky_note_2_outlined,
+                ],
+                color: Colors.blueGrey,
+              ),
               itemLabel: 'Notes',
             ),
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.graph, color: Colors.white),
-              activeItem: Icon(IconlyLight.graph, color: Colors.white),
-              itemLabel: 'Record',
+              inActiveItem:
+                  const Icon(IconlyBroken.activity, color: Colors.black54),
+              activeItem: AnimateDoIconSwitcher(
+                icons: const [
+                  IconlyLight.activity,
+                  IconlyLight.calendar,
+                  IconlyLight.graph,
+                  IconlyLight.chart,
+                ],
+                color: Colors.blueGrey,
+              ),
+              itemLabel: 'Dashboard',
             ),
             BottomBarItem(
-              inActiveItem: Icon(IconlyBroken.setting, color: Colors.white),
-              activeItem: Icon(IconlyLight.setting, color: Colors.white),
+              inActiveItem:
+                  const Icon(Icons.eco_outlined, color: Colors.black54),
+              activeItem: AnimateDoIconSwitcher(
+                icons: const [
+                  Icons.eco_outlined,
+                  Icons.directions_run_rounded,
+                  Icons.auto_stories_rounded,
+                  Icons.self_improvement_rounded
+                ],
+                color: Colors.blueGrey,
+              ),
+              itemLabel: 'Habits',
+            ),
+            BottomBarItem(
+              inActiveItem:
+                  const Icon(IconlyBroken.tick_square, color: Colors.black54),
+              activeItem: AnimateDoIconSwitcher(
+                icons: const [
+                  IconlyLight.tick_square,
+                  Icons.receipt_long_rounded,
+                  Icons.local_grocery_store_outlined,
+                  Icons.checklist_outlined,
+                ],
+                color: Colors.blueGrey,
+              ),
+              itemLabel: 'On The Go',
+            ),
+            BottomBarItem(
+              inActiveItem:
+                  const Icon(IconlyBroken.setting, color: Colors.black54),
+              activeItem: AnimateDoIconSwitcher(
+                icons: const [
+                  IconlyLight.setting,
+                  Icons.edit_notifications_outlined,
+                  IconlyLight.filter,
+                  IconlyLight.profile
+                ],
+                color: Colors.blueGrey,
+              ),
               itemLabel: 'Settings',
             ),
           ],
@@ -1092,13 +1141,13 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildContent() {
     switch (_selectedIndex) {
       case 0:
-        return _buildHomeContent();
+        return const NotesListPage();
       case 1:
-        return const AddTasks(input: 1);
-      case 2:
-        return NotesListPage();
-      case 3:
         return const ProgressTracker();
+      case 2:
+        return const HabitTracker();
+      case 3:
+        return const CheckListPage();
       case 4:
         return const UserSettingsPage();
 
@@ -1130,10 +1179,21 @@ class _HomeScreenState extends State<HomeScreen>
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HabitTracker()),
+                    MaterialPageRoute(
+                        builder: (context) => const HabitTracker()),
                   );
                 },
-                child: Text('Open Habit Tracker'),
+                child: const Text('Open Habit Tracker'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CheckListPage()),
+                  );
+                },
+                child: const Text('Open Additional Tasks'),
               ),
               SizedBox(height: MediaQuery.of(context).size.height * 0.05),
               Padding(
@@ -1162,7 +1222,7 @@ class _HomeScreenState extends State<HomeScreen>
                               blurRadius: 10,
                               spreadRadius: 1,
                               color: Colors.grey.withOpacity(0.2),
-                              offset: Offset(0, 5),
+                              offset: const Offset(0, 5),
                             ),
                           ],
                           color: Colors.white,
@@ -1390,219 +1450,5 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
-  }
-}
-
-class TaskCard extends StatefulWidget {
-  final Map<String, dynamic> task;
-  final ValueChanged<bool?> onChanged;
-  final VoidCallback? onDelete;
-  final bool isDismissible;
-  final bool isDailyTask;
-  final VoidCallback? onEditTasks;
-
-  const TaskCard({
-    required this.task,
-    required this.onChanged,
-    this.onDelete,
-    this.isDismissible = true,
-    this.isDailyTask = false,
-    this.onEditTasks,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _TaskCardState createState() => _TaskCardState();
-}
-
-class _TaskCardState extends State<TaskCard> {
-  bool _showDescription = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.isDismissible
-        ? Dismissible(
-            key: Key(widget.task['task'] + widget.task['completed'].toString()),
-            direction: DismissDirection.startToEnd,
-            confirmDismiss: (direction) async {
-              if (widget.isDailyTask) {
-                return await _showDeleteAlertDialog(context, true);
-              } else {
-                return await _showDeleteAlertDialog(context, false);
-              }
-            },
-            onDismissed: (direction) {
-              // Reset the state of the task card
-              setState(() {});
-            },
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Icon(IconlyLight.delete, color: Colors.white),
-            ),
-            child: _buildTaskCard(),
-          )
-        : _buildTaskCard();
-  }
-
-  Widget _buildTaskCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        children: [
-          CheckboxListTile(
-            title: Text(
-              widget.task['task'],
-              style: GoogleFonts.plusJakartaSans(
-                decoration: widget.task['completed'] == true
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-                color: widget.task['completed'] == true
-                    ? Colors.grey
-                    : Colors.black,
-              ),
-            ),
-            value: widget.task['completed'] ?? false,
-            onChanged: widget.onChanged,
-            secondary: widget.isDailyTask
-                ? null
-                : IconButton(
-                    icon: Icon(
-                      _showDescription
-                          ? Icons.arrow_drop_up
-                          : Icons.arrow_drop_down,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _showDescription = !_showDescription;
-                      });
-                    },
-                  ),
-          ),
-          if (_showDescription && !widget.isDailyTask)
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                children: [
-                  Divider(color: Colors.grey[300]),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      widget.task['description'] ?? 'No description provided.',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.grey[700],
-                      ),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Future<bool> _showDeleteAlertDialog(
-      BuildContext context, bool isDailyTask) async {
-    return await showDialog(
-      context: context,
-      barrierDismissible:
-          true, // Allows dismissing the dialog by clicking outside
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              const Icon(Icons.block, color: Colors.red, size: 30),
-              const SizedBox(width: 10),
-              Text(
-                isDailyTask ? 'Cannot Delete Task' : 'Delete Task',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16.sp,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              isDailyTask
-                  ? 'Daily tasks cannot be deleted. You can edit the tasks instead.'
-                  : 'Are you sure you want to delete this task?',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.sp,
-                color: Colors.black54,
-              ),
-              textAlign: TextAlign.start,
-            ),
-          ),
-          actions: <Widget>[
-            if (!isDailyTask)
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                ),
-                child: Text(
-                  'Delete',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                  widget.onDelete?.call();
-                },
-              ),
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blue,
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              ),
-              child: Text(
-                isDailyTask ? 'Edit Tasks' : 'Cancel',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-                if (isDailyTask) {
-                  widget.onEditTasks?.call();
-                }
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) {
-      // Reset the state of the task card if the dialog is dismissed
-      setState(() {});
-      return value ?? false;
-    });
   }
 }

@@ -180,6 +180,18 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Settings',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        scrolledUnderElevation: 0,
+      ),
+      backgroundColor: Color.fromRGBO(243, 243, 243, 1),
       bottomNavigationBar: SizedBox(
         height: 10.h,
       ),
@@ -190,16 +202,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 5.h), // Responsive spacing
-              Text(
-                'User Settings',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22.sp, // Responsive font size
-                ),
-              ),
-              SizedBox(height: 3.h), // Spacing after the title
+              SizedBox(height: 3.h),
               _buildSection(
                 'Notifications',
                 'Schedule your reminders.',

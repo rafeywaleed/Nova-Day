@@ -49,17 +49,20 @@ class DialogBox extends StatelessWidget {
             ),
           ),
           if (!isDailyTask)
-            TextField(
-              controller: descriptionController,
-              maxLines: null,
-              decoration: InputDecoration(
-                labelText: 'Description',
-                labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue),
+            SingleChildScrollView(
+              child: TextField(
+                controller: descriptionController,
+                maxLines: 5,
+                minLines: 1,
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: GoogleFonts.plusJakartaSans(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
                 ),
               ),
             ),

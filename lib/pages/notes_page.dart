@@ -464,12 +464,18 @@ class _NotesListPageState extends State<NotesListPage>
           backgroundColor: Color.fromRGBO(243, 243, 243, 1),
           bottomNavigationBar: SizedBox(height: 10.h),
           appBar: AppBar(
+            scrolledUnderElevation: 0,
             automaticallyImplyLeading: false,
             title: Row(
               children: [
-                Text('My Notes',
-                    style: GoogleFonts.plusJakartaSans(
-                        fontSize: 18.sp, fontWeight: FontWeight.w600)),
+                Text(
+                  'My Notes',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Icon(
                   _isOnline ? Icons.cloud : Icons.cloud_off,

@@ -291,11 +291,18 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: widget.intro == 1,
-        title: const Text(
+        backgroundColor: Colors.white,
+        scrolledUnderElevation: 0,
+        title: Text(
           'Notification Settings',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
         ),
       ),
+      backgroundColor: const Color.fromRGBO(243, 243, 243, 1),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
