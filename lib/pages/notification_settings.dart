@@ -290,18 +290,41 @@ class _NotificationSettingsState extends State<NotificationSettings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: widget.intro == 1,
-        backgroundColor: Colors.white,
-        scrolledUnderElevation: 0,
-        title: Text(
-          'Notification Settings',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+          automaticallyImplyLeading: widget.intro == 1,
+          backgroundColor: Colors.white,
+          scrolledUnderElevation: 0,
+          title: Text(
+            'Notification Settings',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
-        ),
-      ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Tooltip(
+                message:
+                    'Set up daily reminder notifications\nto stay on track with your tasks.',
+                textAlign: TextAlign.center,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                textStyle: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontSize: 10.sp,
+                ),
+                child: Icon(
+                  Icons.info_outline,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+              ),
+            ),
+          ]),
       backgroundColor: const Color.fromRGBO(243, 243, 243, 1),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

@@ -193,6 +193,30 @@ class _ProgressTrackerState extends State<ProgressTracker> {
           elevation: 0,
           scrolledUnderElevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Tooltip(
+                message:
+                    'This page shows your overall progress.\nTap on any active date in the calendar\nto view task details for that day.',
+                textAlign: TextAlign.center,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                textStyle: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontSize: 10.sp,
+                ),
+                child: Icon(
+                  Icons.info_outline,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
         ),
         backgroundColor: const Color(0xFFF8F9FA),
         body: Padding(
@@ -308,14 +332,18 @@ class _ProgressTrackerState extends State<ProgressTracker> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.grey,
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.3),
+            width: 1,
+          ),
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Colors.grey,
+          //     spreadRadius: 1,
+          //     blurRadius: 5,
+          //     offset: const Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Column(
           children: [

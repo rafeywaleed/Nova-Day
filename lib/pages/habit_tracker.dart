@@ -560,7 +560,16 @@ class _HabitTrackerState extends State<HabitTracker> {
                     ),
                     Tooltip(
                       exitDuration: const Duration(milliseconds: 1000),
-                      padding: const EdgeInsets.all(20),
+                      textAlign: TextAlign.center,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      textStyle: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 10.sp,
+                      ),
                       message:
                           'These are your daily habits \n(like gym, reading, or studying). \nThey reset every day. \nSwipe left to remove a habit.\nhold and drag to reorder.',
                       child: Icon(

@@ -178,8 +178,16 @@ class _CheckListPageState extends State<CheckListPage> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Tooltip(
                 exitDuration: const Duration(milliseconds: 500),
-                padding: const EdgeInsets.all(5),
                 textAlign: TextAlign.center,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                textStyle: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontSize: 10.sp,
+                ),
                 message:
                     'This is your personal to-do list.\nThese tasks won’t affect \nyour main progress tracking.\nSwipe left to delete a task.\nHold and Drag to reorder tasks.',
                 child: Icon(
