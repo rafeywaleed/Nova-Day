@@ -15,6 +15,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'add_notes.dart';
 import 'package:hundred_days/utils/notes_theme_list.dart';
 
+import 'hidden_notes_page.dart';
+
 class NotesListPage extends StatefulWidget {
   const NotesListPage({Key? key}) : super(key: key);
   @override
@@ -156,7 +158,8 @@ class _NotesListPageState extends State<NotesListPage>
     final notes = querySnapshot.docs.map((doc) {
       final data = doc.data();
       data['id'] = doc.id;
-      data['pinned'] = data['pinned'] ?? false; // Initialize pinned field
+      data['pinned'] = data['pinned'] ?? false;
+      data['hidden'] = data['hidden'] ?? false; // <-- add this line
       return data;
     }).toList();
 
@@ -180,6 +183,7 @@ class _NotesListPageState extends State<NotesListPage>
         final data = doc.data();
         data['id'] = doc.id;
         data['pinned'] = data['pinned'] ?? false; // Initialize pinned field
+        data['hidden'] = data['hidden'] ?? false; // Initialize hidden field
         return data;
       }).toList();
 
@@ -207,6 +211,7 @@ class _NotesListPageState extends State<NotesListPage>
         final data = doc.data();
         data['id'] = doc.id;
         data['pinned'] = data['pinned'] ?? false; // Initialize pinned field
+        data['hidden'] = data['hidden'] ?? false; // Initialize hidden field
         return data;
       }).toList();
 
@@ -228,6 +233,19 @@ class _NotesListPageState extends State<NotesListPage>
           .collection('notes')
           .doc(noteId)
           .update({'pinned': !currentlyPinned});
+      _fetchNotes();
+    }
+  }
+
+  Future<void> _toggleHideNote(String noteId, bool currentlyHidden) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(noteId)
+          .update({'hidden': !currentlyHidden});
       _fetchNotes();
     }
   }
@@ -332,7 +350,7 @@ class _NotesListPageState extends State<NotesListPage>
     final isPinned = note['pinned'] ?? false;
 
     return GestureDetector(
-      onTap: () => _openNote(note),
+      onTap: () => openNote(note),
       onLongPress: () {
         setState(() {
           _showDeleteButton = true;
@@ -470,6 +488,10 @@ class _NotesListPageState extends State<NotesListPage>
   }
 
   void _showNoteOptions(BuildContext context, String noteId, bool isPinned) {
+    final note = _notes.firstWhere((n) => n['id'] == noteId,
+        orElse: () => <String, dynamic>{});
+    final isHidden = note.isNotEmpty && note['hidden'] == true;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -497,6 +519,23 @@ class _NotesListPageState extends State<NotesListPage>
                 onTap: () {
                   Navigator.pop(context);
                   _togglePinNote(noteId, isPinned);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  isHidden ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.blueGrey,
+                ),
+                title: Text(
+                  isHidden ? 'Unhide Note' : 'Hide Note',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.sp,
+                    color: Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _toggleHideNote(noteId, isHidden);
                 },
               ),
               ListTile(
@@ -547,7 +586,7 @@ class _NotesListPageState extends State<NotesListPage>
     );
   }
 
-  void _openNote(Map<String, dynamic>? note) {
+  void openNote(Map<String, dynamic>? note) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -559,104 +598,121 @@ class _NotesListPageState extends State<NotesListPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final notesToDisplay = _isSearching ? _filteredNotes : _notes;
+    final notesToDisplay = (_isSearching ? _filteredNotes : _notes)
+        .where((note) => note['hidden'] != true)
+        .toList();
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showDeleteButton = false;
-        });
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _fetchNotes();
+        _checkInternetConnectivity();
+        _checkInitialConnectivity();
       },
-      child: RefreshIndicator(
-        onRefresh: () async {
-          await _fetchNotes();
-          _checkInternetConnectivity();
-          _checkInitialConnectivity();
-        },
-        child: Scaffold(
-          backgroundColor: Color.fromRGBO(243, 243, 243, 1),
-          appBar: AppBar(
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            title: _isSearching ? _buildSearchField() : _buildAppBarTitle(),
-            actions: [
-              if (!_isSearching)
-                IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: _startSearch,
-                ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  setState(() {
-                    _sortOrder = value;
-                    _saveSortOrderPreference(value);
-                    _sortNotes();
-                  });
-                },
-                itemBuilder: (BuildContext context) {
-                  return {'Descending', 'Ascending'}.map((String choice) {
-                    return PopupMenuItem<String>(
-                      value: choice,
-                      child: Text(choice),
-                    );
-                  }).toList();
-                },
-                icon: const Icon(Icons.sort, color: Colors.black),
+      child: Scaffold(
+        backgroundColor: Color.fromRGBO(243, 243, 243, 1),
+        appBar: AppBar(
+          scrolledUnderElevation: 0,
+          automaticallyImplyLeading: false,
+          title: _isSearching ? _buildSearchField() : _buildAppBarTitle(),
+          actions: [
+            if (!_isSearching)
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: _startSearch,
               ),
-            ],
-            elevation: 0,
-          ),
-          body: notesToDisplay.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.note_add, size: 20.w, color: Colors.grey),
-                      SizedBox(height: 2.h),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                setState(() {
+                  _sortOrder = value;
+                  _saveSortOrderPreference(value);
+                  _sortNotes();
+                });
+              },
+              itemBuilder: (BuildContext context) {
+                return {'Descending', 'Ascending'}.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              },
+              icon: const Icon(Icons.sort, color: Colors.black),
+            ),
+          ],
+          elevation: 0,
+        ),
+        body: notesToDisplay.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.note_add, size: 20.w, color: Colors.grey),
+                    SizedBox(height: 2.h),
+                    Text(
+                      _isSearching ? 'No matching notes' : 'No Notes Found',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16.sp, color: Colors.grey),
+                    ),
+                    if (!_isSearching)
                       Text(
-                        _isSearching ? 'No matching notes' : 'No Notes Found',
+                        'Tap + to create your first note',
                         style: GoogleFonts.poppins(
-                            fontSize: 16.sp, color: Colors.grey),
+                            fontSize: 12.sp, color: Colors.grey),
                       ),
-                      if (!_isSearching)
-                        Text(
-                          'Tap + to create your first note',
-                          style: GoogleFonts.poppins(
-                              fontSize: 12.sp, color: Colors.grey),
-                        ),
-                    ],
-                  ),
-                )
-              : Padding(
-                  padding: EdgeInsets.all(2.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 2.w,
-                            crossAxisSpacing: 2.w,
-                            childAspectRatio: 0.75,
-                          ),
-                          itemCount: notesToDisplay.length,
-                          itemBuilder: (context, index) => FadeInUp(
-                            delay: Duration(milliseconds: 100 * index),
-                            child:
-                                _buildNoteCard(notesToDisplay[index], context),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-          floatingActionButtonLocation: CustomFABLocationWithSizer(),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _openNote(null),
+              )
+            : Padding(
+                padding: EdgeInsets.all(2.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 2.w,
+                          crossAxisSpacing: 2.w,
+                          childAspectRatio: 0.75,
+                        ),
+                        itemCount: notesToDisplay.length,
+                        itemBuilder: (context, index) => FadeInUp(
+                          delay: Duration(milliseconds: 100 * index),
+                          child: _buildNoteCard(notesToDisplay[index], context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+        floatingActionButtonLocation: CustomFABLocationWithSizer(),
+        floatingActionButton: GestureDetector(
+          onDoubleTap: () {
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => HiddenNotesPage(
+                  notes: _notes.where((n) => n['hidden'] == true).toList(),
+                  onUnhide: (noteId) async {
+                    await _toggleHideNote(noteId, true);
+                  },
+                ),
+                transitionsBuilder: (_, animation, __, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              ),
+            );
+          },
+          child: FloatingActionButton(
+            onPressed: () => openNote(null),
             backgroundColor: Colors.teal,
             child: Icon(Icons.add, size: 20.sp),
+            tooltip: 'Tap to add a new note\nDouble tap to view hidden notes',
           ),
         ),
       ),
