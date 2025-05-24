@@ -26,10 +26,14 @@ class _NotesListPageState extends State<NotesListPage>
   @override
   bool get wantKeepAlive => true;
   List<Map<String, dynamic>> _notes = [];
+  List<Map<String, dynamic>> _filteredNotes = [];
   final String _notesKey = 'cached_notes';
-  final String _sortOrderKey = 'sort_order'; // Key for sort order preference
-  String _sortOrder = 'Descending'; // Default sort order
+  final String _sortOrderKey = 'sort_order';
+  String _sortOrder = 'Descending';
   bool _isOnline = false;
+  bool _showDeleteButton = false;
+  bool _isSearching = false;
+  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -152,6 +156,7 @@ class _NotesListPageState extends State<NotesListPage>
     final notes = querySnapshot.docs.map((doc) {
       final data = doc.data();
       data['id'] = doc.id;
+      data['pinned'] = data['pinned'] ?? false; // Initialize pinned field
       return data;
     }).toList();
 
@@ -174,6 +179,7 @@ class _NotesListPageState extends State<NotesListPage>
       final notes = querySnapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
+        data['pinned'] = data['pinned'] ?? false; // Initialize pinned field
         return data;
       }).toList();
 
@@ -200,6 +206,7 @@ class _NotesListPageState extends State<NotesListPage>
       final notes = querySnapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
+        data['pinned'] = data['pinned'] ?? false; // Initialize pinned field
         return data;
       }).toList();
 
@@ -212,13 +219,63 @@ class _NotesListPageState extends State<NotesListPage>
     }
   }
 
+  Future<void> _togglePinNote(String noteId, bool currentlyPinned) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('userNotes')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(noteId)
+          .update({'pinned': !currentlyPinned});
+      _fetchNotes();
+    }
+  }
+
+  void _filterNotes(String query) {
+    setState(() {
+      _filteredNotes = _notes.where((note) {
+        final title = note['title']?.toString().toLowerCase() ?? '';
+        final body = note['body']?.toString().toLowerCase() ?? '';
+        return title.contains(query.toLowerCase()) ||
+            body.contains(query.toLowerCase());
+      }).toList();
+    });
+  }
+
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+      _filteredNotes = List.from(_notes);
+    });
+  }
+
+  void _endSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchController.clear();
+      _filteredNotes.clear();
+    });
+  }
+
   void _sortNotes() {
-    _notes.sort((a, b) {
-      DateTime dateA = DateTime.parse(a['createdDate']);
-      DateTime dateB = DateTime.parse(b['createdDate']);
+    final notesToSort = _isSearching ? _filteredNotes : _notes;
+
+    notesToSort.sort((a, b) {
+      // Sort pinned notes first
+      final aPinned = a['pinned'] ?? false;
+      final bPinned = b['pinned'] ?? false;
+      if (aPinned != bPinned) {
+        return aPinned ? -1 : 1;
+      }
+
+      DateTime dateA =
+          DateTime.parse(a['lastModifiedDate'] ?? a['createdDate']);
+      DateTime dateB =
+          DateTime.parse(b['lastModifiedDate'] ?? b['createdDate']);
       return _sortOrder == 'Descending'
-          ? dateA.compareTo(dateB)
-          : dateB.compareTo(dateA);
+          ? dateB.compareTo(dateA)
+          : dateA.compareTo(dateB);
     });
   }
 
@@ -226,7 +283,44 @@ class _NotesListPageState extends State<NotesListPage>
     return themes[themeIndex % themes.length];
   }
 
-  bool _showDeleteButton = false;
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      decoration: InputDecoration(
+        hintText: 'Search notes...',
+        border: InputBorder.none,
+        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 14.sp),
+        suffixIcon: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: _endSearch,
+        ),
+      ),
+      style: GoogleFonts.plusJakartaSans(fontSize: 14.sp),
+      onChanged: _filterNotes,
+    );
+  }
+
+  Widget _buildAppBarTitle() {
+    return Row(
+      children: [
+        Text(
+          'My Notes',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Icon(
+          _isOnline ? Icons.cloud : Icons.cloud_off,
+          size: 18.sp,
+          color: _isOnline ? Colors.green : Colors.red,
+        ),
+      ],
+    );
+  }
 
   Widget _buildNoteCard(Map<String, dynamic> note, BuildContext context) {
     final theme = _getTheme(note['themeIndex']);
@@ -235,6 +329,7 @@ class _NotesListPageState extends State<NotesListPage>
 
     DateTime createdDate = DateTime.parse(note['createdDate']);
     final formattedDate = DateFormat('MMM dd, yyyy').format(createdDate);
+    final isPinned = note['pinned'] ?? false;
 
     return GestureDetector(
       onTap: () => _openNote(note),
@@ -272,6 +367,12 @@ class _NotesListPageState extends State<NotesListPage>
               ),
             ),
           ),
+          if (isPinned)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Icon(Icons.push_pin, color: Colors.brown, size: 16.sp),
+            ),
           Visibility(
             visible: _showDeleteButton,
             child: Positioned(
@@ -282,7 +383,7 @@ class _NotesListPageState extends State<NotesListPage>
                   setState(() {
                     _showDeleteButton = false;
                   });
-                  _confirmDeleteNote(note['id']);
+                  _showNoteOptions(context, note['id'], isPinned);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(8),
@@ -294,7 +395,7 @@ class _NotesListPageState extends State<NotesListPage>
                     ),
                   ),
                   child: Icon(
-                    Icons.delete,
+                    Icons.more_vert,
                     color: Colors.white,
                     size: 16.sp,
                   ),
@@ -368,7 +469,7 @@ class _NotesListPageState extends State<NotesListPage>
     }
   }
 
-  void _showNoteOptions(BuildContext context, String noteId) {
+  void _showNoteOptions(BuildContext context, String noteId, bool isPinned) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -383,19 +484,28 @@ class _NotesListPageState extends State<NotesListPage>
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: Icon(
+                    isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                    color: Colors.amber),
+                title: Text(
+                  isPinned ? 'Unpin Note' : 'Pin Note',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.sp,
+                    color: Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _togglePinNote(noteId, isPinned);
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: Text(
                   'Delete Note',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.sp,
+                    fontSize: 12.sp,
                     color: Colors.red,
-                  ),
-                ),
-                subtitle: Text(
-                  'Permanently remove this note',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.sp,
-                    color: Colors.grey,
                   ),
                 ),
                 onTap: () {
@@ -449,6 +559,8 @@ class _NotesListPageState extends State<NotesListPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final notesToDisplay = _isSearching ? _filteredNotes : _notes;
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -466,25 +578,13 @@ class _NotesListPageState extends State<NotesListPage>
           appBar: AppBar(
             scrolledUnderElevation: 0,
             automaticallyImplyLeading: false,
-            title: Row(
-              children: [
-                Text(
-                  'My Notes',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  _isOnline ? Icons.cloud : Icons.cloud_off,
-                  size: 18.sp,
-                  color: _isOnline ? Colors.green : Colors.red,
-                ),
-              ],
-            ),
+            title: _isSearching ? _buildSearchField() : _buildAppBarTitle(),
             actions: [
+              if (!_isSearching)
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: _startSearch,
+                ),
               PopupMenuButton<String>(
                 onSelected: (value) {
                   setState(() {
@@ -506,7 +606,7 @@ class _NotesListPageState extends State<NotesListPage>
             ],
             elevation: 0,
           ),
-          body: _notes.isEmpty
+          body: notesToDisplay.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -514,15 +614,16 @@ class _NotesListPageState extends State<NotesListPage>
                       Icon(Icons.note_add, size: 20.w, color: Colors.grey),
                       SizedBox(height: 2.h),
                       Text(
-                        'No Notes Found',
+                        _isSearching ? 'No matching notes' : 'No Notes Found',
                         style: GoogleFonts.poppins(
                             fontSize: 16.sp, color: Colors.grey),
                       ),
-                      Text(
-                        'Tap + to create your first note',
-                        style: GoogleFonts.poppins(
-                            fontSize: 12.sp, color: Colors.grey),
-                      ),
+                      if (!_isSearching)
+                        Text(
+                          'Tap + to create your first note',
+                          style: GoogleFonts.poppins(
+                              fontSize: 12.sp, color: Colors.grey),
+                        ),
                     ],
                   ),
                 )
@@ -540,14 +641,14 @@ class _NotesListPageState extends State<NotesListPage>
                             crossAxisSpacing: 2.w,
                             childAspectRatio: 0.75,
                           ),
-                          itemCount: _notes.length,
+                          itemCount: notesToDisplay.length,
                           itemBuilder: (context, index) => FadeInUp(
                             delay: Duration(milliseconds: 100 * index),
-                            child: _buildNoteCard(_notes[index], context),
+                            child:
+                                _buildNoteCard(notesToDisplay[index], context),
                           ),
                         ),
                       ),
-                      // SizedBox(height: 5.h),
                     ],
                   ),
                 ),
