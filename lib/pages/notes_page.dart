@@ -6,6 +6,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hundred_days/utils/fab_offset.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
@@ -462,7 +463,6 @@ class _NotesListPageState extends State<NotesListPage>
         },
         child: Scaffold(
           backgroundColor: Color.fromRGBO(243, 243, 243, 1),
-          bottomNavigationBar: SizedBox(height: 10.h),
           appBar: AppBar(
             scrolledUnderElevation: 0,
             automaticallyImplyLeading: false,
@@ -547,16 +547,15 @@ class _NotesListPageState extends State<NotesListPage>
                           ),
                         ),
                       ),
+                      // SizedBox(height: 5.h),
                     ],
                   ),
                 ),
-          floatingActionButton: Bounce(
-            duration: const Duration(milliseconds: 500),
-            child: FloatingActionButton(
-              onPressed: () => _openNote(null),
-              backgroundColor: Colors.teal,
-              child: Icon(Icons.add, size: 20.sp),
-            ),
+          floatingActionButtonLocation: CustomFABLocationWithSizer(),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _openNote(null),
+            backgroundColor: Colors.teal,
+            child: Icon(Icons.add, size: 20.sp),
           ),
         ),
       ),

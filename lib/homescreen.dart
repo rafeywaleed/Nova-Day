@@ -1043,17 +1043,21 @@ class _HomeScreenState extends State<HomeScreen>
           showLabel: true,
           textOverflow: TextOverflow.visible,
           maxLine: 1,
-          shadowElevation: 2,
+
+          removeMargins: false,
+          showShadow: true,
+          shadowElevation: 1,
+
           kBottomRadius: 0.0,
           notchColor: Colors.white,
-          removeMargins: false,
+          showBlurBottomBar: false,
           showBottomRadius: true,
           showTopRadius: true,
           // bottomBarWidth: 500,
           // showShadow: true,
           durationInMilliSeconds: 100,
           itemLabelStyle: TextStyle(fontSize: 8.sp, color: Colors.black54),
-          elevation: 0,
+          elevation: 1,
           bottomBarItems: [
             BottomBarItem(
               inActiveItem:

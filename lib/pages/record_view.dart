@@ -212,6 +212,7 @@ class _ProgressTrackerState extends State<ProgressTracker> {
                             children: [
                               _buildProgressIndicators(),
                               _buildTaskCompletionProgress(),
+                              SizedBox(height: 10.h),
                             ],
                           )
                         : _buildSelectedDateTasks(),
@@ -302,115 +303,132 @@ class _ProgressTrackerState extends State<ProgressTracker> {
   Widget _buildTaskCompletionProgress() {
     return Padding(
       padding: EdgeInsets.all(2.w),
-      child: Column(
-        children: [
-          Text(
-            "Task Completion Progress",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.grey,
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
-          ),
-          SizedBox(height: 1.h),
-          Container(
-            height: 40.h,
-            decoration: BoxDecoration(
-              // color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              // boxShadow: [
-              //   BoxShadow(
-              //     color: Colors.grey.withOpacity(0.1),
-              //     spreadRadius: 2,
-              //     blurRadius: 8,
-              //     offset: const Offset(0, 2),
-              //   ),
-              // ],
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(
+              "Task Completion Progress",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-            child: FutureBuilder(
-              future: Future.wait(
-                  dateMap.keys.map((date) => fetchTasksForDate(date))),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const PLoader();
-                }
+            SizedBox(height: 1.h),
+            Container(
+              height: 40.h,
+              decoration: BoxDecoration(
+                // color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.grey.withOpacity(0.1),
+                //     spreadRadius: 2,
+                //     blurRadius: 8,
+                //     offset: const Offset(0, 2),
+                //   ),
+                // ],
+              ),
+              child: FutureBuilder(
+                future: Future.wait(
+                    dateMap.keys.map((date) => fetchTasksForDate(date))),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const PLoader();
+                  }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No data available.',
-                      style: GoogleFonts.plusJakartaSans(),
-                    ),
-                  );
-                }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                List<List<Map<String, dynamic>>> tasksList = snapshot.data!;
-                List<DateTime> sortedDates = dateMap.keys.toList()
-                  ..sort((a, b) => b.compareTo(a));
-
-                return ListView.builder(
-                  itemCount: sortedDates.length,
-                  itemBuilder: (context, index) {
-                    final date = sortedDates[index];
-                    final completion = dateMap[date]!;
-                    final tasks =
-                        tasksList[dateMap.keys.toList().indexOf(date)];
-                    double completionRate =
-                        tasks.isEmpty ? 0 : completion / tasks.length;
-
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.05),
-                            spreadRadius: 1,
-                            blurRadius: 4,
-                          ),
-                        ],
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No data available.',
+                        style: GoogleFonts.plusJakartaSans(),
                       ),
-                      child: ListTile(
-                        title: Text(
-                          DateFormat('dd-MM-yyyy').format(date),
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    );
+                  }
+
+                  List<List<Map<String, dynamic>>> tasksList = snapshot.data!;
+                  List<DateTime> sortedDates = dateMap.keys.toList()
+                    ..sort((a, b) => b.compareTo(a));
+
+                  return ListView.builder(
+                    itemCount: sortedDates.length,
+                    itemBuilder: (context, index) {
+                      final date = sortedDates[index];
+                      final completion = dateMap[date]!;
+                      final tasks =
+                          tasksList[dateMap.keys.toList().indexOf(date)];
+                      double completionRate =
+                          tasks.isEmpty ? 0 : completion / tasks.length;
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 181, 225, 250),
+                          // color: const Color.fromARGB(255, 185, 215, 255),  Nice Blue
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.05),
+                              spreadRadius: 1,
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
-                        trailing: Container(
-                          width: 30.w,
-                          height: 2.h,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEEEEEE),
-                            borderRadius: BorderRadius.circular(5),
+                        child: ListTile(
+                          title: Text(
+                            DateFormat('dd-MM-yyyy').format(date),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: completionRate,
-                            child: Container(
-                              height: 2.h,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4CAF50),
-                                borderRadius: BorderRadius.circular(5),
+                          trailing: Container(
+                            width: 30.w,
+                            height: 2.h,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEEEEEE),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: completionRate,
+                              child: Container(
+                                height: 2.h,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4CAF50),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

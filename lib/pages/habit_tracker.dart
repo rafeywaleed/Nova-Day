@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/pages/record_view.dart';
+import 'package:hundred_days/utils/fab_offset.dart';
 import 'package:iconly/iconly.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -561,7 +562,7 @@ class _HabitTrackerState extends State<HabitTracker> {
                       exitDuration: const Duration(milliseconds: 1000),
                       padding: const EdgeInsets.all(20),
                       message:
-                          'These are your daily habits \n(like gym, reading, or studying). \nThey reset every day. \nSwipe left to remove a habit.',
+                          'These are your daily habits \n(like gym, reading, or studying). \nThey reset every day. \nSwipe left to remove a habit.\nhold and drag to reorder.',
                       child: Icon(
                         Icons.info_outline,
                         color: Colors.grey,
@@ -585,109 +586,122 @@ class _HabitTrackerState extends State<HabitTracker> {
                           ),
                         ),
                       )
-                    : ListView.builder(
+                    : ReorderableListView(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: defaultTasks.length,
-                        itemBuilder: (context, index) {
-                          Map<String, dynamic> task = defaultTasks[index];
-                          return Dismissible(
-                            key: Key(
-                                task['task'] + task['completed'].toString()),
-                            direction: DismissDirection.endToStart,
-                            background: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(15),
+                        onReorder: (oldIndex, newIndex) async {
+                          setState(() {
+                            if (newIndex > oldIndex) newIndex -= 1;
+                            final item = defaultTasks.removeAt(oldIndex);
+                            defaultTasks.insert(newIndex, item);
+                          });
+                          await saveTasksToSharedPreferences(defaultTasks);
+                          await saveTasksToFirebase(defaultTasks);
+                          await saveNormalProgress();
+                          await saveProgress();
+                        },
+                        children: [
+                          for (int index = 0;
+                              index < defaultTasks.length;
+                              index++)
+                            Dismissible(
+                              key: Key(defaultTasks[index]['task'] +
+                                  defaultTasks[index]['completed'].toString()),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                alignment: Alignment.centerRight,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: const Icon(IconlyLight.delete,
+                                    color: Colors.white),
                               ),
-                              alignment: Alignment.centerRight,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: const Icon(IconlyLight.delete,
-                                  color: Colors.white),
-                            ),
-                            confirmDismiss: (direction) async {
-                              bool? confirm = await showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text(
-                                    'Remove Habit',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16.sp,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  content: Text(
-                                    'Are you sure you want to remove this habit from your daily routine? This action can’t be undone.',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.sp,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
-                                      child: const Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.red),
+                              confirmDismiss: (direction) async {
+                                bool? confirm = await showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text(
+                                      'Remove Habit',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16.sp,
+                                        color: Colors.black87,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              );
-                              return confirm == true;
-                            },
-                            onDismissed: (direction) async {
-                              await deleteDailyTask(index);
-                            },
-                            child: Card(
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                // side: const BorderSide(
-                                //   color: Colors.grey,
-                                //   width: 0.9,
-                                // ),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: ListTile(
-                                leading: Checkbox(
-                                  value: task['completed'] ?? false,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      defaultTasks[index]['completed'] = value!;
-                                      saveTasksToSharedPreferences(
-                                          defaultTasks);
-                                      saveProgress();
-                                      saveNormalProgress();
-                                    });
-                                  },
-                                ),
-                                title: Text(
-                                  task['task'],
-                                  style: GoogleFonts.plusJakartaSans(
-                                    decoration: task['completed'] == true
-                                        ? TextDecoration.lineThrough
-                                        : TextDecoration.none,
-                                    color: task['completed'] == true
-                                        ? Colors.grey
-                                        : Colors.black,
+                                    content: Text(
+                                      'Are you sure you want to remove this habit from your daily routine? This action can’t be undone.',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12.sp,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                );
+                                return confirm == true;
+                              },
+                              onDismissed: (direction) async {
+                                await deleteDailyTask(index);
+                              },
+                              child: Card(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
-                                trailing: Icon(
-                                  Icons.drag_indicator_rounded,
-                                  color: Colors.grey[400],
+                                child: ListTile(
+                                  leading: Checkbox(
+                                    value: defaultTasks[index]['completed'] ??
+                                        false,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        defaultTasks[index]['completed'] =
+                                            value!;
+                                        saveTasksToSharedPreferences(
+                                            defaultTasks);
+                                        saveProgress();
+                                        saveNormalProgress();
+                                      });
+                                    },
+                                  ),
+                                  title: Text(
+                                    defaultTasks[index]['task'],
+                                    style: GoogleFonts.plusJakartaSans(
+                                      decoration: defaultTasks[index]
+                                                  ['completed'] ==
+                                              true
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
+                                      color: defaultTasks[index]['completed'] ==
+                                              true
+                                          ? Colors.grey
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  trailing: Icon(
+                                    Icons.drag_indicator_rounded,
+                                    color: Colors.grey[400],
+                                  ),
                                 ),
                               ),
                             ),
-                          );
-                        },
+                        ],
                       ),
                 const SizedBox(height: 80),
               ],
@@ -695,6 +709,7 @@ class _HabitTrackerState extends State<HabitTracker> {
           ),
         ),
         bottomNavigationBar: SizedBox(height: 10.h),
+        floatingActionButtonLocation: CustomFABLocationWithSizer(),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             String? newTask = await showDialog<String>(

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hundred_days/homescreen.dart';
 import 'package:hundred_days/utils/dialog_box.dart';
+import 'package:hundred_days/utils/fab_offset.dart';
 import 'package:hundred_days/utils/task_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
@@ -180,7 +181,7 @@ class _CheckListPageState extends State<CheckListPage> {
                 padding: const EdgeInsets.all(5),
                 textAlign: TextAlign.center,
                 message:
-                    'Your to-do list \nwhich will not be in account \nof your progess',
+                    'This is your personal to-do list.\nThese tasks won’t affect \nyour main progress tracking.\nSwipe left to delete a task.\nHold and Drag to reorder tasks.',
                 child: Icon(
                   Icons.info_outline,
                   color: Colors.grey,
@@ -243,37 +244,52 @@ class _CheckListPageState extends State<CheckListPage> {
                           ),
                         ),
                       )
-                    : ListView.builder(
+                    : ReorderableListView(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: additionalTasks.length,
-                        itemBuilder: (context, index) {
-                          return TaskCard(
-                            task: additionalTasks[index],
-                            onDelete: () {
-                              String taskName = additionalTasks[index]['task'];
-                              setState(() {
-                                additionalTasks.removeWhere(
-                                    (task) => task['task'] == taskName);
-                              });
-                              deleteAdditionalTask(taskName);
-                            },
-                            isDailyTask: false,
-                            onChanged: (value) {
-                              setState(() {
-                                additionalTasks[index]['completed'] = value!;
-                              });
-                              updateAdditionalTask(
-                                  additionalTasks[index]['task'], value!);
-                            },
-                          );
+                        onReorder: (oldIndex, newIndex) async {
+                          setState(() {
+                            if (newIndex > oldIndex) newIndex -= 1;
+                            final item = additionalTasks.removeAt(oldIndex);
+                            additionalTasks.insert(newIndex, item);
+                          });
+                          await saveAdditionalTasksToSharedPreferences(
+                              additionalTasks);
+                          await saveAdditionalTasksToFirebase(additionalTasks);
                         },
+                        children: [
+                          for (int index = 0;
+                              index < additionalTasks.length;
+                              index++)
+                            TaskCard(
+                              key: ValueKey(additionalTasks[index]['task']),
+                              task: additionalTasks[index],
+                              onDelete: () {
+                                String taskName =
+                                    additionalTasks[index]['task'];
+                                setState(() {
+                                  additionalTasks.removeWhere(
+                                      (task) => task['task'] == taskName);
+                                });
+                                deleteAdditionalTask(taskName);
+                              },
+                              isDailyTask: false,
+                              onChanged: (value) {
+                                setState(() {
+                                  additionalTasks[index]['completed'] = value!;
+                                });
+                                updateAdditionalTask(
+                                    additionalTasks[index]['task'], value!);
+                              },
+                            ),
+                        ],
                       ),
                 const SizedBox(height: 80),
               ],
             ),
           ),
         ),
+        floatingActionButtonLocation: CustomFABLocationWithSizer(),
         floatingActionButton: FloatingActionButton(
           backgroundColor: const Color.fromRGBO(0, 0, 0, 1),
           foregroundColor: Colors.white,
