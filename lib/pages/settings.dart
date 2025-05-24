@@ -251,41 +251,42 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   );
                 },
               ),
-              SizedBox(height: 3.5.h), // Spacing before the logout button
+              SizedBox(height: 4.h),
               Align(
                 alignment: Alignment.center,
                 child: ElevatedButton(
                   onPressed: () => logout(context),
                   style: ElevatedButton.styleFrom(
-                    elevation: 1, // Flat design
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                    ),
-                    backgroundColor: Colors.grey.shade100,
-                    side: const BorderSide(
-                      color: Colors.grey,
-                      width: 1,
+                      side: BorderSide(
+                        color: Colors.red.withOpacity(0.3),
+                      ),
                     ),
                     padding: EdgeInsets.symmetric(
-                      horizontal: 3.w,
+                      horizontal: 5.w,
                       vertical: 1.5.h,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Logout  ',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.red,
-                          // fontWeight: FontWeight.bold,
-                          fontSize: 13.sp, // Responsive font size
-                        ),
-                      ),
                       Icon(
                         Icons.logout,
                         color: Colors.red,
-                        size: 17.sp,
+                        size: 13.sp,
+                      ),
+                      SizedBox(width: 2.w),
+                      Text(
+                        'Log Out',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10.sp,
+                        ),
                       ),
                     ],
                   ),
@@ -363,39 +364,66 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
   }
 
   void logout(BuildContext context) async {
-    // Show an Android-style confirmation dialog before logging out
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Log Out"),
-          content: const Text("Are you sure you want to log out?"),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          title: Row(
+            children: [
+              Icon(Icons.logout, color: Colors.red),
+              SizedBox(width: 8),
+              Text(
+                "Log Out",
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.sp,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Are you sure you want to log out?",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5.sp,
+              color: Colors.grey[700],
             ),
+          ),
+          actionsPadding:
+              EdgeInsets.symmetric(horizontal: 10.w, vertical: 1.5.h),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
             TextButton(
-              child: const Text("Log Out"),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.sp,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
                 try {
                   SharedPreferences prefs =
                       await SharedPreferences.getInstance();
                   await prefs.clear();
-                  print("Shared preferences cleared");
-
                   await FirebaseAuth.instance.signOut();
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text(
-                          'Logged out successfully (local data cleared)'),
+                      content: const Text('Logged out successfully'),
                       backgroundColor: Colors.red,
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   );
@@ -403,8 +431,7 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                   Navigator.popUntil(context, (route) => route.isFirst);
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const WelcomePage()),
+                    MaterialPageRoute(builder: (_) => const WelcomePage()),
                   );
                 } catch (e) {
                   print("Logout error: $e");
@@ -414,12 +441,23 @@ class _UserSettingsPageState extends State<UserSettingsPage> {
                       backgroundColor: Colors.red,
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   );
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                "Log Out",
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.sp),
+              ),
             ),
           ],
         );

@@ -53,9 +53,9 @@ class _HomeScreenState extends State<HomeScreen>
   String? userEmail;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  final _pageController = PageController(initialPage: 0);
+  final _pageController = PageController(initialPage: 2);
   final _controller = NotchBottomBarController(index: 2);
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   void _initAnimationController() {
     _logoAnimationController = AnimationController(
